@@ -17,5 +17,3 @@ dependencies:
   - sqlite=3.13.0=1
   - tk=8.5.19=2
   - zlib=1.2.11=h14c3975_1004
-prefix: /home/wallinb/.pyenv/versions/miniconda3-latest/envs/amigosiii
-
