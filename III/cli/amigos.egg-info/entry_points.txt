@@ -1,0 +1,3 @@
+[console_scripts]
+amigos = amigos.cli:main
+
