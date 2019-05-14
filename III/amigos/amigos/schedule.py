@@ -76,6 +76,7 @@ class Scheduler(object):
     factories to create jobs, keep record of scheduled jobs and
     handle their execution.
     """
+
     def __init__(self):
         self.jobs = []
 
@@ -148,7 +149,7 @@ class Scheduler(object):
         if isinstance(ret, CancelJob) or ret is CancelJob:
             self.cancel_job(job)
 
-    @property
+    # @property
     def next_run(self):
         """
         Datetime when the next job should run.
@@ -185,6 +186,7 @@ class Job(object):
     A job is usually created and returned by :meth:`Scheduler.every`
     method, which also defines its `interval`.
     """
+
     def __init__(self, interval, scheduler=None):
         self.interval = interval  # pause interval * unit between runs
         self.latest = None  # upper limit to the interval
@@ -241,7 +243,7 @@ class Job(object):
                 timestats=timestats
             )
 
-    @property
+    # @property
     def second(self):
         if self.interval != 1:
             raise IntervalError('Use seconds instead of second')
@@ -532,7 +534,7 @@ class Job(object):
                 elif self.unit == 'minutes' \
                         and self.at_time.second > now.second:
                     self.next_run = self.next_run - \
-                                    datetime.timedelta(minutes=1)
+                        datetime.timedelta(minutes=1)
         if self.start_day is not None and self.at_time is not None:
             # Let's see if we will still make that time we specified today
             if (self.next_run - datetime.datetime.now()).days >= 7:

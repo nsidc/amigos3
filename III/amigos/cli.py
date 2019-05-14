@@ -4,8 +4,8 @@ import os.path
 import amigos.argparse as argparse
 import amigos.monitor
 import amigos.peripheral
-from amigos.schedules import setup
-
+import amigos.watchdog as watchdog
+import amigos.gpio as gpio
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 
@@ -36,12 +36,15 @@ def main():
     wdog.add_argument('watchdog', help='View running watchdog setting', nargs='?')
     wdog.add_argument('-u', '--update',
                       help='update the watchdog cycle', action='store_true')
+    wdog.add_argument('-sl', '--sleep',
+                      help='Put board to sleep', action='store_true')
     wdog.add_argument('-d', '--deactivate',
                       help='deactivate watchdog from auto update', action='store_true')
 
     # power commands
-    power = parser.add_argument_group('Watchdog', 'Change watch dog setup')
-    power.add_argument('power', help='View running watchdog setting', nargs='?')
+    power = parser.add_argument_group('Power Control', 'Control power on gpio pins')
+    power.add_argument(
+        'power', help='Need one of the secondary arguments bellow', nargs='?')
     power.add_argument('-r_on', '--router_on',
                        help='Router on', action='store_true')
     power.add_argument('-r_off', '--router_off',
@@ -64,18 +67,30 @@ def main():
 
     # logic for watchdog configuration
     elif args.schedule == 'watchdog':
-        sp = setup()
         if args.update:
-            sp.watchdog(arg=int(input("Enter 1 for an hour and .5 for 3 minutes:\n")))
+            watchdog.set_mode(
+                mode=int(input("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")))
         elif args.deactivate:
-            sp.watchdog(arg="deactivate")
+            watchdog.set_mode(default=True)
+        elif args.sleep:
+            watchdog.set_mode(
+                mode=int(input("Enter 2 for an hour and 3 for 3 minutes of sleep:\n")))
+        else:
+            watchdog.set_mode(mode=None)
     elif args.schedule == 'power':
-        sp = setup()
         command = (args.router_on, args.router_off, args.gps_on, args.gps_off)
         if any(command):
-            sp.power(command)
+            gpio.router_on(int(args.router_on))
+            gpio.router_off(int(args.router_off))
+            gpio.gps_on(int(args.gps_on))
+            gpio.gps_off(int(args.gps_off))
         else:
-            print "Too few argument. No device specified."
+            print "Too few arguments. No device specified."
+    else:
+        print 'No such a command or it is not implemented yet'
+        inp = raw_input("print usage? y/n: ")
+        if inp in ['y', 'yes']:
+            parser.print_help()
 
 
 if __name__ == "__main__":
