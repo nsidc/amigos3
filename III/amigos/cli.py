@@ -2,8 +2,6 @@
 import threading
 import os.path
 import amigos.argparse as argparse
-import amigos.monitor
-import amigos.peripheral
 import amigos.watchdog as watchdog
 import amigos.gpio as gpio
 my_path = os.path.abspath(os.path.dirname(__file__))
@@ -58,7 +56,7 @@ def main():
     h.add_argument('-h', '--help',
                    help='Show this menu', action='store_true')
 
-    # retrieve all arguments enter
+    # retrieve all arguments entered
     args = parser.parse_args()
     # print (args)
 
