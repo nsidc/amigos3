@@ -16,7 +16,8 @@ def main():
 
     parser = argparse.ArgumentParser(prog='Amigos', add_help=False)
     # Group or command for schedule viewing
-    schedule = parser.add_argument_group('Schedule', 'Show all the schedules')
+    schedule = parser.add_argument_group(
+        'Set or View Schedules', 'Show all the schedules')
     schedule.add_argument(
         'schedule', help='View all pending schedule', nargs='?')
     schedule.add_argument(
@@ -25,12 +26,12 @@ def main():
         '-w', '--winter', help='View winter schedule', action='store_true')
 
     # group of command for weather viewing
-    weather = parser.add_argument_group('weather', 'show weather data')
+    weather = parser.add_argument_group('Read weather', 'show weather data')
     weather.add_argument('weather', help='View all data saved', nargs='?')
     weather.add_argument('-a', help='Show actual weather', action='store_true')
 
     # group of command for watchdog configureting
-    wdog = parser.add_argument_group('Watchdog', 'Change watch dog setup')
+    wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
     wdog.add_argument('watchdog', help='View running watchdog setting', nargs='?')
     wdog.add_argument('-u', '--update',
                       help='update the watchdog cycle', action='store_true')
@@ -51,6 +52,16 @@ def main():
                        help='GPS on', action='store_true')
     power.add_argument('-g_off', '--gps_off',
                        help='GPS off', action='store_true')
+    power.add_argument('-w_on', '--weather_on',
+                       help='Weather station on', action='store_true')
+    power.add_argument('-w_off', '--weather_off',
+                       help='Weather station off', action='store_true')
+
+    camera = parser.add_argument_group(
+        'Control Camera', 'Control camera position, take pictures and more')
+    camera.add_argument(
+        'camera', help='required a secondary command', nargs='?')
+
     # help command
     h = parser.add_argument_group('Help', 'show help menu')
     h.add_argument('-h', '--help',
@@ -59,7 +70,6 @@ def main():
     # retrieve all arguments entered
     args = parser.parse_args()
     # print (args)
-
     if args.help:
         parser.print_help()
 
@@ -77,7 +87,11 @@ def main():
             watchdog.set_mode(mode=None)
     elif args.schedule == 'power':
         command = (args.router_on, args.router_off, args.gps_on, args.gps_off)
-        if any(command):
+        if args.weather_on:
+            gpio.weather_on(1)
+        elif args.weather_off:
+            gpio.weather_off(1)
+        elif any(command):
             gpio.router_on(int(args.router_on))
             gpio.router_off(int(args.router_off))
             gpio.gps_on(int(args.gps_on))
