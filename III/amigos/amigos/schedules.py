@@ -6,10 +6,9 @@ from copy import deepcopy
 import monitor as monitor
 
 
-class setup(schedule.Scheduler):
+class power_control(schedule.Scheduler):
     def __init__(self):
         pass
-    
 
     def watchdog(self, arg=1):
         wdog = schedule.Scheduler()
@@ -41,7 +40,7 @@ class setup(schedule.Scheduler):
         pass
 
 
-class weather(schedule.Scheduler):
+class weather_recor(schedule.Scheduler):
 
     def job(self):
         pass

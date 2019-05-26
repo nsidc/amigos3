@@ -2,7 +2,7 @@ import subprocess as subprocess
 from time import sleep
 
 
-def  __toggle(bit):
+def __toggle(bit):
     """
     Toggle the bit of the index be used
     index 1: Activate power  on GPIO VPROG
@@ -51,3 +51,23 @@ def gps_off(bit):
         __toggle(bit-1)
         subprocess.call("echo 0xFC > /sys/class/gpio/pwr_ctl/data", shell=True)
         print "gps module is turned off"
+
+
+def weather_on(bit):
+    """
+    Turn the power off gps module on after toggling the bit
+    """
+    if bit:
+        __toggle(bit-1)
+        subprocess.call("echo 0xFF> /sys/class/gpio/pwr_ctl/data", shell=True)
+        print "weather module is turned on"
+
+
+def weather_off(bit):
+    """
+    Turn the power off gps module on after toggling the bit
+    """
+    if bit:
+        __toggle(bit-1)
+        subprocess.call("echo 0xF7> /sys/class/gpio/pwr_ctl/data", shell=True)
+        print "weather module is turned off"
