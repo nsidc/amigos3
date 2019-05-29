@@ -19,7 +19,7 @@ def router_on(bit):
     if bit:
         __toggle(bit)
         subprocess.call("echo 0x8 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        print "router is turned on"
+        print("router is turned on")
 
 
 def router_off(bit):
@@ -30,7 +30,7 @@ def router_off(bit):
         __toggle(bit)
         sleep(1)
         subprocess.call("echo 0xF6 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        print "router is turned off"
+        print("router is turned off")
 
 
 def gps_on(bit):
@@ -40,7 +40,7 @@ def gps_on(bit):
     if bit:
         __toggle(bit-1)
         subprocess.call("echo 0x02 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        print "gps module is turned on"
+        print("gps module is turned on")
 
 
 def gps_off(bit):
@@ -50,7 +50,7 @@ def gps_off(bit):
     if bit:
         __toggle(bit-1)
         subprocess.call("echo 0xFC > /sys/class/gpio/pwr_ctl/data", shell=True)
-        print "gps module is turned off"
+        print("gps module is turned off")
 
 
 def weather_on(bit):
@@ -60,7 +60,7 @@ def weather_on(bit):
     if bit:
         __toggle(bit-1)
         subprocess.call("echo 0xFF> /sys/class/gpio/pwr_ctl/data", shell=True)
-        print "weather module is turned on"
+        print("weather module is turned on")
 
 
 def weather_off(bit):
@@ -70,4 +70,24 @@ def weather_off(bit):
     if bit:
         __toggle(bit-1)
         subprocess.call("echo 0xF7> /sys/class/gpio/pwr_ctl/data", shell=True)
-        print "weather module is turned off"
+        print("weather module is turned off")
+
+
+def power_down(bit):
+    if bit:
+        __toggle(bit-1)
+        subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
+        __toggle(bit)
+        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
+        print("Power is down on peripherals")
+
+
+def power_up(bit):
+    if bit:
+        __toggle(bit-1)
+        subprocess.call("echo 0xFF> /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
+        __toggle(bit)
+        subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
+        print("Power is up on peripherals")
