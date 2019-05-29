@@ -56,6 +56,10 @@ def main():
                        help='Weather station on', action='store_true')
     power.add_argument('-w_off', '--weather_off',
                        help='Weather station off', action='store_true')
+    power.add_argument('-down', '--power_down',
+                       help='power down all peripherals', action='store_true')
+    power.add_argument('-up', '--power_up',
+                       help='power up all peripherals', action='store_true')
 
     camera = parser.add_argument_group(
         'Control Camera', 'Control camera position, take pictures and more')
@@ -91,15 +95,19 @@ def main():
             gpio.weather_on(1)
         elif args.weather_off:
             gpio.weather_off(1)
+        elif args.power_down:
+            gpio.power_down(1)
+        elif args.power_up:
+            gpio.power_up(1)
         elif any(command):
             gpio.router_on(int(args.router_on))
             gpio.router_off(int(args.router_off))
             gpio.gps_on(int(args.gps_on))
             gpio.gps_off(int(args.gps_off))
         else:
-            print "Too few arguments. No device specified."
+            print("Too few arguments. No device specified.")
     else:
-        print 'No such a command or it is not implemented yet'
+        print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")
         if inp in ['y', 'yes']:
             parser.print_help()
