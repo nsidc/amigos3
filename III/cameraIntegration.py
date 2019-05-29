@@ -1,6 +1,10 @@
+#The pan movement moves at 100 degrees per second 3.5s =350 degrees
+
 from time import sleep
 
 from onvif import ONVIFCamera
+
+from snapShot import photo #function written in the same folder called snapShot.py
 
 XMAX = 1
 XMIN = -1
@@ -59,28 +63,45 @@ def continuous_move():
 
     ptz.Stop({'ProfileToken': media_profile._token})
 
-    # Get range of pan and tilt
-    # NOTE: X and Y are velocity vector
+    # NOTE: X and Y are velocity vector; get range of pan and tilt
     global XMAX, XMIN, YMAX, YMIN
     XMAX = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].XRange.Max
     XMIN = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].XRange.Min
     YMAX = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].YRange.Max
     YMIN = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].YRange.Min
 
-    #print XMAX, YMAX, YMIN, XMIN
+    # move down initialize as the first starting movement
+    move_down(ptz, request,5)
+    sleep (1) #after moving the camera waits 1 second
+    #photo() #taking a photo at the location
 
-    # move right
-    move_right(ptz, request,)
+    #move right till in next initial position (should be facing tower)
+    move_right(ptz, request,5)
 
-    # move left
-    move_left(ptz, request,)
+    #move up 45 degrees
+    move_up(ptz, request, .5)
+    sleep(2)
+    #photo()
+    
+    #move up
+    move_up(ptz, request,.6)
+    sleep(2)
+    #photo()
 
-    # Move up
-    move_up(ptz, request,)
+    #move left
+    move_left(ptz, request,.80)
+    sleep(2)
+    #photo()
 
-    # move down
-    move_down(ptz, request,)
+    #move left
+    move_left(ptz, request, .70)
+    sleep(2)
+    #photo()
+
+    #move left
+    move_left(ptz, request, .75)
+    sleep(2)
+    #photo()
 
 if __name__ == '__main__':
     continuous_move() #calling the function continuous_move()
-    
