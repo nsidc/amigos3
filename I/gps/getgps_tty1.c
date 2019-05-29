@@ -14,7 +14,7 @@ Added seconds when setting the date.
 
 */
 // increased scan time to ~10 minutes from 30secs RR 10/04/09 @ rose bay
-// this to allow for GPS that has been off all winter...ie Wx7  
+// this to allow for GPS that has been off all winter...ie Wx7
 //
 // Nov 16 2009 Terry Haran
 // Merged with Ronald Ross' amigos2-11072009 code.
@@ -25,7 +25,7 @@ Added seconds when setting the date.
 #include <termios.h>
 #include <stdio.h>
 
-#define BAUDRATE B4800 // for GARMIN GPS 
+#define BAUDRATE B4800 // for GARMIN GPS
 #define SERIALPORT "/dev/ttyS1"
 #define FILEOPEN1 "gpstime"
 #define FILEOPEN2 "gpsdata"
@@ -58,9 +58,9 @@ main(int argc, char **argv)
 	int string_pos;
         string_pos = 0;
         char t, update_datetime;
-        
+
 	update_datetime = 0;
-        
+
 	  int fd,c, res;
           long looper;
 
@@ -77,7 +77,7 @@ main(int argc, char **argv)
 		printf ("NO datetime update\n");
 		update_datetime = 0;
 		}
-      
+
 	  /* open files for writing */
           fp1 = fopen("/var/gpstime","w");
           if (fp1 < 0)
@@ -96,20 +96,20 @@ main(int argc, char **argv)
           }
 
           /* first open the serial port for reading and writing */
-                                                                  
-          fd = open(SERIALPORT, O_RDWR | O_NDELAY ); 
 
-          if (fd < 0) 
+          fd = open(SERIALPORT, O_RDWR | O_NDELAY );
+
+          if (fd < 0)
           {
-            perror(SERIALPORT); 
+            perror(SERIALPORT);
 	    system("/mnt/gpio/gps_OFF");
-            exit(-1); 
+            exit(-1);
           }
-          
+
           /* save current port settings */
 
-          tcgetattr(fd,&oldtio); 
-          
+          tcgetattr(fd,&oldtio);
+
           /* initialize the port settings structure to all zeros */
           bzero(&newtio, sizeof(newtio));
 
@@ -132,15 +132,15 @@ main(int argc, char **argv)
 
           tcflush(fd, TCIFLUSH);
           tcsetattr(fd,TCSANOW,&newtio);
-          
+
           /* loop for input, reading 1-255 characters at a time until 'z' received */
 
 looper = 16000000; // 16000000 is ~ 10 minutes & 4440000 = about 180 seconds
 
-          while (looper >0) 
+          while (looper >0)
           {
 	   timeout = 800000;
-           do	
+           do
            {
 	   res = read(fd,buf,127);   /* returns after at least 1 char has been input */
            timeout--;
@@ -151,12 +151,12 @@ if (timeout == 0)
 	{
 	printf("timeout in $GPRMC sync\n") ;
 	fprintf(fp1,"TIMEOUT in $GPRMC Sync\n") ;
-	fprintf(fp2,"TIMEOUT in $GPRMC Sync\n") ; 
+	fprintf(fp2,"TIMEOUT in $GPRMC Sync\n") ;
 	looper = 1;
 	system("/mnt/gpio/gps_OFF");
 
  /* restore the old port settings before quitting */
-       
+
 	tcsetattr(fd,TCSANOW,&oldtio);
 
 	fclose(fp1);
@@ -170,7 +170,7 @@ if (timeout == 0)
            {
            sentence[string_pos] = buf[t] ;
            string_pos++;
-           t++; 
+           t++;
            	if (buf[t] == '\r' || buf[t] == '\n')
            	{
            	sentence[string_pos] = 0;
@@ -180,25 +180,25 @@ if (timeout == 0)
 if(gps_get_position(sentence) == 0)
 			{
 	if (link_quality == 'A')
-	{ 
+	{
 	printf("Time: %02d:%02d:%02d\n",hours,minutes,seconds);
 	// printf("Date: %02d/%02d/20%02d\n",month,day,year);
 	// printf("Link Quality = %c\n",link_quality);
 	// printf("Latitude: %d %f' %c\n",lat_degrees,lat_minutes,lat_direction);
 	// printf("Longitude: %d %f' %c\n",lon_degrees,lon_minutes,lon_direction);
-	
+
 // first copy current file to backup file
 	system("cp /var/gpsdata /var/oldgpsdata");
-	
+
 	sprintf(buf,"%02d%02d%02d%02d%02d.%02d",month,day,hours,minutes,year,seconds) ;
         fprintf(fp1,"%s\n",buf) ;
         fprintf(fp2,"%s\n",buf2) ;
 
 // copy the new time and date to system and create "date mmddhhmmyy "
-	
+
 /* if caller passed -u at Command line */
 
-if (update_datetime)  
+if (update_datetime)
 	{
 	strcpy(buf2,mydate);
         strcat(buf2,buf);
@@ -218,7 +218,7 @@ if (update_datetime)
         }
 	looper--;
        }
-  
+
           /* restore the old port settings before quitting */
 
           tcsetattr(fd,TCSANOW,&oldtio);
@@ -259,14 +259,14 @@ int gps_get_position(char *sentence)
 			if(i == 0) // utc time
 			{
 			sscanf(sentence,"%2d %2d %2d",&hours,&minutes,&seconds) ;
-			}	
+			}
 			if(i == 1) //link quality
 			{
 				if(*sentence == 'A')
 				link_quality = *sentence;
 				else
 				link_quality = 'V';
-			}			
+			}
 			if(i == 2) //latitude
 			{
 		        sscanf(sentence,"%2d %f",&lat_degrees,&lat_minutes) ;
@@ -276,7 +276,7 @@ int gps_get_position(char *sentence)
 				lat_direction = *sentence;
 			}
 			if(i == 4) // longitude
-			{	
+			{
  			sscanf(sentence,"%3d %f",&lon_degrees,&lon_minutes) ;
 			}
 			if(i == 5) //lon direction
@@ -293,5 +293,5 @@ int gps_get_position(char *sentence)
 	{
 		return -1; //unknown sentence type
 	}
-	return 0;	
+	return 0;
 }
