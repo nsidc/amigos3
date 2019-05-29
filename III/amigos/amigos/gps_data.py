@@ -82,7 +82,7 @@ class binex():
             # Check if that is saved and the byte has GGA in it
             if self.is_saved == True and byte.find('GGA') != -1:
                 is_byte = True  # All the binex has been written to file
-                self.sequence = self.sequence+1  # increment sequenceuence
+                self.sequence = self.sequence+1  # increment sequence
                 self.is_saved = False  # reset the variable is_saved
                 sleep(self.interval)  # wait for interval
                 break
@@ -106,7 +106,7 @@ class binex():
             # Wait for 40 s for GPS module to set up
             # It was notice that if the wait is not long enough, the data received from the module are incomplete
             sleep(40)
-            # set the sequenceuence: how many junk of reading has to be taking
+            # set the sequence: how many junk of reading has to be taken
             while self.sequence <= self.timeout*60/self.interval:
                 # flush the port to delete very data before reading, so we get fresh reading
                 self.port.flushInput()
@@ -272,7 +272,7 @@ class nmea():
             while self.sequence <= self.timeout*60/self.interval:
                 self.port.flushInput()
                 self.__get_all()
-                sleep(self.interval) # wait for the inerval
+                sleep(self.interval) # wait for the interval
 
         finally:
             # close port and turn gps module off
