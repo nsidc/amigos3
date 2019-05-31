@@ -260,19 +260,19 @@ class nmea():
         Return None
         """
         try:
-            #Try to open the port
+            # Try to open the port
             self.port.open()
         except:
             self.port = None
             print('Unable to open port')
         else:
-            gps_on(bit=1) # turn GPS on
-            sleep(40) # wait for 40 s for module to fully start
+            gps_on(bit=1)  # turn GPS on
+            sleep(40)  # wait for 40 s for module to fully start
             # start reading
             while self.sequence <= self.timeout*60/self.interval:
                 self.port.flushInput()
                 self.__get_all()
-                sleep(self.interval) # wait for the interval
+                sleep(self.interval)  # wait for the interval
 
         finally:
             # close port and turn gps module off
