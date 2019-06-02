@@ -361,6 +361,7 @@ class ONVIFCamera(object):
 
         return xaddr, wsdlpath
 
+    @profile
     def create_onvif_service(self, name, from_template=True, portType=None):
         '''Create ONVIF service client'''
 
@@ -380,14 +381,14 @@ class ONVIFCamera(object):
                                              no_cache=self.no_cache, portType=portType, dt_diff=self.dt_diff)
             # No template, create new service from wsdl document.
             # A little time-comsuming
+
             else:
                 service = ONVIFService(xaddr, self.user, self.passwd,
                                        wsdl_file, self.cache_location,
                                        self.cache_duration, self.encrypt,
                                        self.daemon, no_cache=self.no_cache, portType=portType, dt_diff=self.dt_diff)
-
             self.services[name] = service
-
+            print('We are here')
             setattr(self, name, service)
             if not self.services_template.get(name):
                 self.services_template[name] = service
