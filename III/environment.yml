@@ -1,0 +1,19 @@
+name: amigosiii
+channels:
+  - conda-forge
+  - nsidc
+  - defaults
+dependencies:
+  - ca-certificates=2019.3.9=hecc5488_0
+  - click=7.0=py_0
+  - libgcc-ng=7.3.0=hdf63c60_0
+  - ncurses=5.9=10
+  - openssl=1.0.2r=h14c3975_0
+  - pip=7.1.0=py26_0
+  - pyserial=3.4=py_2
+  - python=2.6.9=0
+  - readline=6.2=0
+  - setuptools=18.0.1=py26_0
+  - sqlite=3.13.0=1
+  - tk=8.5.19=2
+  - zlib=1.2.11=h14c3975_1004
