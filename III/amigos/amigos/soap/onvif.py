@@ -5,9 +5,11 @@ Contains classes for  transport implementations.
 """
 import requests
 import os
-
+from time import sleep
+# from xml.etree import ElementTree as et
 
 # class urls():
+
 
 class device_client():
     pass
@@ -18,19 +20,42 @@ class ptz_client():
         self.msg = None
         self.url = 'http://192.168.1.108/onvif/ptz_service'
         self.header = None
-        self.unit_degree = 0.0027777778
+        self.unit_degreePan = 0.0027777778*2
+        self.unit_degreeTiitl = 0.0055555556*4
         self.path = os.getcwd()
 
     def __get_service(self, service):
         self.headers = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/{0}".format(service.capitalize()+"Move"),
                         'Content-Type': 'application/soap+xml'}
 
-    def __get_soap(self, file, pan=5, titl=5, zoom=0):
-        with open(self.path + self.path[-5] + "soap_{0}.xml".format(file), 'r') as soap:
+    def __get_soap(self, file_name, service=None, pan=None, titl=None, zoom=None):
+        # if service != None:
+
+        if service != None:
+            with open(self.path + self.path[-5] + "soap_{0}".format(service)+"_{0}".format(file_name)+".xml", 'r') as soap:
+                self.msg = soap.read()
+            pan = pan*self.unit_degreePan
+            titl = titl*self.unit_degreeTiitl
+
+            zoom = zoom/100.0
+
+            # self.msg = self.msg.replace("{0}", service)
+            self.msg = self.msg.replace("{1}", str(titl))
+            self.msg = self.msg.replace("{2}", str(pan))
+            self.msg = self.msg.replace("{3}", str(zoom))
+            return
+        with open(self.path + self.path[-5] + "soap_{0}.xml".format(file_name), 'r') as soap:
             self.msg = soap.read()
 
-    def send(self, action, typeof, pan=5, titl=5, zoom=0):
-        self.__get_soap(action, pan=5, titl=5, zoom=0)
+    def send(self, action, typeof, pan=None, titl=None, zoom=None):
+        if pan == None:
+            pan = float(self.getStatus()[0])/self.unit_degreePan
+        if titl == None:
+            titl = float(self.getStatus()[1])/self.unit_degreeTiitl
+        if zoom == None:
+            zoom = float(self.getStatus()[2])*10
+        self.__get_soap(
+            file_name=action, service=typeof.capitalize()+"Move", pan=pan, titl=titl, zoom=zoom)
         self.__get_service(typeof)
         reply = requests.post(self.url, data=self.msg, headers=self.header)
         return reply
@@ -49,6 +74,7 @@ class ptz_client():
 
 
 if __name__ == "__main__":
-    cl = ptz_client()
-    cl.send(action='titlup', typeof='relative')
-    cl.getStatus()
+    ptz = ptz_client()
+    ptz.send(action='titlup', typeof='absolute', pan=175, titl=-45, zoom=40)
+    sleep(3)
+    ptz.getStatus()
