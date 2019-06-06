@@ -15,24 +15,24 @@ class ptz_client():
         self.url = None
         self.header = None
 
-    def ptz_service(self, service):
+    def service(self, service):
         headers = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/{0}".format(service.capitalize()+"Move"),
                    'Content-Type': 'application/soap+xml'}
         url = 'http://192.168.1.108/onvif/ptz_service'
         return url, headers
 
-    def ptz_read(self, file):
+    def read(self, file):
 
         with open("/home/coovi/pCloudDrive/Projects/Jane/Amigos/III/amigos/amigos/soap/soap_" + "{0}.txt".format(file), 'r') as soap:
             return soap.read()
 
-    def ptz_send(self, action=None, typeof=None):
+    def send(self, action=None, typeof=None):
         self.msg = self.ptz_read(action)
         self.url, self.header = self.ptz_service(typeof)
         req = requests.post(self.url, data=self.msg, headers=self.header)
         # print(req.text)
 
-    def ptz_getStatus(self):
+    def getStatus(self):
         self.msg = self.ptz_read('getstatus')
         self.header = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/GetStatus",
                        'Content-Type': 'application/soap+xml'}
@@ -46,6 +46,6 @@ class ptz_client():
 
 
 if __name__ == "__main__":
-    cl = client()
+    cl = ptz_client()
     # cl.ptz_send('titlup', 'relative')
-    cl.ptz_getStatus()
+    cl.getStatus()
