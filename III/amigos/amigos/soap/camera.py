@@ -1,12 +1,16 @@
 
 
 """
-Contains classes for basic HTTP transport implementations.
+Contains classes for  transport implementations.
 """
 import requests
+import os
 
 
 # class urls():
+
+class device_client():
+    pass
 
 
 class ptz_client():
@@ -14,26 +18,27 @@ class ptz_client():
         self.msg = None
         self.url = None
         self.header = None
+        self.unit_degree = 0.0027777778
+        self.path = os.getcwd()
 
-    def service(self, service):
+    def _get_service(self, service):
         headers = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/{0}".format(service.capitalize()+"Move"),
                    'Content-Type': 'application/soap+xml'}
         url = 'http://192.168.1.108/onvif/ptz_service'
         return url, headers
 
-    def read(self, file):
-
-        with open("/home/coovi/pCloudDrive/Projects/Jane/Amigos/III/amigos/amigos/soap/soap_" + "{0}.txt".format(file), 'r') as soap:
+    def _get_soap(self, file):
+        with open(self.path + self.path[-5] + "soap_{0}.xml".format(file), 'r') as soap:
             return soap.read()
 
-    def send(self, action=None, typeof=None):
-        self.msg = self.ptz_read(action)
-        self.url, self.header = self.ptz_service(typeof)
-        req = requests.post(self.url, data=self.msg, headers=self.header)
-        # print(req.text)
+    def send(self, action=None, typeof=None, pan=5, titl=5, zoom=0):
+        self.msg = self._get_soap(action)
+        self.url, self.header = self._get_service(typeof)
+        reply = requests.post(self.url, data=self.msg, headers=self.header)
+        return reply.text
 
     def getStatus(self):
-        self.msg = self.ptz_read('getstatus')
+        self.msg = self._get_soap('getstatus')
         self.header = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/GetStatus",
                        'Content-Type': 'application/soap+xml'}
         self.url = 'http://192.168.1.108/onvif/ptz_service'
@@ -43,6 +48,7 @@ class ptz_client():
         titl = req.text.split('><')[7].split('"')[5]
         print("PAN_Position: {0}\nTITL_Position: {1}\nZOOM_Position: {2}\n".format(
             pan, titl, zoom))
+        return pan, titl, zoom
 
 
 if __name__ == "__main__":
