@@ -144,7 +144,8 @@ class ptz_client():
         f.write(response.content)
         f.close()
 
-#Tes the code here
+
+# Test the code here
 if __name__ == "__main__":
     ptz = ptz_client()
     ptz.send(action='titlup', typeof='absolute', pan=0, tilt=0, zoom=40)
