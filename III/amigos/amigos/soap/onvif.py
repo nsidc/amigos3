@@ -17,71 +17,123 @@ class device_client():
     pass
 
 
+class media_client():
+    pass
+
+
 class ptz_client():
+    """
+    PTZ client for ptz request, take picture, pan, tilt , and zoom.
+    """
+
     def __init__(self):
+
         self.msg = None
         self.url = 'http://192.168.1.108/onvif/ptz_service'
         self.header = None
         self.unit_degreePan = 0.0027777778*2
-        self.unit_degreeTiitl = 0.0055555556*4
+        self.unit_degreeTilt = 0.0055555556*4
         self.path = os.getcwd()
         self.snapShop_url = "http://192.168.1.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
 
     def __get_service(self, service):
+        """[summary]
+
+        Arguments:
+            service {string} -- can be either relative or relative move to set the type of movement.
+        """
         self.headers = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/{0}".format(service.capitalize()+"Move"),
-                        'Content-Type': 'application/soap+xml'}
+                        'Content-Type': 'application/soap+xml'}  # the headers sent with request, the string format RelativeMove or AbsoluteMove
 
-    def __get_soap(self, file_name, service=None, pan=None, titl=None, zoom=None):
-        # if service != None:
+    def __get_soap(self, move, service=None, pan=None, tilt=None, zoom=None):
+        """get the soap (xml) file for the request. This the message to be sent
 
+        Arguments:
+            move {string} -- the move to perform
+
+        Keyword Arguments:
+            service {string} -- the type of move (default: {None})
+            pan {float} -- the angle of pan [-180 to 180 ].  (default: {None})
+            tilt {float} -- the tilt position [-4 to 45]. (default: {None})
+            zoom {float} -- zoom value [-100 to 10]. (default: {None})
+        """
         if service != None:
-            with open(self.path + self.path[-5] + "soap_{0}".format(service)+"_{0}".format(file_name)+".xml", 'r') as soap:
-                self.msg = soap.read()
+            with open(self.path + self.path[-5] + "soap_{0}".format(service)+"_{0}".format(move)+".xml", 'r') as soap:
+                self.msg = soap.read()  # open the file
+            # calculate the value of the pan  [-1 to 1]
             pan = pan*self.unit_degreePan
-            titl = titl*self.unit_degreeTiitl
-
+            # calculate the value of the tilt [-1 to 1]
+            tilt = tilt*self.unit_degreeTilt
+            # calculate the value of the soom  [-1 to 1]
             zoom = zoom/100.0
 
-            # self.msg = self.msg.replace("{0}", service)
-            self.msg = self.msg.replace("{1}", str(titl))
+            # format the requested pan.tilt and zoom into the message
+            self.msg = self.msg.replace("{1}", str(tilt))
             self.msg = self.msg.replace("{2}", str(pan))
             self.msg = self.msg.replace("{3}", str(zoom))
             return
-        with open(self.path + self.path[-5] + "soap_{0}.xml".format(file_name), 'r') as soap:
+        # for the function get status
+        with open(self.path + self.path[-5] + "soap_{0}.xml".format(move), 'r') as soap:
             self.msg = soap.read()
 
-    def send(self, action, typeof, pan=None, titl=None, zoom=None):
+    def send(self, action, typeof, pan=None, tilt=None, zoom=None):
+        """send the http request to the camera
+
+        Arguments:
+            action {string} -- the movement to be made ex: tiltup
+            typeof {string} -- the type of movement ex: ablsolute
+
+        Keyword Arguments:
+            pan {float} -- the angle of pan [-180 to 180 ].  (default: {None})
+            tilt {float} -- the tilt position [-4 to 45]. (default: {None})
+            zoom {float} -- zoom value [-100 to 10]. (default: {None})
+
+        Returns:
+            [instance] -- return the reply from the server as instance
+        """
+        # check if the input is not specified used the current value from the camera.
         if pan == None:
             pan = float(self.getStatus()[0])/self.unit_degreePan
-        if titl == None:
-            titl = float(self.getStatus()[1])/self.unit_degreeTiitl
+        if tilt == None:
+            tilt = float(self.getStatus()[1])/self.unit_degreeTilt
         if zoom == None:
             zoom = float(self.getStatus()[2])*10
+        # get the message body to be sent and apply all the value specified
         self.__get_soap(
-            file_name=action, service=typeof.capitalize()+"Move", pan=pan, titl=titl, zoom=zoom)
+            move=action, service=typeof.capitalize()+"Move", pan=pan, tilt=tilt, zoom=zoom)
+        # get apply the service the the header message
         self.__get_service(typeof)
         reply = requests.post(self.url, data=self.msg, headers=self.header)
-        return reply
+        return reply  # return the reply.
 
     def getStatus(self):
-        self.__get_soap('getstatus')
+        """Get the starus of the camera
+
+        Returns:
+            [floats] -- the current pan, tilt and the zoom
+        """
+        self.__get_soap('getstatus')  # get the message for status
         self.header = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/GetStatus",
-                       'Content-Type': 'application/soap+xml'}
-        reply = requests.post(self.url, data=self.msg, headers=self.header)
+                       'Content-Type': 'application/soap+xml'}  # The header of the status
+        reply = requests.post(self.url, data=self.msg,
+                              headers=self.header)  # reply is  an xml file
+        # get the value of the pan, tilt and zoom from the text
         zoom = reply.text.split('><')[8].split('"')[3]
         pan = reply.text.split('><')[7].split('"')[3]
-        titl = reply.text.split('><')[7].split('"')[5]
+        tilt = reply.text.split('><')[7].split('"')[5]
         print("PAN_Position: {0}\nTITL_Position: {1}\nZOOM_Position: {2}\n".format(
-            pan, titl, zoom))
-        return pan, titl, zoom
+            pan, tilt, zoom))
+        return pan, tilt, zoom
 
     def snapShot(self):
+        """get a snapshot
+        """
         dt = str(datetime.datetime.now()).split(" ")
         dt = "_".join(dt)
         username = 'admin'  # The cameras user name
         password = '10iLtxyh'  # the cameras password
 
-        # bypass the username and password authentication
+        # send the username and password authentication
         response = requests.get(
             self.snapShop_url, auth=HTTPDigestAuth(username, password))
         f = open('pic.jpg', 'wb')  # opening
@@ -92,10 +144,10 @@ class ptz_client():
         f.write(response.content)
         f.close()
 
-
+#Tes the code here
 if __name__ == "__main__":
     ptz = ptz_client()
-    ptz.send(action='titlup', typeof='absolute', pan=175, titl=0, zoom=40)
+    ptz.send(action='titlup', typeof='absolute', pan=0, tilt=0, zoom=40)
     sleep(3)
     ptz.getStatus()
     ptz.snapShot()
