@@ -1,0 +1,758 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf100
+{\fonttbl\f0\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red34\green139\blue34;\red160\green32\blue240;\red0\green0\blue255;
+}
+{\*\expandedcolortbl;;\csgenericrgb\c13333\c54510\c13333;\csgenericrgb\c62745\c12549\c94118;\csgenericrgb\c0\c0\c100000;
+}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs20 \cf2 %Calculates Best fit curve for thermistor calbration data
+\fs24 \cf0 \
+
+\fs20 \cf2 %Plots resistance v temperature for 12 thermistor strings
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 %Skylar Edwards
+\fs24 \cf0 \
+
+\fs20 \cf2 %Ryan Weatherbee
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 %TARSAN-JANE
+\fs24 \cf0 \
+
+\fs20 \cf2 %Colorado Space Grant Consortium
+\fs24 \cf0 \
+
+\fs20 \cf2 %University of Colorado Boulder
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 %Last edited 30 January 2019
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 %Thermistor data is very close to linear. 
+\fs24 \cf0 \
+
+\fs20 \cf2 %The slopes and y-int of each line of best fit are in "Reg_Data"
+\fs24 \cf0 \
+
+\fs20 \cf2 %Numbers in Column 1 are slopes and in column 2 are y-intercepts
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 clear,clc
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 data = xlsread(\cf3 'Thermistor_data.xlsx'\cf0 );
+\fs24 \
+
+\fs20 temp_1 = data(2:end,2);
+\fs24 \
+
+\fs20 temp_2 = data(2:end,7);
+\fs24 \
+
+\fs20 temp_3 = data(2:end,12);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 r6_1 = data(2:end,3);
+\fs24 \
+
+\fs20 r10_1 = data(2:end,4);
+\fs24 \
+
+\fs20 r20_1 = data(2:end,5);
+\fs24 \
+
+\fs20 r40_1 = data(2:end,6);
+\fs24 \
+
+\fs20 r6_2 = data(2:end,8);
+\fs24 \
+
+\fs20 r10_2 = data(2:end,9);
+\fs24 \
+
+\fs20 r20_2 = data(2:end,10);
+\fs24 \
+
+\fs20 r40_2 = data(2:end,11);
+\fs24 \
+
+\fs20 r6_3 = data(2:end,13);
+\fs24 \
+
+\fs20 r10_3 = data(2:end,14);
+\fs24 \
+
+\fs20 r20_3 = data(2:end,15);
+\fs24 \
+
+\fs20 r40_3 = data(2:end,16);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 s = length(r6_1);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg1 = 1;
+\fs24 \
+
+\fs20 bg1 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg1,bg1];
+\fs24 \
+
+\fs20 f1 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_1,r6_1);
+\fs24 \
+
+\fs20 out = fminsearch(f1,init_guesses);
+\fs24 \
+
+\fs20 m_1real = out(1);
+\fs24 \
+
+\fs20 b_1real = out(2);
+\fs24 \
+
+\fs20 R_approx1 = lin_func(m_1real,b_1real,temp_1);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg2 = 1;
+\fs24 \
+
+\fs20 bg2 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg2,bg2];
+\fs24 \
+
+\fs20 f2 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_1,r10_1);
+\fs24 \
+
+\fs20 out = fminsearch(f2,init_guesses);
+\fs24 \
+
+\fs20 m_2real = out(1);
+\fs24 \
+
+\fs20 b_2real = out(2);
+\fs24 \
+
+\fs20 R_approx2 = lin_func(m_2real,b_2real,temp_1);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg3 = 1;
+\fs24 \
+
+\fs20 bg3 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg3,bg3];
+\fs24 \
+
+\fs20 f3 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_1,r20_1);
+\fs24 \
+
+\fs20 out = fminsearch(f3,init_guesses);
+\fs24 \
+
+\fs20 m_3real = out(1);
+\fs24 \
+
+\fs20 b_3real = out(2);
+\fs24 \
+
+\fs20 R_approx3 = lin_func(m_3real,b_3real,temp_1);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg4 = 1;
+\fs24 \
+
+\fs20 bg4 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg4,bg4];
+\fs24 \
+
+\fs20 f4 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_1,r40_1);
+\fs24 \
+
+\fs20 out = fminsearch(f4,init_guesses);
+\fs24 \
+
+\fs20 m_4real = out(1);
+\fs24 \
+
+\fs20 b_4real = out(2);
+\fs24 \
+
+\fs20 R_approx4 = lin_func(m_4real,b_4real,temp_1);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 figure(1),clf,hold \cf3 on
+\fs24 \cf0 \
+
+\fs20 plot(temp_1,r6_1,\cf3 'r+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_1,R_approx1,\cf3 'r-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_1,r10_1,\cf3 'g+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_1,R_approx2,\cf3 'g-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_1,r20_1,\cf3 'k+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_1,R_approx3,\cf3 'k-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_1,r40_1,\cf3 'y+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_1,R_approx4,\cf3 'y-'\cf0 )
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 xlabel(\cf3 'Temperature (deg C)'\cf0 )
+\fs24 \
+
+\fs20 ylabel(\cf3 'Resistance (Ohms)'\cf0 )
+\fs24 \
+
+\fs20 title(\cf3 'Thermistor Group 1'\cf0 )
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg5 = 1;
+\fs24 \
+
+\fs20 bg5 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg5,bg5];
+\fs24 \
+
+\fs20 f5 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_2,r6_2);
+\fs24 \
+
+\fs20 out = fminsearch(f5,init_guesses);
+\fs24 \
+
+\fs20 m_5real = out(1);
+\fs24 \
+
+\fs20 b_5real = out(2);
+\fs24 \
+
+\fs20 R_approx5 = lin_func(m_5real,b_5real,temp_2);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg6 = 1;
+\fs24 \
+
+\fs20 bg6 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg6,bg6];
+\fs24 \
+
+\fs20 f6 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_2,r10_2);
+\fs24 \
+
+\fs20 out = fminsearch(f6,init_guesses);
+\fs24 \
+
+\fs20 m_6real = out(1);
+\fs24 \
+
+\fs20 b_6real = out(2);
+\fs24 \
+
+\fs20 R_approx6 = lin_func(m_6real,b_6real,temp_2);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg7 = 1;
+\fs24 \
+
+\fs20 bg7 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg7,bg7];
+\fs24 \
+
+\fs20 f7 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_2,r20_2);
+\fs24 \
+
+\fs20 out = fminsearch(f7,init_guesses);
+\fs24 \
+
+\fs20 m_7real = out(1);
+\fs24 \
+
+\fs20 b_7real = out(2);
+\fs24 \
+
+\fs20 R_approx3 = lin_func(m_7real,b_7real,temp_2);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg8 = 1;
+\fs24 \
+
+\fs20 bg8 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg8,bg8];
+\fs24 \
+
+\fs20 f8 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_2,r40_2);
+\fs24 \
+
+\fs20 out = fminsearch(f8,init_guesses);
+\fs24 \
+
+\fs20 m_8real = out(1);
+\fs24 \
+
+\fs20 b_8real = out(2);
+\fs24 \
+
+\fs20 R_approx8 = lin_func(m_8real,b_8real,temp_2);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 figure(2),clf,hold \cf3 on
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf3  
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 plot(temp_2,r6_2,\cf3 'r-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_2,r10_2,\cf3 'g-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_2,r20_2,\cf3 'k-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_2,r40_2,\cf3 'y+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_2,r40_2,\cf3 'y-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_2,r6_2,\cf3 'r+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_2,r10_2,\cf3 'g+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_2,r20_2,\cf3 'k+'\cf0 )
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 xlabel(\cf3 'Temperature (deg C)'\cf0 )
+\fs24 \
+
+\fs20 ylabel(\cf3 'Resistance (Ohms)'\cf0 )
+\fs24 \
+
+\fs20 title(\cf3 'Thermistor Group 2'\cf0 )
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg9 = 1;
+\fs24 \
+
+\fs20 bg9 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg9,bg9];
+\fs24 \
+
+\fs20 f9 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_3,r6_3);
+\fs24 \
+
+\fs20 out = fminsearch(f9,init_guesses);
+\fs24 \
+
+\fs20 m_9real = out(1);
+\fs24 \
+
+\fs20 b_9real = out(2);
+\fs24 \
+
+\fs20 R_approx9 = lin_func(m_9real,b_9real,temp_3);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg10 = 1;
+\fs24 \
+
+\fs20 bg10 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg10,bg10];
+\fs24 \
+
+\fs20 f10 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_3,r10_3);
+\fs24 \
+
+\fs20 out = fminsearch(f10,init_guesses);
+\fs24 \
+
+\fs20 m_10real = out(1);
+\fs24 \
+
+\fs20 b_10real = out(2);
+\fs24 \
+
+\fs20 R_approx10 = lin_func(m_10real,b_10real,temp_3);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg11 = 1;
+\fs24 \
+
+\fs20 bg11 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg11,bg11];
+\fs24 \
+
+\fs20 f11 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_3,r20_3);
+\fs24 \
+
+\fs20 out = fminsearch(f11,init_guesses);
+\fs24 \
+
+\fs20 m_11real = out(1);
+\fs24 \
+
+\fs20 b_11real = out(2);
+\fs24 \
+
+\fs20 R_approx11 = lin_func(m_11real,b_11real,temp_3);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 mg12 = 1;
+\fs24 \
+
+\fs20 bg12 = 1;
+\fs24 \
+
+\fs20 init_guesses = [mg12,bg12];
+\fs24 \
+
+\fs20 f12 = @(init_guesses)SSE(init_guesses(1),init_guesses(2),temp_3,r40_3);
+\fs24 \
+
+\fs20 out = fminsearch(f12,init_guesses);
+\fs24 \
+
+\fs20 m_12real = out(1);
+\fs24 \
+
+\fs20 b_12real = out(2);
+\fs24 \
+
+\fs20 R_approx12 = lin_func(m_12real,b_12real,temp_3);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 figure(3),clf,hold \cf3 on
+\fs24 \cf0 \
+
+\fs20 plot(temp_3,r6_3,\cf3 'r+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_3,r6_3,\cf3 'r-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_3,r10_3,\cf3 'g+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_3,r10_3,\cf3 'g-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_3,r20_3,\cf3 'k+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_3,r20_3,\cf3 'k-'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_3,r40_3,\cf3 'y+'\cf0 )
+\fs24 \
+
+\fs20 plot(temp_3,r40_3,\cf3 'y-'\cf0 )
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 xlabel(\cf3 'Temperature (deg C)'\cf0 )
+\fs24 \
+
+\fs20 ylabel(\cf3 'Resistance (Ohms)'\cf0 )
+\fs24 \
+
+\fs20 title(\cf3 'Thermistor Group 3'\cf0 )
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2 %Slopes and Y-intercepts for each of the 12 thermistors
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 Reg_data = [m_1real b_1real;m_2real b_2real;m_3real b_3real;m_4real b_4real;\cf4 ...
+\fs24 \cf0 \
+
+\fs20     m_5real b_5real;m_6real b_6real;m_7real b_7real;m_8real b_8real;\cf4 ...
+\fs24 \cf0 \
+
+\fs20     m_9real b_9real;m_10real b_10real;m_11real b_11real;m_12real b_12real];
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf4 function\cf0  R = lin_func(m,b,T)
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0  
+\fs24 \
+
+\fs20 s = length(T);
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 R = zeros(1,s);
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf4 for\cf0  j = 1:s
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0     R(j) = m*T(j)+b;
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf4 end
+\fs24 \cf0 \
+
+\fs20 \cf4  
+\fs24 \cf0 \
+
+\fs20 \cf4 end
+\fs24 \cf0 \
+
+\fs20 \cf4  
+\fs24 \cf0 \
+
+\fs20 \cf4  
+\fs24 \cf0 \
+
+\fs20 \cf4 function\cf0  SSE_out = SSE(m,b,T,data)
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0  
+\fs24 \
+
+\fs20 s = length(data);
+\fs24 \
+
+\fs20 SSE_vec = zeros(1,s);
+\fs24 \
+
+\fs20  
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf4 for\cf0  i = 1:s
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0     SSE_vec(i) = (lin_func(m,b,T(i))-data(i))^2;
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf4 end
+\fs24 \cf0 \
+
+\fs20 \cf4  
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 SSE_out = sum(SSE_vec);
+\fs24 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf4 end
+\fs24 \cf0 \
+}
