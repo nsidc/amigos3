@@ -6,6 +6,8 @@ Contains classes for  transport implementations.
 import requests
 import os
 from time import sleep
+from requests.auth import HTTPDigestAuth
+import datetime
 # from xml.etree import ElementTree as et
 
 # class urls():
@@ -16,13 +18,14 @@ class device_client():
 
 
 class ptz_client():
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.msg = None
         self.url = 'http://192.168.1.108/onvif/ptz_service'
         self.header = None
         self.unit_degreePan = 0.0027777778*2
         self.unit_degreeTiitl = 0.0055555556*4
         self.path = os.getcwd()
+        self.snapShop_url = "http://192.168.1.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
 
     def __get_service(self, service):
         self.headers = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/{0}".format(service.capitalize()+"Move"),
@@ -72,9 +75,27 @@ class ptz_client():
             pan, titl, zoom))
         return pan, titl, zoom
 
+    def snapShot(self):
+        dt = str(datetime.datetime.now()).split(" ")
+        dt = "_".join(dt)
+        username = 'admin'  # The cameras user name
+        password = '10iLtxyh'  # the cameras password
+
+        # bypass the username and password authentication
+        response = requests.get(
+            self.snapShop_url, auth=HTTPDigestAuth(username, password))
+        f = open('pic.jpg', 'wb')  # opening
+
+        newname = 'photo_'+dt[0:-7]+'.jpg'  # Write the file to the time stamp
+        os.rename('pic.jpg', newname)
+
+        f.write(response.content)
+        f.close()
+
 
 if __name__ == "__main__":
     ptz = ptz_client()
-    ptz.send(action='titlup', typeof='absolute', pan=175, titl=-45, zoom=40)
+    ptz.send(action='titlup', typeof='absolute', pan=175, titl=0, zoom=40)
     sleep(3)
     ptz.getStatus()
+    ptz.snapShot()
