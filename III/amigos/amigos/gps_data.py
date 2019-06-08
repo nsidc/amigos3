@@ -2,7 +2,6 @@
 import pynmea2 as nmea
 from serial import Serial as ser
 from time import sleep
-
 # import binascii as bina
 from gpio import gps_off, gps_on
 from radium import read, send
@@ -22,7 +21,7 @@ def writeFile(file_name, strings, form):
     return True
 
 
-class binex:
+class binex():
     """
     Get binex data from GPS module and save it as a binary file.
     is_saved: if the read line has been saved to the log file
@@ -69,7 +68,7 @@ class binex:
                     pass
                 # The binex and the nmea are attached, here we separate them
                 else:
-                    bytes = byte[0 : int(byte.find(objects)) - 3]  # separate the binex
+                    bytes = byte[0:int(byte.find(objects))-3]  # separate the binex
                     # it could happen that the last string is just ATT or $PTP
                     if bytes == '$PTP' or byte.find('ATT') != -1:
                         break
@@ -83,7 +82,7 @@ class binex:
             # Check if that is saved and the byte has GGA in it
             if self.is_saved == True and byte.find('GGA') != -1:
                 is_byte = True  # All the binex has been written to file
-                self.sequence = self.sequence + 1  # increment sequence
+                self.sequence = self.sequence+1  # increment sequence
                 self.is_saved = False  # reset the variable is_saved
                 sleep(self.interval)  # wait for interval
                 break
@@ -108,27 +107,12 @@ class binex:
             # It was notice that if the wait is not long enough, the data received from the module are incomplete
             sleep(40)
             # set the sequence: how many junk of reading has to be taken
-            while self.sequence <= self.timeout * 60 / self.interval:
+            while self.sequence <= self.timeout*60/self.interval:
                 # flush the port to delete very data before reading, so we get fresh reading
                 self.port.flushInput()
                 # This are the kys persent in all nmea reading
-                keys = (
-                    'GGA',
-                    'GLL',
-                    'GMP',
-                    'GNS',
-                    'GRS',
-                    'GSA',
-                    'GST',
-                    'GSV',
-                    'HDT',
-                    'RMC',
-                    'ROT',
-                    'VTG',
-                    'ZDA',
-                    'UID',
-                    'ATT',
-                )
+                keys = ('GGA', 'GLL', 'GMP', 'GNS', 'GRS', 'GSA', 'GST', 'GSV',
+                        'HDT', 'RMC', 'ROT', 'VTG', 'ZDA', 'UID', 'ATT')
                 # No binex has been saved to set the is_byte to false
                 is_byte = False
                 while not is_byte:
@@ -144,7 +128,7 @@ class binex:
             gps_off(bit=1)
 
 
-class nmea:
+class nmea():
     """
     Get NMEA data from GPS module and save it as a binary file.
     is_done: Check wether all lines has been saved for the sequence
@@ -212,23 +196,8 @@ class nmea:
         Return None
         """
         # NMEA language keys
-        keys = (
-            'GGA',
-            'GLL',
-            'GMP',
-            'GNS',
-            'GRS',
-            'GSA',
-            'GST',
-            'GSV',
-            'HDT',
-            'RMC',
-            'ROT',
-            'VTG',
-            'ZDA',
-            'UID',
-            'PSR',
-        )
+        keys = ('GGA', 'GLL', 'GMP', 'GNS', 'GRS', 'GSA', 'GST', 'GSV',
+                       'HDT', 'RMC', 'ROT', 'VTG', 'ZDA', 'UID', 'PSR')
         self.done = False
         while not self.done:  # loop till all keys are saved
             byte = self.port.readline()  # read a line from the port
@@ -240,21 +209,19 @@ class nmea:
                     # the key is not at the begining of the string then NMEA and BINEX are attached
                     if byte.find(objects) != 3:
                         # separate NMEA from BINEX and save the string
-                        bytes = byte[int(byte.find(objects)) - 3 :]
+                        bytes = byte[int(byte.find(objects))-3:]
                         writeFile('gps_nmea_data.log', bytes, 'a')
-                        sleep(0.3)
+                        sleep(.3)
                         break
 
-                    elif (
-                        byte.find(objects) == 3
-                    ):  # Key at the bigging then save the string
+                    elif byte.find(objects) == 3:  # Key at the bigging then save the string
                         writeFile('gps_nmea_data.log', byte, 'a')
-                        sleep(0.3)
+                        sleep(.3)
                         break
                 else:
                     pass
-        self.sequence = self.sequence + 1  # increment sequence
-        writeFile('gps_nmea_data.log', '-' * 50 + '\n', 'a')  # write a delimiter
+        self.sequence = self.sequence+1  # increment sequence
+        writeFile('gps_nmea_data.log', '-'*50 + '\n', 'a')  # write a delimiter
 
     def __Nmea_parse(self):
         """
@@ -283,11 +250,8 @@ class nmea:
         Longitude_Dir = gps_data[0].lon_dir  # retrive longitude direction
         Latitude = gps_data[0].lat  # retrive latitude
         Latitude_Dir = gps_data[0].lat_dir  # retrive latitude direction
-        print(
-            " Altitude: {0}\n Longitude: {1}\n Longitude Dir: {2}\n Latitude: {3}\n Latitude Dir: {4}\n".format(
-                Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir
-            )
-        )
+        print(" Altitude: {0}\n Longitude: {1}\n Longitude Dir: {2}\n Latitude: {3}\n Latitude Dir: {4}\n".format(
+            Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir))
 
     def get_nmea(self):
         """
@@ -305,7 +269,7 @@ class nmea:
             gps_on(bit=1)  # turn GPS on
             sleep(40)  # wait for 40 s for module to fully start
             # start reading
-            while self.sequence <= self.timeout * 60 / self.interval:
+            while self.sequence <= self.timeout*60/self.interval:
                 self.port.flushInput()
                 self.__get_all()
                 sleep(self.interval)  # wait for the interval
