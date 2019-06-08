@@ -5,9 +5,11 @@ Contains classes for  transport implementations.
 """
 import requests
 import os
+import subprocess as subprocess
 from time import sleep
 from requests.auth import HTTPDigestAuth
 import datetime
+import time
 # from xml.etree import ElementTree as et
 
 # class urls():
@@ -70,7 +72,15 @@ class ptz_client():
             # format the requested pan.tilt and zoom into the message
             self.msg = self.msg.replace("{1}", str(tilt))
             self.msg = self.msg.replace("{2}", str(pan))
-            self.msg = self.msg.replace("{3}", str(zoom))
+            if service == 'AbsoluteMove':
+                self.msg = self.msg.replace("{3}", str(zoom))
+                self.msg = self.msg.replace("{4}", str(0))
+            else:
+                self.msg = self.msg.replace("{3}", str(0))
+                self.msg = self.msg.replace("{4}", str(zoom))
+                print("camera only support zoom in absolute mode")
+            # print(zoom)
+
             return
         # for the function get status
         with open(self.path + self.path[-5] + "soap_{0}.xml".format(move), 'r') as soap:
@@ -103,7 +113,10 @@ class ptz_client():
             move=action, service=typeof.capitalize()+"Move", pan=pan, tilt=tilt, zoom=zoom)
         # get apply the service the the header message
         self.__get_service(typeof)
+        # print(self.msg)
+        # print('-'*50)
         reply = requests.post(self.url, data=self.msg, headers=self.header)
+        # print(reply.text)
         return reply  # return the reply.
 
     def getStatus(self):
@@ -113,11 +126,13 @@ class ptz_client():
             [floats] -- the current pan, tilt and the zoom
         """
         self.__get_soap('getstatus')  # get the message for status
+
         self.header = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/GetStatus",
                        'Content-Type': 'application/soap+xml'}  # The header of the status
         reply = requests.post(self.url, data=self.msg,
                               headers=self.header)  # reply is  an xml file
         # get the value of the pan, tilt and zoom from the text
+        # print(reply.text)
         zoom = reply.text.split('><')[8].split('"')[3]
         pan = reply.text.split('><')[7].split('"')[3]
         tilt = reply.text.split('><')[7].split('"')[5]
@@ -129,7 +144,11 @@ class ptz_client():
         """get a snapshot
         """
         dt = str(datetime.datetime.now()).split(" ")
-        dt = "_".join(dt)
+        da = dt[0].split('-')
+        da = "".join(da)
+        ti = dt[1].split(':')
+        ti = "".join(ti)
+        dt = da+ti
         username = 'admin'  # The cameras user name
         password = '10iLtxyh'  # the cameras password
 
@@ -138,17 +157,26 @@ class ptz_client():
             self.snapShop_url, auth=HTTPDigestAuth(username, password))
         f = open('pic.jpg', 'wb')  # opening
 
-        newname = 'photo_'+dt[0:-7]+'.jpg'  # Write the file to the time stamp
+        # Write the file to the time stamp
+        newname = 'photo'+dt[0:-7]+'.jpg'
+        print(dt[0:-7])
         os.rename('pic.jpg', newname)
-
+        # subprocess.call("mv pic.jpg {0}".format(newname), shell=True)
+        sleep(2)
         f.write(response.content)
         f.close()
 
 
 # Test the code here
 if __name__ == "__main__":
+    t0 = time.time()
     ptz = ptz_client()
-    ptz.send(action='titlup', typeof='absolute', pan=0, tilt=0, zoom=40)
-    sleep(3)
-    ptz.getStatus()
+    ptz.send(action='titlup', typeof='absolute', pan=0, tilt=0, zoom=0)
+    sleep(2)
     ptz.snapShot()
+    sleep(1)
+    ptz.getStatus()
+    t1 = time.time()
+
+    total = t1-t0
+    print("it took:{0} ".format(total))
