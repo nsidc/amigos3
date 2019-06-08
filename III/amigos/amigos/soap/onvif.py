@@ -56,6 +56,7 @@ class ptz_client():
         Keyword Arguments:
             service {string} -- the type of move (default: {None})
             pan {float} -- the angle of pan [-180 to 180 ].  (default: {None})
+
             tilt {float} -- the tilt position [-4 to 45]. (default: {None})
             zoom {float} -- zoom value [-100 to 10]. (default: {None})
         """
