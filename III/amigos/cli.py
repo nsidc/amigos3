@@ -32,7 +32,8 @@ def main():
 
     # group of command for watchdog configureting
     wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
-    wdog.add_argument('watchdog', help='View running watchdog setting', nargs='?')
+    wdog.add_argument(
+        'watchdog', help='View running watchdog setting', nargs='?')
     wdog.add_argument('-u', '--update',
                       help='update the watchdog cycle', action='store_true')
     wdog.add_argument('-sl', '--sleep',
@@ -41,7 +42,8 @@ def main():
                       help='deactivate watchdog from auto update', action='store_true')
 
     # power commands
-    power = parser.add_argument_group('Power Control', 'Control power on gpio pins')
+    power = parser.add_argument_group(
+        'Power Control', 'Control power on gpio pins')
     power.add_argument(
         'power', help='Need one of the secondary arguments bellow', nargs='?')
     power.add_argument('-r_on', '--router_on',
@@ -65,14 +67,17 @@ def main():
         'Control Camera', 'Control camera position, take pictures and more')
     camera.add_argument(
         'camera', help='required a secondary command', nargs='?')
-    camera.add_argument('-up', '--move_up',
+    camera.add_argument('-tup', '--tilt_up',
                         help='Move camera up', action='store_true')
-    camera.add_argument('-up', '--move_up',
+    camera.add_argument('-tdown', '--tilt_down',
                         help='Move camera down', action='store_true')
-    camera.add_argument('-left', '--move_left',
+    camera.add_argument('-pleft', '--pan_left',
                         help='Move camera to the left', action='store_true')
-    camera.add_argument('-right', '--move_right',
+    camera.add_argument('-pright', '--pan_right',
                         help='Move camera to the right', action='store_true')
+
+    camera.add_argument('-degree', '--degree',
+                        help='Move camera up', type=int)
 
     # help command
     h = parser.add_argument_group('Help', 'show help menu')
@@ -81,7 +86,7 @@ def main():
 
     # retrieve all arguments entered
     args = parser.parse_args()
-    # print (args)
+    print (args)
     if args.help:
         parser.print_help()
 
@@ -103,9 +108,9 @@ def main():
             gpio.weather_on(1)
         elif args.weather_off:
             gpio.weather_off(1)
-        elif args.power_down:
+        elif args.power_off:
             gpio.power_down(1)
-        elif args.power_up:
+        elif args.power_on:
             gpio.power_up(1)
         elif any(command):
             gpio.router_on(int(args.router_on))
