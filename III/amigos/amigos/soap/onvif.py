@@ -47,7 +47,7 @@ class ptz_client():
         self.headers = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/{0}".format(service.capitalize()+"Move"),
                         'Content-Type': 'application/soap+xml'}  # the headers sent with request, the string format RelativeMove or AbsoluteMove
 
-    def __get_soap(self, move, service=None, pan=None, tilt=None, zoom=None):
+    def __get_soap(self, service, pan=None, tilt=None, zoom=None):
         """get the soap (xml) file for the request. This the message to be sent
 
         Arguments:
@@ -59,8 +59,8 @@ class ptz_client():
             tilt {float} -- the tilt position [-4 to 45]. (default: {None})
             zoom {float} -- zoom value [-100 to 10]. (default: {None})
         """
-        if service != None:
-            with open(self.path + self.path[-5] + "soap_{0}".format(service)+"_{0}".format(move)+".xml", 'r') as soap:
+        if service != None and service != 'getstatus':
+            with open(self.path + self.path[-5] + "soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()  # open the file
             # calculate the value of the pan  [-1 to 1]
             pan = pan*self.unit_degreePan
@@ -75,18 +75,18 @@ class ptz_client():
             if service == 'AbsoluteMove':
                 self.msg = self.msg.replace("{3}", str(zoom))
                 self.msg = self.msg.replace("{4}", str(0))
-            else:
+            elif service == 'RelativeMove':
                 self.msg = self.msg.replace("{3}", str(0))
                 self.msg = self.msg.replace("{4}", str(zoom))
                 print("camera only support zoom in absolute mode")
             # print(zoom)
 
-            return
         # for the function get status
-        with open(self.path + self.path[-5] + "soap_{0}.xml".format(move), 'r') as soap:
-            self.msg = soap.read()
+        else:
+            with open(self.path + self.path[-5] + "soap_{0}.xml".format(service), 'r') as soap:
+                self.msg = soap.read()
 
-    def send(self, action, typeof, pan=None, tilt=None, zoom=None):
+    def send(self, typeof, pan=None, tilt=None, zoom=None):
         """send the http request to the camera
 
         Arguments:
@@ -109,8 +109,8 @@ class ptz_client():
         if zoom == None:
             zoom = float(self.getStatus()[2])*10
         # get the message body to be sent and apply all the value specified
-        self.__get_soap(
-            move=action, service=typeof.capitalize()+"Move", pan=pan, tilt=tilt, zoom=zoom)
+        self.__get_soap(service=typeof.capitalize()+"Move",
+                        pan=pan, tilt=tilt, zoom=zoom)
         # get apply the service the the header message
         self.__get_service(typeof)
         # print(self.msg)
@@ -159,7 +159,7 @@ class ptz_client():
 
         # Write the file to the time stamp
         newname = 'photo'+dt[0:-7]+'.jpg'
-        print(dt[0:-7])
+        # print(dt[0:-7])
         os.rename('pic.jpg', newname)
         # subprocess.call("mv pic.jpg {0}".format(newname), shell=True)
         sleep(2)
@@ -169,14 +169,11 @@ class ptz_client():
 
 # Test the code here
 if __name__ == "__main__":
-    t0 = time.time()
     ptz = ptz_client()
-    ptz.send(action='titlup', typeof='absolute', pan=0, tilt=0, zoom=0)
+    ptz.send(typeof='relative',
+             pan=25, tilt=0, zoom=0)
     sleep(2)
     ptz.snapShot()
     sleep(1)
     ptz.getStatus()
     t1 = time.time()
-
-    total = t1-t0
-    print("it took:{0} ".format(total))
