@@ -152,7 +152,7 @@ class nmea():
 
     def __get_GPGGA_GPVTG(self):
         """
-        Read raw data in nmea format from the GPS module. The.GPGGA, GPVTG only
+        Read raw data in nmea format from the GPS module. The GPGGA, GPVTG only
         Take not argument
         Return the GPGGA, GPVTG variable
         """
