@@ -22,7 +22,7 @@ port = serial.Serial("/dev/ttyS5")
 port.baudrate = 115200
 t=0
 #Read composite data message (all readings) every 5 seconds for 10 minutes
-while t<=100:  #change to 600 seconds after test!! 
+while t<=300:  #change to 600 seconds after test!! 
     with open("weather_data_ASCII.txt","a") as raw_data:
         port.flushInput()
         data = port.readline()
