@@ -56,15 +56,32 @@ def main():
                        help='Weather station on', action='store_true')
     power.add_argument('-w_off', '--weather_off',
                        help='Weather station off', action='store_true')
+<<<<<<< HEAD
     power.add_argument('-down', '--power_down',
                        help='power down all peripherals', action='store_true')
     power.add_argument('-up', '--power_up',
+=======
+    power.add_argument('-off', '--power_off',
+                       help='power down all peripherals', action='store_true')
+    power.add_argument('-on', '--power_on',
+>>>>>>> e5bdf362eea40865412c112c5982d8c5aed2752b
                        help='power up all peripherals', action='store_true')
 
     camera = parser.add_argument_group(
         'Control Camera', 'Control camera position, take pictures and more')
     camera.add_argument(
         'camera', help='required a secondary command', nargs='?')
+<<<<<<< HEAD
+=======
+    camera.add_argument('-up', '--move_up',
+                        help='Move camera up', action='store_true')
+    camera.add_argument('-up', '--move_up',
+                        help='Move camera down', action='store_true')
+    camera.add_argument('-left', '--move_left',
+                        help='Move camera to the left', action='store_true')
+    camera.add_argument('-right', '--move_right',
+                        help='Move camera to the right', action='store_true')
+>>>>>>> e5bdf362eea40865412c112c5982d8c5aed2752b
 
     # help command
     h = parser.add_argument_group('Help', 'show help menu')

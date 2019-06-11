@@ -15,7 +15,11 @@ from time import sleep
 port = serial.Serial("/dev/ttyS5")
 port.baudrate = 115200
 t=0
+<<<<<<< HEAD
 while t<=100:
+=======
+while t<=300:
+>>>>>>> e5bdf362eea40865412c112c5982d8c5aed2752b
     with open("weather_data_ASCII.txt","a") as raw_data:
         port.flushInput()
         data = port.readline()
