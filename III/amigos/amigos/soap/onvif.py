@@ -51,16 +51,19 @@ class ptz_client():
         """get the soap (xml) file for the request. This the message to be sent
 
         Arguments:
-            move {string} -- the move to perform
-
-        Keyword Arguments:
-            service {string} -- the type of move (default: {None})
-            pan {float} -- the angle of pan [-180 to 180 ].  (default: {None})
-            tilt {float} -- the tilt position [-4 to 45]. (default: {None})
+            move {string} -- the move tosnapSho perform
+snapSho
+        Keyword Arguments:snapSho
+            service {string} -- the typesnapSho of move (default: {None})
+            pan {float} -- the angle of snapShopan [-180 to 180 ].  (default: {None})
+            tilt {float} -- the tilt possnapShoition [-4 to 45]. (default: {None})
             zoom {float} -- zoom value [-100 to 10]. (default: {None})
         """
+        # print(service)
+
         if service != None and service != 'getstatus':
-            with open(self.path + self.path[-5] + "soap_{0}.xml".format(service), 'r') as soap:
+
+            with open("/media/mmcblk0p1/amigos/amigos/soap/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()  # open the file
             # calculate the value of the pan  [-1 to 1]
             pan = pan*self.unit_degreePan
@@ -83,7 +86,8 @@ class ptz_client():
 
         # for the function get status
         else:
-            with open(self.path + self.path[-5] + "soap_{0}.xml".format(service), 'r') as soap:
+            # print(self.path)
+            with open("/media/mmcblk0p1/amigos/amigos/soap/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()
 
     def send(self, typeof, pan=None, tilt=None, zoom=None):
@@ -101,6 +105,7 @@ class ptz_client():
         Returns:
             [instance] -- return the reply from the server as instance
         """
+
         # check if the input is not specified used the current value from the camera.
         if pan == None:
             pan = float(self.getStatus()[0])/self.unit_degreePan
@@ -109,8 +114,10 @@ class ptz_client():
         if zoom == None:
             zoom = float(self.getStatus()[2])*10
         # get the message body to be sent and apply all the value specified
+
         self.__get_soap(service=typeof.capitalize()+"Move",
                         pan=pan, tilt=tilt, zoom=zoom)
+
         # get apply the service the the header message
         self.__get_service(typeof)
         # print(self.msg)
@@ -119,7 +126,7 @@ class ptz_client():
         # print(reply.text)
         return reply  # return the reply.
 
-    def getStatus(self):
+    def getStatus(self, output=False):
         """Get the starus of the camera
 
         Returns:
@@ -133,12 +140,18 @@ class ptz_client():
                               headers=self.header)  # reply is  an xml file
         # get the value of the pan, tilt and zoom from the text
         # print(reply.text)
-        zoom = reply.text.split('><')[8].split('"')[3]
-        pan = reply.text.split('><')[7].split('"')[3]
-        tilt = reply.text.split('><')[7].split('"')[5]
+        zoom = float(reply.text.split('><')[8].split('"')[3])
+        pan = float(reply.text.split('><')[7].split(
+            '"')[3])
+        tilt = float(reply.text.split('><')[7].split(
+            '"')[5])
+        if output == False:
+            return pan, tilt, zoom
+        zoom = zoom*100
+        pan = pan/self.unit_degreePan
+        tilt = tilt/self.unit_degreeTilt
         print("PAN_Position: {0}\nTITL_Position: {1}\nZOOM_Position: {2}\n".format(
             pan, tilt, zoom))
-        return pan, tilt, zoom
 
     def snapShot(self):
         """get a snapshot
@@ -161,19 +174,20 @@ class ptz_client():
         newname = 'photo'+dt[0:-7]+'.jpg'
         # print(dt[0:-7])
         os.rename('pic.jpg', newname)
-        # subprocess.call("mv pic.jpg {0}".format(newname), shell=True)
         sleep(2)
         f.write(response.content)
         f.close()
+        subprocess.call("mv {0} {1}".format(
+            newname, "/media/mmcblk0p1/amigos/amigos/picture/"), shell=True)
 
 
 # Test the code here
-if __name__ == "__main__":
-    ptz = ptz_client()
-    ptz.send(typeof='relative',
-             pan=25, tilt=0, zoom=0)
-    sleep(2)
-    ptz.snapShot()
-    sleep(1)
-    ptz.getStatus()
-    t1 = time.time()
+# if __name__ == "__main__":
+#     ptz = ptz_client()
+#     ptz.send(typeof='relative',
+#              pan=25, tilt=0, zoom=0)
+#     sleep(2)
+#     ptz.snapShot()
+#     sleep(1)
+#     ptz.getStatus()
+#     t1 = time.time()
