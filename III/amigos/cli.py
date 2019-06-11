@@ -32,7 +32,12 @@ def main():
 
     # group of command for watchdog configureting
     wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
+<<<<<<< HEAD
     wdog.add_argument('watchdog', help='View running watchdog setting', nargs='?')
+=======
+    wdog.add_argument(
+        'watchdog', help='View running watchdog setting', nargs='?')
+>>>>>>> e88aa55733b0ab0a1d58551c51e97346b190a3f7
     wdog.add_argument('-u', '--update',
                       help='update the watchdog cycle', action='store_true')
     wdog.add_argument('-sl', '--sleep',
@@ -41,7 +46,12 @@ def main():
                       help='deactivate watchdog from auto update', action='store_true')
 
     # power commands
+<<<<<<< HEAD
     power = parser.add_argument_group('Power Control', 'Control power on gpio pins')
+=======
+    power = parser.add_argument_group(
+        'Power Control', 'Control power on gpio pins')
+>>>>>>> e88aa55733b0ab0a1d58551c51e97346b190a3f7
     power.add_argument(
         'power', help='Need one of the secondary arguments bellow', nargs='?')
     power.add_argument('-r_on', '--router_on',
@@ -64,7 +74,7 @@ def main():
     power.add_argument('-off', '--power_off',
                        help='power down all peripherals', action='store_true')
     power.add_argument('-on', '--power_on',
->>>>>>> e5bdf362eea40865412c112c5982d8c5aed2752b
+>>>>>>> e88aa55733b0ab0a1d58551c51e97346b190a3f7
                        help='power up all peripherals', action='store_true')
 
     camera = parser.add_argument_group(
@@ -73,15 +83,18 @@ def main():
         'camera', help='required a secondary command', nargs='?')
 <<<<<<< HEAD
 =======
-    camera.add_argument('-up', '--move_up',
+    camera.add_argument('-tup', '--tilt_up',
                         help='Move camera up', action='store_true')
-    camera.add_argument('-up', '--move_up',
+    camera.add_argument('-tdown', '--tilt_down',
                         help='Move camera down', action='store_true')
-    camera.add_argument('-left', '--move_left',
+    camera.add_argument('-pleft', '--pan_left',
                         help='Move camera to the left', action='store_true')
-    camera.add_argument('-right', '--move_right',
+    camera.add_argument('-pright', '--pan_right',
                         help='Move camera to the right', action='store_true')
->>>>>>> e5bdf362eea40865412c112c5982d8c5aed2752b
+
+    camera.add_argument('-degree', '--degree',
+                        help='Move camera up', type=int)
+>>>>>>> e88aa55733b0ab0a1d58551c51e97346b190a3f7
 
     # help command
     h = parser.add_argument_group('Help', 'show help menu')
@@ -90,7 +103,11 @@ def main():
 
     # retrieve all arguments entered
     args = parser.parse_args()
+<<<<<<< HEAD
     # print (args)
+=======
+    print (args)
+>>>>>>> e88aa55733b0ab0a1d58551c51e97346b190a3f7
     if args.help:
         parser.print_help()
 
@@ -112,9 +129,15 @@ def main():
             gpio.weather_on(1)
         elif args.weather_off:
             gpio.weather_off(1)
+<<<<<<< HEAD
         elif args.power_down:
             gpio.power_down(1)
         elif args.power_up:
+=======
+        elif args.power_off:
+            gpio.power_down(1)
+        elif args.power_on:
+>>>>>>> e88aa55733b0ab0a1d58551c51e97346b190a3f7
             gpio.power_up(1)
         elif any(command):
             gpio.router_on(int(args.router_on))

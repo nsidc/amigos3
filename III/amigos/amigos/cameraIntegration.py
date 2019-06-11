@@ -74,7 +74,7 @@ def continuous_move():
     request = ptz.create_type('GetConfigurationOptions')
     request.ConfigurationToken = media_profile.PTZConfiguration._token
     ptz_configuration_options = ptz.GetConfigurationOptions(request)
-    print(ptz_configuration_options)
+    # print(ptz_configuration_options)
     # print('above line 70')
     request = ptz.create_type('ContinuousMove')
     # print(type(request))
@@ -90,37 +90,37 @@ def continuous_move():
     YMIN = ptz_configuration_options.Spaces.ContinuousPanTiltVelocitySpace[0].YRange.Min
     # pdb.set_trace()
     # move down initialize as the first starting movement
-    # move_down(ptz, request, 5)
-    # sleep(1)  # after moving the camera waits 1 second
-    # # photo() #taking a photo at the location
+    move_down(ptz, request, 5)
+    sleep(1)  # after moving the camera waits 1 second
+    # photo() #taking a photo at the location
 
-    # # move right till in next initial position (should be facing tower)
-    # move_right(ptz, request, 5)
+    # move right till in next initial position (should be facing tower)
+    move_right(ptz, request, 5)
 
-    # # move up 45 degrees
-    # move_up(ptz, request, .5)
-    # sleep(2)
+    # move up 45 degrees
+    move_up(ptz, request, .5)
+    sleep(2)
     # photo()
 
-    # # move up
-    # move_up(ptz, request, .6)
-    # sleep(2)
-    # # photo()
+    # move up
+    move_up(ptz, request, .6)
+    sleep(2)
+    # photo()
 
-    # # move left
-    # move_left(ptz, request, .80)
-    # sleep(2)
-    # # photo()
+    # move left
+    move_left(ptz, request, .80)
+    sleep(2)
+    # photo()
 
-    # # move left
-    # move_left(ptz, request, .70)
-    # sleep(2)
-    # # photo()
+    # move left
+    move_left(ptz, request, .70)
+    sleep(2)
+    # photo()
 
-    # # move left
-    # move_left(ptz, request, .75)
-    # sleep(2)
-    photo()
+    # move left
+    move_left(ptz, request, .75)
+    sleep(2)
+    # photo()
 
 
 if __name__ == '__main__':
