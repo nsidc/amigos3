@@ -105,7 +105,6 @@ snapSho
         Returns:
             [instance] -- return the reply from the server as instance
         """
-
         # check if the input is not specified used the current value from the camera.
         if pan == None:
             pan = float(self.getStatus()[0])/self.unit_degreePan
