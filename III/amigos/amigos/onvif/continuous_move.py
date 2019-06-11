@@ -51,6 +51,7 @@ def continuous_move():
     media = mycam.create_media_service()
     # Create ptz service object
     ptz = mycam.create_ptz_service()
+    print(dir(ptz))
 
     # Get target profile
     media_profile = media.GetProfiles()[0]

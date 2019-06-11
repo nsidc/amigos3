@@ -361,7 +361,6 @@ class ONVIFCamera(object):
 
         return xaddr, wsdlpath
 
-    @profile
     def create_onvif_service(self, name, from_template=True, portType=None):
         '''Create ONVIF service client'''
 
@@ -381,6 +380,7 @@ class ONVIFCamera(object):
                                              no_cache=self.no_cache, portType=portType, dt_diff=self.dt_diff)
             # No template, create new service from wsdl document.
             # A little time-comsuming
+                print('We are here')
 
             else:
                 service = ONVIFService(xaddr, self.user, self.passwd,
@@ -388,7 +388,6 @@ class ONVIFCamera(object):
                                        self.cache_duration, self.encrypt,
                                        self.daemon, no_cache=self.no_cache, portType=portType, dt_diff=self.dt_diff)
             self.services[name] = service
-            print('We are here')
             setattr(self, name, service)
             if not self.services_template.get(name):
                 self.services_template[name] = service
@@ -405,29 +404,29 @@ class ONVIFCamera(object):
     def create_ptz_service(self, from_template=True):
         return self.create_onvif_service('ptz', from_template)
 
-    def create_imaging_service(self, from_template=True):
-        return self.create_onvif_service('imaging', from_template)
+    # def create_imaging_service(self, from_template=True):
+    #     return self.create_onvif_service('imaging', from_template)
 
-    def create_deviceio_service(self, from_template=True):
-        return self.create_onvif_service('deviceio', from_template)
+    # def create_deviceio_service(self, from_template=True):
+    #     return self.create_onvif_service('deviceio', from_template)
 
-    def create_events_service(self, from_template=True):
-        return self.create_onvif_service('events', from_template)
+    # def create_events_service(self, from_template=True):
+    #     return self.create_onvif_service('events', from_template)
 
-    def create_analytics_service(self, from_template=True):
-        return self.create_onvif_service('analytics', from_template)
+    # def create_analytics_service(self, from_template=True):
+    #     return self.create_onvif_service('analytics', from_template)
 
-    def create_recording_service(self, from_template=True):
-        return self.create_onvif_service('recording', from_template)
+    # def create_recording_service(self, from_template=True):
+    #     return self.create_onvif_service('recording', from_template)
 
-    def create_search_service(self, from_template=True):
-        return self.create_onvif_service('search', from_template)
+    # def create_search_service(self, from_template=True):
+    #     return self.create_onvif_service('search', from_template)
 
-    def create_replay_service(self, from_template=True):
-        return self.create_onvif_service('replay', from_template)
+    # def create_replay_service(self, from_template=True):
+    #     return self.create_onvif_service('replay', from_template)
 
-    def create_pullpoint_service(self, from_template=True):
-        return self.create_onvif_service('pullpoint', from_template, portType='PullPointSubscription')
+    # def create_pullpoint_service(self, from_template=True):
+    #     return self.create_onvif_service('pullpoint', from_template, portType='PullPointSubscription')
 
-    def create_receiver_service(self, from_template=True):
-        return self.create_onvif_service('receiver', from_template)
+    # def create_receiver_service(self, from_template=True):
+    #     return self.create_onvif_service('receiver', from_template)
