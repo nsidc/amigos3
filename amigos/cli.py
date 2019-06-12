@@ -4,8 +4,11 @@ import os.path
 import amigos.argparse as argparse
 import amigos.watchdog as watchdog
 import amigos.gpio as gpio
+from amigos.soap.onvif import ptz_client as client
+import sys
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
+ptz = client()
 
 
 def main():
@@ -13,7 +16,10 @@ def main():
     Commands group
     Allow easy access to vital functionality of the amigos
     """
-
+    val = None
+    if len(sys.argv) > 3:
+        val = sys.argv[-1]
+        sys.argv.pop(-1)
     parser = argparse.ArgumentParser(prog='Amigos', add_help=False)
     # Group or command for schedule viewing
     schedule = parser.add_argument_group(
@@ -32,7 +38,8 @@ def main():
 
     # group of command for watchdog configureting
     wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
-    wdog.add_argument('watchdog', help='View running watchdog setting', nargs='?')
+    wdog.add_argument(
+        'watchdog', help='View running watchdog setting', nargs='?')
     wdog.add_argument('-u', '--update',
                       help='update the watchdog cycle', action='store_true')
     wdog.add_argument('-sl', '--sleep',
@@ -41,7 +48,8 @@ def main():
                       help='deactivate watchdog from auto update', action='store_true')
 
     # power commands
-    power = parser.add_argument_group('Power Control', 'Control power on gpio pins')
+    power = parser.add_argument_group(
+        'Power Control', 'Control power on gpio pins')
     power.add_argument(
         'power', help='Need one of the secondary arguments bellow', nargs='?')
     power.add_argument('-r_on', '--router_on',
@@ -62,18 +70,22 @@ def main():
                        help='power up all peripherals', action='store_true')
 
     camera = parser.add_argument_group(
-        'Control Camera', 'Control camera position, take pictures and more')
+        'Camera Control', 'Control camera position, take pictures and more')
     camera.add_argument(
         'camera', help='required a secondary command', nargs='?')
-    camera.add_argument('-up', '--move_up',
+    camera.add_argument('-t', '--tilt',
                         help='Move camera up', action='store_true')
-    camera.add_argument('-up', '--move_up',
-                        help='Move camera down', action='store_true')
-    camera.add_argument('-left', '--move_left',
+    camera.add_argument('-p', '--pan',
                         help='Move camera to the left', action='store_true')
-    camera.add_argument('-right', '--move_right',
-                        help='Move camera to the right', action='store_true')
+    camera.add_argument('-z', '--zoom',
+                        help='zoom camera to the left', action='store_true')
 
+    camera.add_argument('-combo', '--combine_move',
+                        help='execute combine move on the camera', action='store_true')
+    camera.add_argument('-snap', '--snapshot',
+                        help='Take a snapshot', action='store_true')
+    camera.add_argument('-status', '--get_status',
+                        help='get status', action='store_true')
     # help command
     h = parser.add_argument_group('Help', 'show help menu')
     h.add_argument('-h', '--help',
@@ -88,13 +100,15 @@ def main():
     # logic for watchdog configuration
     elif args.schedule == 'watchdog':
         if args.update:
+            print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
             watchdog.set_mode(
-                mode=int(input("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")))
+                mode=int(val))
         elif args.deactivate:
             watchdog.set_mode(default=True)
         elif args.sleep:
+            print("Enter 2 for an hour and 3 for 3 minutes of sleep:\n")
             watchdog.set_mode(
-                mode=int(input("Enter 2 for an hour and 3 for 3 minutes of sleep:\n")))
+                mode=int(val))
         else:
             watchdog.set_mode(mode=None)
     elif args.schedule == 'power':
@@ -103,9 +117,9 @@ def main():
             gpio.weather_on(1)
         elif args.weather_off:
             gpio.weather_off(1)
-        elif args.power_down:
+        elif args.power_off:
             gpio.power_down(1)
-        elif args.power_up:
+        elif args.power_on:
             gpio.power_up(1)
         elif any(command):
             gpio.router_on(int(args.router_on))
@@ -114,6 +128,32 @@ def main():
             gpio.gps_off(int(args.gps_off))
         else:
             print("Too few arguments. No device specified.")
+    elif args.schedule == 'camera':
+        cmd = [args.pan, args.tilt, args.zoom]
+        if args.combine_move:
+            val = val.split(',')
+            if len(val) < 3:
+                print("Need pan,tilt and zoom value")
+                return
+            ptz.send(typeof='absolute', pan=float(
+                val[0]), tilt=float(val[1]), zoom=float(val[2]))
+        elif args.snapshot:
+            ptz.snapShot()
+        elif args.get_status:
+            ptz.getStatus(output=True)
+        elif any(cmd):
+            # cmd = [args.pan, args.tilt, args.zoom]
+            pan = None
+            tilt = None
+            zoom = None
+            if args.pan:
+                pan = float(val)
+            elif args.tilt:
+                tilt = float(val)
+            elif args.zoom:
+                zoom = float(val)
+            # print(pan, tilt, zoom)
+            ptz.send(typeof='absolute', pan=pan, tilt=tilt, zoom=zoom)
     else:
         print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")
