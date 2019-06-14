@@ -68,6 +68,10 @@ def main():
                        help='CR1000 on', action='store_true')
     power.add_argument('-cr_off', '--CR1000_off',
                        help='CR1000 off', action='store_true')
+#    power.add_argument('-dts_on', '--dts_on',
+#                       help='dts on', action='store_true')
+#    power.add_argument('-dts_off', '--dts_off',
+#                       help='dts off', action='store_true')
     power.add_argument('-off', '--power_off',
                        help='power down all peripherals', action='store_true')
     power.add_argument('-on', '--power_on',
@@ -124,6 +128,10 @@ def main():
             gpio.CR1000_on(1)
         elif args.CR1000_off:
             gpio.CR1000_off(1)
+#        elif args.dts_on:
+#            gpio.dts_on(1)
+#        elif args.dts_off:
+#            gpio.dts_off(1)
         elif args.power_off:
             gpio.power_down(1)
         elif args.power_on:

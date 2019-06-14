@@ -136,4 +136,66 @@ def power_up(bit):
         __toggle(bit)
         subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
         print("ok")
-        __update_bit('0b11111111,1b11111111')
+        __update_bit('0b11111111,0b11111111')
+
+
+def CR1000_on(bit):
+    """
+    Turn the power off gps module on after toggling the bit
+    """
+
+    if bit:
+        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+            bit_string = power_log.read().split(",")
+            bit_str = bit_string[1][0:5]+"1"+bit_string[1][6:]
+        __toggle(bit-1)
+        subprocess.call(
+            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+        print("ok")
+        __update_bit(bit_string[0] + ','+bit_str)
+
+
+def CR1000_off(bit):
+    """
+    Turn the power off gps module on after toggling the bit
+    """
+    if bit:
+        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+            bit_string = power_log.read().split(",")
+            bit_str = bit_string[1][0:5]+"0"+bit_string[1][6:]
+        __toggle(bit-1)
+        subprocess.call(
+            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+        print("ok")
+        __update_bit(bit_string[0] + ','+bit_str)
+
+
+#def dts_on(bit):
+#    """
+#    Turn the power off gps module on after toggling the bit
+#    """
+#
+#    if bit:
+#        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+#            bit_string = power_log.read().split(",")
+#            bit_str = bit_string[1][0:5]+"1"+bit_string[1][6:]
+#        __toggle(bit-1)
+#        subprocess.call(
+#            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+#        print("ok")
+#        __update_bit(bit_string[0] + ','+bit_str)
+#
+#
+#def dts_off(bit):
+#    """
+#    Turn the power off gps module on after toggling the bit
+#    """
+#    if bit:
+#        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+#            bit_string = power_log.read().split(",")
+#            bit_str = bit_string[1][0:5]+"0"+bit_string[1][6:]
+#        __toggle(bit-1)
+#        subprocess.call(
+#            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+#        print("ok")
+#        __update_bit(bit_string[0] + ','+bit_str)
