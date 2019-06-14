@@ -141,3 +141,34 @@ def power_up(bit):
         subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
         print("Power is up on peripherals")
     __update_bit('0b11111111,1b11111111')
+
+
+def CR1000_on(bit):
+    """
+    Turn the power off gps module on after toggling the bit
+    """
+
+    with open("/logs/power_log.txt", "w") as power_log:
+        bit_string = power_log.read().split(",")
+    bit_string[1] = bit_string[1][0:5]+"1"+bit_string[1][7:]
+    if bit:
+        __toggle(bit-1)
+        subprocess.call(
+            "echo {} /sys/class/gpio/pwr_ctl/data".format(bit_string), shell=True)
+        print("weather module is turned on")
+    __update_bit(bit_string[0] + ','+bit_string[1])
+
+
+def CR1000_off(bit):
+    """
+    Turn the power off gps module on after toggling the bit
+    """
+    with open("/logs/power_log.txt", "w") as power_log:
+        bit_string = power_log.read().split(",")
+    bit_string[1] = bit_string[1][0:5]+"0"+bit_string[1][7:]
+    if bit:
+        __toggle(bit-1)
+        subprocess.call(
+            "echo {} /sys/class/gpio/pwr_ctl/data".format(bit_string), shell=True)
+        print("weather module is turned on")
+    __update_bit(bit_string[0] + ','+bit_string[1])
