@@ -64,6 +64,10 @@ def main():
                        help='Weather station on', action='store_true')
     power.add_argument('-w_off', '--weather_off',
                        help='Weather station off', action='store_true')
+    power.add_argument('-cr_on', '--CR1000_on',
+                       help='CR1000 on', action='store_true')
+    power.add_argument('-cr_off', '--CR1000_off',
+                       help='CR1000 off', action='store_true')
     power.add_argument('-off', '--power_off',
                        help='power down all peripherals', action='store_true')
     power.add_argument('-on', '--power_on',
@@ -117,6 +121,10 @@ def main():
             gpio.weather_on(1)
         elif args.weather_off:
             gpio.weather_off(1)
+        elif args.CR1000_on:
+            gpio.CR1000_on(1)
+        elif args.CR1000_off:
+            gpio.CR1000_off(1)
         elif args.power_off:
             gpio.power_down(1)
         elif args.power_on:
