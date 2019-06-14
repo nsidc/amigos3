@@ -116,7 +116,6 @@ def main():
         else:
             watchdog.set_mode(mode=None)
     elif args.schedule == 'power':
-        command = (args.router_on, args.router_off, args.gps_on, args.gps_off)
         if args.weather_on:
             gpio.weather_on(1)
         elif args.weather_off:
@@ -129,10 +128,13 @@ def main():
             gpio.power_down(1)
         elif args.power_on:
             gpio.power_up(1)
-        elif any(command):
-            gpio.router_on(int(args.router_on))
+        elif args.router_off:
             gpio.router_off(int(args.router_off))
+        elif args.router_on:
+            gpio.router_on(int(args.router_on))
+        elif args.gps_on:
             gpio.gps_on(int(args.gps_on))
+        elif args.gps_off:
             gpio.gps_off(int(args.gps_off))
         else:
             print("Too few arguments. No device specified.")
