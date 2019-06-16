@@ -212,3 +212,5 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/c,c++,linux,python
+.vscode
+XDG_CACHE_HOME
