@@ -221,6 +221,10 @@ class CR1000(object):
         try:
             data, more = self.pakbus.parse_collectdata(
                 msg[u'RecData'], tabledef)
+            # print(data)
+            # print("-"*50)
+            # print(more)
+            # print("-"*100)
         except KeyError:
             pass
         # Return parsed record data and flag if more records exist
@@ -246,7 +250,7 @@ class CR1000(object):
         the next one.
 
         :param tablename: Table name that contains the data.
-        :param start_date: The beginning datetime record.
+        :param start_date: The beginning datetime record.xs
         :param stop_date: The stopping datetime record.
         '''
         self.ping_node()

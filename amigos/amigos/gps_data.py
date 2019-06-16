@@ -1,5 +1,5 @@
 # !/bin/python2
-import pynmea2 as nmea
+import pynmea2 as nmea2
 from serial import Serial as ser
 from time import sleep
 # import binascii as bina
@@ -57,7 +57,8 @@ class binex():
                 if byte.find(objects) == -1 and key == 14 and byte.find("\r\n") == -1:
                     # check the byte for empty string or end of line
                     if byte != '\n' or byte != '':
-                        self.is_saved = writeFile('gps_binex_data.log', byte, 'ab')
+                        self.is_saved = writeFile(
+                            'gps_binex_data.log', byte, 'ab')
                         sleep(2)
                         break
                 # object found a position 3 do nothing (no a binex)
@@ -68,14 +69,16 @@ class binex():
                     pass
                 # The binex and the nmea are attached, here we separate them
                 else:
-                    bytes = byte[0:int(byte.find(objects))-3]  # separate the binex
+                    # separate the binex
+                    bytes = byte[0:int(byte.find(objects))-3]
                     # it could happen that the last string is just ATT or $PTP
                     if bytes == '$PTP' or byte.find('ATT') != -1:
                         break
                     # write the cut byte to the file
                     elif bytes or bytes != '\n':
                         # print(3, bytes)
-                        self.is_saved = writeFile('gps_binex_data.log', bytes, 'ab')
+                        self.is_saved = writeFile(
+                            'gps_binex_data.log', bytes, 'ab')
                         sleep(2)
                         is_byte = True
                         break
@@ -83,6 +86,7 @@ class binex():
             if self.is_saved == True and byte.find('GGA') != -1:
                 is_byte = True  # All the binex has been written to file
                 self.sequence = self.sequence+1  # increment sequence
+                print(self.sequence)
                 self.is_saved = False  # reset the variable is_saved
                 sleep(self.interval)  # wait for interval
                 break
@@ -146,6 +150,7 @@ class nmea():
             self.port = ser('/dev/ttyS0')  # set the port
             self.port.baudrate = 115200  # set baudrate
             self.port.timeOut = None  # set port time out
+            self.port.flushInput()
         except:
             self.port = None
             print('Unable to setup port')
@@ -165,17 +170,19 @@ class nmea():
         else:
             # set GPGGA, GPVTG to None
             gps_on(1)
-            print('Waiting for 1 minute. GPS module not fully started!')
-            sleep(60)
+            print('Waiting for 5 minute. GPS module not fully started!')
+            sleep(120)
+            self.port.flushInput()
             GPVTG = None
             GPGGA = None
             # loop and find the GPGGA, GPVTG variable
             while GPGGA is None or GPVTG is None:
                 data = self.port.readline()
                 try:
-                    if data.find('GPVTG') != -1:
+                    if data.find('VTG') != -1:
+                        # print(data)
                         GPVTG = data
-                    elif data.find('GPGGA') != -1:
+                    elif data.find('GPGGA') == 1:
                         GPGGA = data
                 except:
                     print("Unable to read. Check GPS module configuration or try again")
@@ -233,8 +240,8 @@ class nmea():
         GPGGA_parser = None
         GPVTG_parser = None
         if GPGGA and GPVTG:
-            GPGGA_parser = nmea.parse(GPGGA)  # parser the data
-            GPVTG_parser = nmea.parse(GPVTG)
+            GPGGA_parser = nmea2.parse(GPGGA)  # parser the data
+            GPVTG_parser = nmea2.parse(GPVTG)
         # print(GPGGA_parser, GPVTG_parser)
         return GPGGA_parser, GPVTG_parser
 
@@ -244,14 +251,18 @@ class nmea():
         take no argument
         Return nothing
         """
-        gps_data = self.__Nmea_parse()  # call the parser function to get location
+        gps_data = self.__Nmea_parse()
+        # print(gps_data)  # call the parser function to get location
         Altitude = gps_data[0].altitude  # retrieve altitude
         Longitude = gps_data[0].lon  # retrive longitude
         Longitude_Dir = gps_data[0].lon_dir  # retrive longitude direction
         Latitude = gps_data[0].lat  # retrive latitude
-        Latitude_Dir = gps_data[0].lat_dir  # retrive latitude direction
-        print(" Altitude: {0}\n Longitude: {1}\n Longitude Dir: {2}\n Latitude: {3}\n Latitude Dir: {4}\n".format(
-            Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir))
+        Latitude_Dir = gps_data[0].lat_dir
+        # retrive latitude direction
+        spd_over_grnd = gps_data[1].spd_over_grnd_kmph
+        sat = gps_data[0].num_sats
+        print(" Altitude: {0} m\n Longitude: {1} m\n Longitude Dir: {2}\n Latitude:{3}m\n Latitude Dir: {4}\n spd_over_grnd: {6} Kmph\n Total Satellites: {5}".format(
+            Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd))
 
     def get_nmea(self):
         """
@@ -297,9 +308,7 @@ class nmea():
 
 
 if __name__ == "__main__":
-    with open('gps_nmea_data.log', 'w') as fil:
-        fil.write('')
     bn = nmea()
     bn.timeout = 2
     bn.interval = 2
-    bn.get_nmea()
+    bn.quick_gps_data()
