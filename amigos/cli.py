@@ -5,6 +5,7 @@ import amigos.argparse as argparse
 import amigos.watchdog as watchdog
 import amigos.gpio as gpio
 from amigos.soap.onvif import ptz_client as client
+from amigos.gps_data import nmea, binex as bine
 import sys
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
@@ -86,6 +87,18 @@ def main():
                         help='Take a snapshot', action='store_true')
     camera.add_argument('-status', '--get_status',
                         help='get status', action='store_true')
+
+    gps = parser.add_argument_group(
+        'Get GPS Postion', 'Get gps data with less accuracy')
+    gps.add_argument(
+        'gps', help='Get full reading', nargs='?')
+    gps.add_argument('-lat', '--latitude',
+                     help='Move camera up', action='store_true')
+    gps.add_argument('-long', '--longitude',
+                     help='Move camera up', action='store_true')
+    gps.add_argument('-binex', '--binex',
+                     help='Move camera up', action='store_true')
+
     # help command
     h = parser.add_argument_group('Help', 'show help menu')
     h.add_argument('-h', '--help',
@@ -156,6 +169,13 @@ def main():
                 zoom = float(val)
             # print(pan, tilt, zoom)
             ptz.send(typeof='absolute', pan=pan, tilt=tilt, zoom=zoom)
+    elif args.schedule == 'gps':
+        nm = nmea()
+        bn = bine()
+        if args.binex:
+            bn.get_binex()
+        else:
+            nm.quick_gps_data()
     else:
         print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")
