@@ -219,3 +219,6 @@ pynmea2/
 requests/
 pylink/
 .DS_STORE
+.txt
+.log
+.jpg
