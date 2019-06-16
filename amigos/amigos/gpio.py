@@ -120,10 +120,9 @@ def power_down(bit):
         __update_bit(bit_string)
         __toggle(bit-1)
         subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(2)
         __toggle(bit)
         subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        print("ok\nTitron is going down now!")
+        print("ok\nTritron is going down now!")
         sleep(2)
         subprocess.call("shutdown -h now", shell=True)
 
@@ -132,7 +131,6 @@ def power_up(bit):
     if bit:
         __toggle(bit-1)
         subprocess.call("echo 0xFF> /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(2)
         __toggle(bit)
         subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
         print("ok")
