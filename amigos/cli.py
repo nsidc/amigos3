@@ -5,7 +5,6 @@ import amigos.argparse as argparse
 import amigos.watchdog as watchdog
 import amigos.gpio as gpio
 from amigos.soap.onvif import ptz_client as client
-from amigos.gps_data import nmea, binex as bine
 import sys
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
@@ -65,6 +64,14 @@ def main():
                        help='Weather station on', action='store_true')
     power.add_argument('-w_off', '--weather_off',
                        help='Weather station off', action='store_true')
+    power.add_argument('-cr_on', '--cr1000_on',
+                       help='CR1000 on', action='store_true')
+    power.add_argument('-cr_off', '--cr1000_off',
+                       help='CR1000 off', action='store_true')
+#    power.add_argument('-dts_on', '--dts_on',
+#                       help='dts on', action='store_true')
+#    power.add_argument('-dts_off', '--dts_off',
+#                       help='dts off', action='store_true')
     power.add_argument('-off', '--power_off',
                        help='power down all peripherals', action='store_true')
     power.add_argument('-on', '--power_on',
@@ -87,18 +94,6 @@ def main():
                         help='Take a snapshot', action='store_true')
     camera.add_argument('-status', '--get_status',
                         help='get status', action='store_true')
-
-    gps = parser.add_argument_group(
-        'Get GPS Postion', 'Get gps data with less accuracy')
-    gps.add_argument(
-        'gps', help='Get full reading', nargs='?')
-    gps.add_argument('-lat', '--latitude',
-                     help='Move camera up', action='store_true')
-    gps.add_argument('-long', '--longitude',
-                     help='Move camera up', action='store_true')
-    gps.add_argument('-binex', '--binex',
-                     help='Move camera up', action='store_true')
-
     # help command
     h = parser.add_argument_group('Help', 'show help menu')
     h.add_argument('-h', '--help',
@@ -110,7 +105,7 @@ def main():
     if args.help:
         parser.print_help()
 
-    # logic for watchdog configurationn 
+    # logic for watchdog configuration
     elif args.schedule == 'watchdog':
         if args.update:
             print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
@@ -129,6 +124,14 @@ def main():
             gpio.weather_on(1)
         elif args.weather_off:
             gpio.weather_off(1)
+        elif args.cr1000_on:
+            gpio.CR1000_on(1)
+        elif args.cr1000_off:
+            gpio.CR1000_off(1)
+#        elif args.dts_on:
+#            gpio.dts_on(1)
+#        elif args.dts_off:
+#            gpio.dts_off(1)
         elif args.power_off:
             gpio.power_down(1)
         elif args.power_on:
@@ -169,13 +172,6 @@ def main():
                 zoom = float(val)
             # print(pan, tilt, zoom)
             ptz.send(typeof='absolute', pan=pan, tilt=tilt, zoom=zoom)
-    elif args.schedule == 'gps':
-        nm = nmea()
-        bn = bine()
-        if args.binex:
-            bn.get_binex()
-        else:
-            nm.quick_gps_data()
     else:
         print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")
