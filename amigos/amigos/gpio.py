@@ -120,9 +120,10 @@ def power_down(bit):
         __update_bit(bit_string)
         __toggle(bit-1)
         subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
         __toggle(bit)
         subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        print("ok\nTritron is going down now!")
+        print("ok\nTitron is going down now!")
         sleep(2)
         subprocess.call("shutdown -h now", shell=True)
 
@@ -131,6 +132,7 @@ def power_up(bit):
     if bit:
         __toggle(bit-1)
         subprocess.call("echo 0xFF> /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
         __toggle(bit)
         subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
         print("ok")
@@ -168,7 +170,7 @@ def CR1000_off(bit):
         __update_bit(bit_string[0] + ','+bit_str)
 
 
-# def dts_on(bit):
+#def dts_on(bit):
 #    """
 #    Turn the power off gps module on after toggling the bit
 #    """
@@ -184,7 +186,7 @@ def CR1000_off(bit):
 #        __update_bit(bit_string[0] + ','+bit_str)
 #
 #
-# def dts_off(bit):
+#def dts_off(bit):
 #    """
 #    Turn the power off gps module on after toggling the bit
 #    """
