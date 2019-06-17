@@ -3,7 +3,7 @@
 #This Program will read in data from the Vaisala Weather Sensor in the ascii output language and translate it into readable messages
 
 ##Import Modules
-import time 
+import time
 import serial
 import re
 import datetime
@@ -11,19 +11,11 @@ import datetime
 from time import sleep
 
 
-#Read in the weather sensor data and write to an ascii text file 
+#Read in the weather sensor data and write to an ascii text file
 port = serial.Serial("/dev/ttyS5")
 port.baudrate = 115200
 t=0
-<<<<<<< HEAD
 while t<=300:
-=======
-<<<<<<< HEAD
-while t<=100:
-=======
-while t<=300:
->>>>>>> e88aa55733b0ab0a1d58551c51e97346b190a3f7
->>>>>>> 0da094883510315a3863a40016768e7f960a3629
     with open("weather_data_ASCII.txt","a") as raw_data:
         port.flushInput()
         data = port.readline()
@@ -99,8 +91,8 @@ with open("weather_data_ASCII.txt","r") as f:
 
 
 #.write or .append
-#Add all comments nicely 
-#Try out with sample data, then coovi real data after live with weather sensor 
+#Add all comments nicely
+#Try out with sample data, then coovi real data after live with weather sensor
 #Email ted and see what he wants from it - sve ascii on station and send to home thry iridium too?
 #then translate when get home?
-#confirm with ted then move on 
+#confirm with ted then move on

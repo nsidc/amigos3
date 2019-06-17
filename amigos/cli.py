@@ -110,7 +110,7 @@ def main():
     if args.help:
         parser.print_help()
 
-    # logic for watchdog configuration
+    # logic for watchdog configurationn 
     elif args.schedule == 'watchdog':
         if args.update:
             print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
