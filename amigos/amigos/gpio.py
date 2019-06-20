@@ -139,11 +139,10 @@ def power_up(bit):
         __update_bit('0b11111111,0b11111111')
 
 
-def CR1000_on(bit):
+def cr1000_on(bit):
     """
-    Turn the power off gps module on after toggling the bit
+    Turn the power on cr1000 module on after toggling the bit
     """
-
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
@@ -155,9 +154,9 @@ def CR1000_on(bit):
         __update_bit(bit_string[0] + ','+bit_str)
 
 
-def CR1000_off(bit):
+def cr1000_off(bit):
     """
-    Turn the power off gps module on after toggling the bit
+    Turn the power off cr1000 module on after toggling the bit
     """
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
@@ -168,6 +167,38 @@ def CR1000_off(bit):
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
         __update_bit(bit_string[0] + ','+bit_str)
+
+
+def ip6600_on(bit):
+    """
+    Turn the power on ip6600 after toggling the bit
+    """
+    if bit:
+        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+            bit_string = str(power_log.read()).split(",")
+            bit_str = bit_string[0][0:7]+"1"+bit_string[0][8:]
+        __toggle(bit)
+        subprocess.call(
+            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+        print("ok")
+        __update_bit(bit_str + ','+bit_string[1])
+
+
+def ip6600_off(bit):
+    """
+    Turn the power off ip6600 after toggling the bit
+    """
+    if bit:
+        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+            bit_string = power_log.read().split(',')
+            bit_str = bit_string[0][0:7]+"0"+bit_string[0][8:]
+        __toggle(bit)
+        sleep(1)
+        subprocess.call(
+            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+        print("ok")
+        __update_bit(bit_str + ','+bit_string[1])
+
 
 
 #def dts_on(bit):
