@@ -1,5 +1,5 @@
 # scheduling system
-import schedule as schedule
+from schedule import schedule as schedule
 import threading
 import time
 from copy import deepcopy
