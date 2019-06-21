@@ -6,7 +6,7 @@ import amigos.watchdog as watchdog
 import amigos.gpio as gpio
 from amigos.onvif.onvif import ptz_client as client
 import sys
-from amigos.vaisala import average_data as avg
+from amigos.vaisala import vaisala_schedule as vaisala_schedule
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()
@@ -30,7 +30,8 @@ def args_parser():
 
     # group of command for weather viewing
     weather = parser.add_argument_group('Read weather', 'show live weather data')
-    weather.add_argument('weather', help='View all live data', nargs='?')
+    weather.add_argument('-weather_collect', help='Run data collecting program', action='store_true')
+    weather.add_argument('-weather_all', help='View all live data', action='store_true')
     weather.add_argument('-dir', '--wind_direction',
                         help='View average wind direction (Degrees)', action='store_true')
     weather.add_argument('-speed', '--wind_speed',
@@ -229,7 +230,17 @@ def iridium(args):
 
 
 def weather(args):
-    avg()
+    if args.weather_collect:
+        #call averaging script 
+        vaisala_schedule()
+    elif args.weather_all:
+        #Call function to display all current live data 
+        pass
+    elif args.wind_direction:
+        #Call function to retrieve this data point from vaisala script
+        pass
+    else:
+        pass
 
 
 def main():

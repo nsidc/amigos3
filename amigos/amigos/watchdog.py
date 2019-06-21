@@ -1,7 +1,7 @@
 # Battery, CPU and other ressources monitoring
 import threading
 from time import sleep
-import schedule as schedule
+from schedule import schedule as schedule
 import subprocess as subprocess
 
 
