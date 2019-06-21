@@ -20,9 +20,9 @@ def __toggle(bit):
         "echo {0} > /sys/class/gpio/pwr_ctl/index".format(bit), shell=True)
 
 
-def router_on(bit):
+def modem_on(bit):
     """
-    Turn the power on router on after toggling the bit
+    Turn the power on modem on after toggling the bit
     """
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
@@ -36,9 +36,9 @@ def router_on(bit):
         __update_bit(bit_str + ','+bit_string[1])
 
 
-def router_off(bit):
+def modem_off(bit):
     """
-    Turn the power off router off after toggling the bit
+    Turn the power off modem off after toggling the bit
     """
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
@@ -169,9 +169,9 @@ def cr1000_off(bit):
         __update_bit(bit_string[0] + ','+bit_str)
 
 
-def ip6600_on(bit):
+def router_on(bit):
     """
-    Turn the power on ip6600 after toggling the bit
+    Turn the power on router module after toggling the bit
     """
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
@@ -184,14 +184,45 @@ def ip6600_on(bit):
         __update_bit(bit_str + ','+bit_string[1])
 
 
-def ip6600_off(bit):
+def router_off(bit):
     """
-    Turn the power off ip6600 after toggling the bit
+    Turn the power off router module after toggling the bit
     """
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(',')
             bit_str = bit_string[0][0:7]+"0"+bit_string[0][8:]
+        __toggle(bit)
+        sleep(1)
+        subprocess.call(
+            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+        print("ok")
+        __update_bit(bit_str + ','+bit_string[1])
+
+
+def iridium_on(bit):
+    """
+    Turn the power on iridium module after toggling the bit
+    """
+    if bit:
+        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+            bit_string = str(power_log.read()).split(",")
+            bit_str = bit_string[0][0:5]+"1"+bit_string[0][6:]
+        __toggle(bit)
+        subprocess.call(
+            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+        print("ok")
+        __update_bit(bit_str + ','+bit_string[1])
+
+
+def iridium_off(bit):
+    """
+    Turn the power off iridium module after toggling the bit
+    """
+    if bit:
+        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+            bit_string = power_log.read().split(',')
+            bit_str = bit_string[0][0:5]+"0"+bit_string[0][6:]
         __toggle(bit)
         sleep(1)
         subprocess.call(
