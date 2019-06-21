@@ -218,6 +218,7 @@ pycampbellcr1000/
 pynmea2/
 requests/
 pylink/
+schedule/
 .DS_STORE
 .txt
 .log
