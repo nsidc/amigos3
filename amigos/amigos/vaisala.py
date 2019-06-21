@@ -61,7 +61,11 @@ def average_data():
         numbers_divide = numbers_sum/(len(float_array_final))
         data_array_final.append(round(numbers_divide,3))
 
-    print(data_array_final)
+    with open("weather_data_hourly.txt","a") as hourly:
+        hourly.write(data_array_final)
+        hourly.write("\n")
+
+    open('file.txt', 'w').close()
 
 
 if __name__ == "__main__":

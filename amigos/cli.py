@@ -4,18 +4,15 @@ import os.path
 import amigos.argparse as argparse
 import amigos.watchdog as watchdog
 import amigos.gpio as gpio
-from amigos.soap.onvif import ptz_client as client
+from amigos.onvif.onvif import ptz_client as client
 import sys
+from amigos.vaisala import average_data as avg
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()
 
 
-def main():
-    """
-    Commands group
-    Allow easy access to vital functionality of the amigos
-    """
+def args_parser():
     val = None
     if len(sys.argv) > 3:
         val = sys.argv[-1]
@@ -32,9 +29,37 @@ def main():
         '-w', '--winter', help='View winter schedule', action='store_true')
 
     # group of command for weather viewing
-    weather = parser.add_argument_group('Read weather', 'show weather data')
-    weather.add_argument('weather', help='View all data saved', nargs='?')
-    weather.add_argument('-a', help='Show actual weather', action='store_true')
+    weather = parser.add_argument_group('Read weather', 'show live weather data')
+    weather.add_argument('weather', help='View all live data', nargs='?')
+    weather.add_argument('-dir', '--wind_direction',
+                        help='View average wind direction (Degrees)', action='store_true')
+    weather.add_argument('-speed', '--wind_speed',
+                        help='View average wind speed (m/s)', action='store_true')
+    weather.add_argument('-temp', '--air_temp',
+                        help='View current air temperature (C)', action='store_true')
+    weather.add_argument('-hum', '--humidity',
+                        help='View current relative humidity (%%RH)', action='store_true')
+    weather.add_argument('-pres', '--pressure',
+                        help='View current air pressure (hPa)', action='store_true')
+    weather.add_argument('-r_acc', '--rain_acculumation',
+                        help='View rain accumulation over last storm (mm)', action='store_true')
+    weather.add_argument('-r_dur', '--rain_duration',
+                        help='View rain duration over last storm (s)', action='store_true')
+    weather.add_argument('-r_int', '--rain_intensity',
+                        help='View rain intensity over last storm (mm/hour)', action='store_true')
+    weather.add_argument('-r_pint', '--rain_peak_intensity',
+                        help='View rain peak intensity over last storm (mm/hour)', action='store_true')
+    weather.add_argument('-h_acc', '--hail_acculumation',
+                        help='View hail accumulation over last storm (hits/cm^2)', action='store_true')
+    weather.add_argument('-h_dur', '--hail_duration',
+                        help='View hail duration over last storm (s)', action='store_true')
+    weather.add_argument('-h_int', '--hail_intensity',
+                        help='View hail intensity over last storm (hits/cm^2/hour)', action='store_true')
+    weather.add_argument('-h_pint', '--hail_peak_intensity',
+                        help='View hail peak intensity over last storm (hits/cm^2/hour)', action='store_true')
+    weather.add_argument('-unit', '--vaisala_unit',
+                        help='View Vaisala unit information', action='store_true')
+
 
     # group of command for watchdog configureting
     wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
@@ -52,10 +77,10 @@ def main():
         'Power Control', 'Control power on gpio pins')
     power.add_argument(
         'power', help='Need one of the secondary arguments bellow', nargs='?')
-    power.add_argument('-r_on', '--router_on',
-                       help='Router on', action='store_true')
-    power.add_argument('-r_off', '--router_off',
-                       help='Router off', action='store_true')
+    power.add_argument('-m_on', '--modem_on',
+                       help='Modem on', action='store_true')
+    power.add_argument('-m_off', '--modem_off',
+                       help='Modem off', action='store_true')
     power.add_argument('-g_on', '--gps_on',
                        help='GPS on', action='store_true')
     power.add_argument('-g_off', '--gps_off',
@@ -64,10 +89,18 @@ def main():
                        help='Weather station on', action='store_true')
     power.add_argument('-w_off', '--weather_off',
                        help='Weather station off', action='store_true')
-    power.add_argument('-cr_on', '--CR1000_on',
-                       help='CR1000 on', action='store_true')
-    power.add_argument('-cr_off', '--CR1000_off',
-                       help='CR1000 off', action='store_true')
+    power.add_argument('-cr_on', '--cr1000_on',
+                       help='cr1000 on', action='store_true')
+    power.add_argument('-cr_off', '--cr1000_off',
+                       help='cr1000 off', action='store_true')
+    power.add_argument('-r_on', '--router_on',
+                       help='Router on', action='store_true')
+    power.add_argument('-r_off', '--router_off',
+                       help='Router off', action='store_true')
+    power.add_argument('-i_on', '--iridium_on',
+                       help='Iridium on', action='store_true')
+    power.add_argument('-i_off', '--iridium_off',
+                       help='Iridium off', action='store_true')
 #    power.add_argument('-dts_on', '--dts_on',
 #                       help='dts on', action='store_true')
 #    power.add_argument('-dts_off', '--dts_off',
@@ -100,78 +133,124 @@ def main():
                    help='Show this menu', action='store_true')
 
     # retrieve all arguments entered
-    args = parser.parse_args()
-    # print (args)
-    if args.help:
-        parser.print_help()
+    return parser, val
 
-    # logic for watchdog configuration
-    elif args.schedule == 'watchdog':
-        if args.update:
-            print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
-            watchdog.set_mode(
-                mode=int(val))
-        elif args.deactivate:
-            watchdog.set_mode(default=True)
-        elif args.sleep:
-            print("Enter 2 for an hour and 3 for 3 minutes of sleep:\n")
-            watchdog.set_mode(
-                mode=int(val))
-        else:
-            watchdog.set_mode(mode=None)
-    elif args.schedule == 'power':
-        if args.weather_on:
-            gpio.weather_on(1)
-        elif args.weather_off:
-            gpio.weather_off(1)
-        elif args.CR1000_on:
-            gpio.CR1000_on(1)
-        elif args.CR1000_off:
-            gpio.CR1000_off(1)
+
+def power(args):
+    if args.weather_on:
+        gpio.weather_on(1)
+    elif args.weather_off:
+        gpio.weather_off(1)
+    elif args.cr1000_on:
+        gpio.cr1000_on(1)
+    elif args.cr1000_off:
+        gpio.cr1000_off(1)
+    elif args.router_on:
+        gpio.router_on(1)
+    elif args.router_off:
+        gpio.router_off(1)
+    elif args.iridium_on:
+        gpio.iridium_on(1)
+    elif args.iridium_off:
+        gpio.iridium_off(1)
 #        elif args.dts_on:
 #            gpio.dts_on(1)
 #        elif args.dts_off:
 #            gpio.dts_off(1)
-        elif args.power_off:
-            gpio.power_down(1)
-        elif args.power_on:
-            gpio.power_up(1)
-        elif args.router_off:
-            gpio.router_off(int(args.router_off))
-        elif args.router_on:
-            gpio.router_on(int(args.router_on))
-        elif args.gps_on:
-            gpio.gps_on(int(args.gps_on))
-        elif args.gps_off:
-            gpio.gps_off(int(args.gps_off))
-        else:
-            print("Too few arguments. No device specified.")
+    elif args.power_off:
+        gpio.power_down(1)
+    elif args.power_on:
+        gpio.power_up(1)
+    elif args.modem_off:
+        gpio.modem_off(int(args.modem_off))
+    elif args.modem_on:
+        gpio.modem_on(int(args.modem_on))
+    elif args.gps_on:
+        gpio.gps_on(int(args.gps_on))
+    elif args.gps_off:
+        gpio.gps_off(int(args.gps_off))
+    else:
+        print("Too few arguments. No device specified.")
+
+
+def camera(args, val):
+    cmd = [args.pan, args.tilt, args.zoom]
+    if args.combine_move:
+        val = val.split(',')
+        if len(val) < 3:
+            print("Need pan,tilt and zoom value")
+            return
+        ptz.send(typeof='absolute', pan=float(
+            val[0]), tilt=float(val[1]), zoom=float(val[2]))
+    elif args.snapshot:
+        ptz.snapShot()
+    elif args.get_status:
+        ptz.getStatus(output=True)
+    elif any(cmd):
+        # cmd = [args.pan, args.tilt, args.zoom]
+        pan = None
+        tilt = None
+        zoom = None
+        if args.pan:
+            pan = float(val)
+        elif args.tilt:
+            tilt = float(val)
+        elif args.zoom:
+            zoom = float(val)
+        # print(pan, tilt, zoom)
+        ptz.send(typeof='absolute', pan=pan, tilt=tilt, zoom=zoom)
+
+
+def watch_dog(args, val):
+    if args.update:
+        print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
+        watchdog.set_mode(
+            mode=int(val))
+    elif args.deactivate:
+        watchdog.set_mode(default=True)
+    elif args.sleep:
+        print("Enter 2 for an hour and 3 for 3 minutes of sleep:\n")
+        watchdog.set_mode(
+            mode=int(val))
+    else:
+        watchdog.set_mode(mode=None)
+
+
+def cr1000x(args):
+    pass
+
+
+def dts(args):
+    pass
+
+
+def iridium(args):
+    pass
+
+
+def weather(args):
+    avg()
+
+
+def main():
+    """
+    Commands group
+    Allow easy access to functionalities of the amigos
+    """
+    # print (args)
+    parser, val = args_parser()
+    args = parser.parse_args()
+    if args.help:
+        parser.print_help()
+    elif args.schedule == 'power':
+        power(args)
+    # logic for watchdog configuration
+    elif args.schedule == 'watchdog':
+        watch_dog(args, val)
     elif args.schedule == 'camera':
-        cmd = [args.pan, args.tilt, args.zoom]
-        if args.combine_move:
-            val = val.split(',')
-            if len(val) < 3:
-                print("Need pan,tilt and zoom value")
-                return
-            ptz.send(typeof='absolute', pan=float(
-                val[0]), tilt=float(val[1]), zoom=float(val[2]))
-        elif args.snapshot:
-            ptz.snapShot()
-        elif args.get_status:
-            ptz.getStatus(output=True)
-        elif any(cmd):
-            # cmd = [args.pan, args.tilt, args.zoom]
-            pan = None
-            tilt = None
-            zoom = None
-            if args.pan:
-                pan = float(val)
-            elif args.tilt:
-                tilt = float(val)
-            elif args.zoom:
-                zoom = float(val)
-            # print(pan, tilt, zoom)
-            ptz.send(typeof='absolute', pan=pan, tilt=tilt, zoom=zoom)
+        camera(args, val)
+    elif args.schedule == 'weather':
+        weather(args)
     else:
         print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")
@@ -181,3 +260,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
