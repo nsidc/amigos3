@@ -4,7 +4,7 @@ import os.path
 import amigos.argparse as argparse
 import amigos.watchdog as watchdog
 import amigos.gpio as gpio
-from amigos.soap.onvif import ptz_client as client
+from amigos.onvif.onvif import ptz_client as client
 import sys
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
@@ -12,6 +12,9 @@ ptz = client()
 
 
 def args_parser():
+    """
+    Parser arguments from command line
+    """
     val = None
     if len(sys.argv) > 3:
         val = sys.argv[-1]
@@ -100,6 +103,9 @@ def args_parser():
 
 
 def power(args):
+    """
+    power options commands handler
+    """
     if args.weather_on:
         gpio.weather_on(1)
     elif args.weather_off:
@@ -129,11 +135,14 @@ def power(args):
 
 
 def camera(args, val):
+    """
+    camera options commands handler
+    """
     cmd = [args.pan, args.tilt, args.zoom]
     if args.combine_move:
         val = val.split(',')
         if len(val) < 3:
-            print("Need pan,tilt and zoom value")
+            print("Need pan,tilt and zoom values")
             return
         ptz.send(typeof='absolute', pan=float(
             val[0]), tilt=float(val[1]), zoom=float(val[2]))
@@ -156,13 +165,16 @@ def camera(args, val):
         ptz.send(typeof='absolute', pan=pan, tilt=tilt, zoom=zoom)
 
 
-def watchgod(args, val):
+def watch_dog(args, val):
+    """
+    watch_dog options commands parser
+    """
     if args.update:
         print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
         watchdog.set_mode(
             mode=int(val))
     elif args.deactivate:
-        watchdog.set_mode(default=True)
+        watchdog.set_mode(mode=True)
     elif args.sleep:
         print("Enter 2 for an hour and 3 for 3 minutes of sleep:\n")
         watchdog.set_mode(
@@ -190,7 +202,7 @@ def weather(args):
 def main():
     """
     Commands group
-    Allow easy access to functionalities of the amigos
+    Allow easy access to functionality of the amigos
     """
     # print (args)
     parser, val = args_parser()
@@ -201,7 +213,7 @@ def main():
         power(args)
     # logic for watchdog configuration
     elif args.schedule == 'watchdog':
-        watchdog(args, val)
+        watch_dog(args, val)
     elif args.schedule == 'camera':
         camera(args, val)
     else:
