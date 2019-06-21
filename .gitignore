@@ -219,6 +219,7 @@ pynmea2/
 requests/
 pylink/
 schedule/
+onvif/
 .DS_STORE
 .txt
 .log
