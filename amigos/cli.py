@@ -6,15 +6,13 @@ import amigos.watchdog as watchdog
 import amigos.gpio as gpio
 from amigos.onvif.onvif import ptz_client as client
 import sys
+from amigos.vaisala import vaisala_schedule as vaisala_schedule
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()
 
 
 def args_parser():
-    """
-    Parser arguments from command line
-    """
     val = None
     if len(sys.argv) > 3:
         val = sys.argv[-1]
@@ -31,9 +29,38 @@ def args_parser():
         '-w', '--winter', help='View winter schedule', action='store_true')
 
     # group of command for weather viewing
-    weather = parser.add_argument_group('Read weather', 'show weather data')
-    weather.add_argument('weather', help='View all data saved', nargs='?')
-    weather.add_argument('-a', help='Show actual weather', action='store_true')
+    weather = parser.add_argument_group('Read weather', 'show live weather data')
+    weather.add_argument('-weather_collect', help='Run data collecting program', action='store_true')
+    weather.add_argument('-weather_all', help='View all live data', action='store_true')
+    weather.add_argument('-dir', '--wind_direction',
+                        help='View average wind direction (Degrees)', action='store_true')
+    weather.add_argument('-speed', '--wind_speed',
+                        help='View average wind speed (m/s)', action='store_true')
+    weather.add_argument('-temp', '--air_temp',
+                        help='View current air temperature (C)', action='store_true')
+    weather.add_argument('-hum', '--humidity',
+                        help='View current relative humidity (%%RH)', action='store_true')
+    weather.add_argument('-pres', '--pressure',
+                        help='View current air pressure (hPa)', action='store_true')
+    weather.add_argument('-r_acc', '--rain_acculumation',
+                        help='View rain accumulation over last storm (mm)', action='store_true')
+    weather.add_argument('-r_dur', '--rain_duration',
+                        help='View rain duration over last storm (s)', action='store_true')
+    weather.add_argument('-r_int', '--rain_intensity',
+                        help='View rain intensity over last storm (mm/hour)', action='store_true')
+    weather.add_argument('-r_pint', '--rain_peak_intensity',
+                        help='View rain peak intensity over last storm (mm/hour)', action='store_true')
+    weather.add_argument('-h_acc', '--hail_acculumation',
+                        help='View hail accumulation over last storm (hits/cm^2)', action='store_true')
+    weather.add_argument('-h_dur', '--hail_duration',
+                        help='View hail duration over last storm (s)', action='store_true')
+    weather.add_argument('-h_int', '--hail_intensity',
+                        help='View hail intensity over last storm (hits/cm^2/hour)', action='store_true')
+    weather.add_argument('-h_pint', '--hail_peak_intensity',
+                        help='View hail peak intensity over last storm (hits/cm^2/hour)', action='store_true')
+    weather.add_argument('-unit', '--vaisala_unit',
+                        help='View Vaisala unit information', action='store_true')
+
 
     # group of command for watchdog configureting
     wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
@@ -51,10 +78,10 @@ def args_parser():
         'Power Control', 'Control power on gpio pins')
     power.add_argument(
         'power', help='Need one of the secondary arguments bellow', nargs='?')
-    power.add_argument('-r_on', '--router_on',
-                       help='Router on', action='store_true')
-    power.add_argument('-r_off', '--router_off',
-                       help='Router off', action='store_true')
+    power.add_argument('-m_on', '--modem_on',
+                       help='Modem on', action='store_true')
+    power.add_argument('-m_off', '--modem_off',
+                       help='Modem off', action='store_true')
     power.add_argument('-g_on', '--gps_on',
                        help='GPS on', action='store_true')
     power.add_argument('-g_off', '--gps_off',
@@ -64,9 +91,17 @@ def args_parser():
     power.add_argument('-w_off', '--weather_off',
                        help='Weather station off', action='store_true')
     power.add_argument('-cr_on', '--cr1000_on',
-                       help='CR1000 on', action='store_true')
+                       help='cr1000 on', action='store_true')
     power.add_argument('-cr_off', '--cr1000_off',
-                       help='CR1000 off', action='store_true')
+                       help='cr1000 off', action='store_true')
+    power.add_argument('-r_on', '--router_on',
+                       help='Router on', action='store_true')
+    power.add_argument('-r_off', '--router_off',
+                       help='Router off', action='store_true')
+    power.add_argument('-i_on', '--iridium_on',
+                       help='Iridium on', action='store_true')
+    power.add_argument('-i_off', '--iridium_off',
+                       help='Iridium off', action='store_true')
 #    power.add_argument('-dts_on', '--dts_on',
 #                       help='dts on', action='store_true')
 #    power.add_argument('-dts_off', '--dts_off',
@@ -103,17 +138,22 @@ def args_parser():
 
 
 def power(args):
-    """
-    power options commands handler
-    """
     if args.weather_on:
         gpio.weather_on(1)
     elif args.weather_off:
         gpio.weather_off(1)
     elif args.cr1000_on:
-        gpio.CR1000_on(1)
+        gpio.cr1000_on(1)
     elif args.cr1000_off:
-        gpio.CR1000_off(1)
+        gpio.cr1000_off(1)
+    elif args.router_on:
+        gpio.router_on(1)
+    elif args.router_off:
+        gpio.router_off(1)
+    elif args.iridium_on:
+        gpio.iridium_on(1)
+    elif args.iridium_off:
+        gpio.iridium_off(1)
 #        elif args.dts_on:
 #            gpio.dts_on(1)
 #        elif args.dts_off:
@@ -122,10 +162,10 @@ def power(args):
         gpio.power_down(1)
     elif args.power_on:
         gpio.power_up(1)
-    elif args.router_off:
-        gpio.router_off(int(args.router_off))
-    elif args.router_on:
-        gpio.router_on(int(args.router_on))
+    elif args.modem_off:
+        gpio.modem_off(int(args.modem_off))
+    elif args.modem_on:
+        gpio.modem_on(int(args.modem_on))
     elif args.gps_on:
         gpio.gps_on(int(args.gps_on))
     elif args.gps_off:
@@ -135,14 +175,11 @@ def power(args):
 
 
 def camera(args, val):
-    """
-    camera options commands handler
-    """
     cmd = [args.pan, args.tilt, args.zoom]
     if args.combine_move:
         val = val.split(',')
         if len(val) < 3:
-            print("Need pan,tilt and zoom values")
+            print("Need pan,tilt and zoom value")
             return
         ptz.send(typeof='absolute', pan=float(
             val[0]), tilt=float(val[1]), zoom=float(val[2]))
@@ -166,15 +203,12 @@ def camera(args, val):
 
 
 def watch_dog(args, val):
-    """
-    watch_dog options commands parser
-    """
     if args.update:
         print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
         watchdog.set_mode(
             mode=int(val))
     elif args.deactivate:
-        watchdog.set_mode(mode=True)
+        watchdog.set_mode(default=True)
     elif args.sleep:
         print("Enter 2 for an hour and 3 for 3 minutes of sleep:\n")
         watchdog.set_mode(
@@ -196,13 +230,23 @@ def iridium(args):
 
 
 def weather(args):
-    pass
+    if args.weather_collect:
+        #call averaging script 
+        vaisala_schedule()
+    elif args.weather_all:
+        #Call function to display all current live data 
+        pass
+    elif args.wind_direction:
+        #Call function to retrieve this data point from vaisala script
+        pass
+    else:
+        pass
 
 
 def main():
     """
     Commands group
-    Allow easy access to functionality of the amigos
+    Allow easy access to functionalities of the amigos
     """
     # print (args)
     parser, val = args_parser()
@@ -216,6 +260,8 @@ def main():
         watch_dog(args, val)
     elif args.schedule == 'camera':
         camera(args, val)
+    elif args.schedule == 'weather':
+        weather(args)
     else:
         print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")
@@ -225,3 +271,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
