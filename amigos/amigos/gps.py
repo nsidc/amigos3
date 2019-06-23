@@ -69,7 +69,7 @@ class gps_data():
         """
         Initiate the reading of the binex language from GPS module to Titron
         Take no argument
-        Return None
+        Return Nonem
         """
         try:
             # try opening the port
