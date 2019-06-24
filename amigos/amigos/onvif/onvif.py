@@ -179,6 +179,19 @@ snapSho
         subprocess.call("mv {0} {1}".format(
             newname, "/media/mmcblk0p1/amigos/amigos/picture/"), shell=True)
 
+    def cam_test(self):
+        self.send(typeof='relative', pan=25, tilt=0, zoom=0)
+        sleep(2)
+        self.snapShot()
+        self.send(typeof='relative', pan=25, tilt=25, zoom=10)
+        self.snapShot()
+        sleep(2)
+        self.send(typeof='relative', pan=100, tilt=-45, zoom=10)
+        self.snapShot()
+        sleep(2)
+        self.send(typeof='relative', pan=-100, tilt=-45, zoom=10)
+        self.snapShop()
+
 
 # Test the code here
 # if __name__ == "__main__":

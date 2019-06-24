@@ -23,16 +23,24 @@ def writeFile(file_name, strings, form):
 class gps_data():
     def __init__(self, *args, **kwargs):
         self.cmd = {
-            'binex': 'out,,binex/',
-            'nmea': 'out,,nmea/',
-            'GPGGA': 'out,,nmea/',
-            'GPVTG': 'out,,nmea/'
+            'binex': 'out,,binex/{00_00,01_01,01_02,01_05,01_06,7E_00,7D_00,7F_02,7F_03,7F_04,7F_05}',
+            'nmea': 'out,,nmea/{GGA,GLL,GMP,GNS,GRS,GSA,GST,GSV,HDT,RMC,ROT,VTG,ZDA,UID,P_ATT}',
+            'GPGGA': 'out,,nmea/GGA',
+            'GPVTG': 'out,,nmea/VTG'
         }
         self.sequence = 1
         self.is_saved = False
         self.interval = 15
         self.timeout = 10
+        try:
+            self.port = ser('/dev/ttyS0')  # set the port
+            self.port.baudrate = 115200  # set baudrate
+            self.port.timeOut = None  # set port time out
+        except:
+            self.port = None
+            print('Unable to setup port')
 
+    # @catch_exceptions(cancel_on_failure=True)
     def get_binex(self):
         """
         Initiate the reading of the binex language from GPS module to Titron
@@ -45,17 +53,21 @@ class gps_data():
             enable_serial()
             gps_on(bit=1)
             sleep(60)
-            self.port.flusInput()
         except:
             self.port = None
             print('Unable to open port')
         else:
+            self.port.flushInput()
+            self.sequence = 1
             while self.sequence <= self.timeout*60/self.interval:
-                self.port.write(self.cmd['binex'])
+                self.port.write(self.cmd['binex']+'\r')
                 sleep(2)
                 data = self.port.read(self.port.inWaiting())
+                if self.port.inWaiting() != 0:
+                    sleep(2)
+                    data = data+self.port.read(self.port.inWaiting())
                 writeFile(
-                    '/media/mmcblk0p1/amigos/amigos/logs/gps_binex_data.txt', data, 'a')
+                    '/media/mmcblk0p1/amigos/amigos/logs/gps_binex_data.txt', data, 'a+')
                 sleep(self.interval)
                 self.sequence = self.sequence+1
         finally:
@@ -86,7 +98,8 @@ class gps_data():
                 self.port.write(self.cmd['nmea'])
                 sleep(2)
                 data = self.port.read(self.port.inWaiting())
-                writeFile('/media/mmcblk0p1/amigos/amigos/logs/gps_nmea_data.txt', data, 'a')
+                writeFile(
+                    '/media/mmcblk0p1/amigos/amigos/logs/gps_nmea_data.txt', data, 'a+')
                 sleep(self.interval)
                 self.sequence = self.sequence+1
         finally:
@@ -155,6 +168,7 @@ class gps_data():
         sat = gps_data[0].num_sats
         print(" Altitude: {0} m\n Longitude: {1} m\n Longitude Dir: {2}\n Latitude:{3}m\n Latitude Dir: {4}\n spd_over_grnd: {6} Kmph\n Total Satellites: {5}".format(
             Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd))
+
 
 if __name__ == "__main__":
     bn = gps_data()

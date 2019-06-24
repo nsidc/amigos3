@@ -1,15 +1,56 @@
 # # scheduling system
 from schedule import schedule as schedule
 import threading
-import time
+from time import sleep
 from datetime import datetime
 from copy import deepcopy
 from gps import gps_data as gps_data
 from gpio import *
 from vaisala import average_data as average_data
-from onvif.onvif import *
-from cr1000x import test as test
+from onvif.onvif import ptz_client as ptz
+from cr1000x import test as write_file
+from onboard_device import get_humidity, get_temperature
 # import monitor as monitor
+
+
+class cold_test():
+    def __init__(self, *args, **kwargs):
+        self.sched_test = schedule.Scheduler()  # create a new schedule instance
+
+    def vaisala_schedule(self):
+        # Perform this measurement reading every hour between :58 to :00
+        # self.sched_test.every().hours.at(":50").do(average_data)  # add vaisala schedule
+        pass
+
+    def gps_schedule(self):
+        gps = gps_data()
+        # add gps schedules
+        self.sched_test.every().hours.at(":30").do(gps.get_binex)
+
+    def camera_schedule(self):
+        cam = ptz()
+        self.sched_test.every().hours.at(":40").do(cam.cam_test)
+
+    def cr100x_schedule(self):
+        # add cr100 schedules
+        self.sched_test.every().hours.at(":20").do(write_file)
+
+    def solar_schedule(self):
+        pass
+
+    def onboard_device(self):
+        self.sched_test.every().minutes.do(get_humidity)
+        self.sched_test.every().minutes.do(get_temperature)
+
+    def sched(self):
+        # load all the schedules
+        self.vaisala_schedule()
+        self.camera_schedule()
+        self.gps_schedule()
+        self.cr100x_schedule()
+        self.solar_schedule()
+        self.onboard_device()
+        return self.sched_test  # return the new loaded schedule
 
 
 class summer():
@@ -18,7 +59,7 @@ class summer():
 
     def vaisala_schedule(self):
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_semmer.every().hours.at(":58").do(average_data)  # add vaisala schedule
+        self.sched_summer.every().hours.at(":58").do(average_data)  # add vaisala schedule
 
     def gps_schedule(self):
         gps = gps_data()
@@ -41,7 +82,7 @@ class summer():
         self.camera_schedule()
         self.gps_schedule()
         self.cr100x_schedule()
-        return self.shed_summer  # return the new loaded schedule
+        return self.sched_summer  # return the new loaded schedule
 
 
 class winter():
@@ -139,4 +180,9 @@ def run_schedule():
 
 # running this script start the schedule
 if __name__ == "__main__":
-    run_schedule()
+    # run_schedule()
+    t = cold_test()
+    s = t.sched()
+    while True:
+        s.run_pending()
+        sleep(1)

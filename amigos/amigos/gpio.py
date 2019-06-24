@@ -230,6 +230,7 @@ def iridium_off(bit):
         print("ok")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
+
 def enable_serial():
     """
     Enable serial communication
@@ -242,7 +243,7 @@ def enable_serial():
     subprocess.call(
         "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
     print("ok")
-    __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
+    __update_bit(bit_string[0] + ','+bit_string[1]+','+bit_str)
 
 
 def disable_serial():
@@ -257,9 +258,9 @@ def disable_serial():
     subprocess.call(
         "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
     print("ok")
-    __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
+    __update_bit(bit_string[0] + ','+bit_string[1]+','+bit_str)
 
-#def dts_on(bit):
+# def dts_on(bit):
 #    """
 #    Turn the power off gps module on after toggling the bit
 #    """
@@ -275,7 +276,7 @@ def disable_serial():
 #        __update_bit(bit_string[0] + ','+bit_str)
 #
 #
-#def dts_off(bit):
+# def dts_off(bit):
 #    """
 #    Turn the power off gps module on after toggling the bit
 #    """
