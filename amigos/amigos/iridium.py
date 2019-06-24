@@ -3,7 +3,7 @@ from serial import Serial as ser
 
 def send(message):
     try:
-        port = ser('/dev/ttyS3')
+        port = ser('/dev/ttyS1')
         port.baudrate = 115200
         port.open()
         port.flushInput()
@@ -15,7 +15,7 @@ def send(message):
 
 def read(message):
     try:
-        port = ser('/dev/ttyS3')
+        port = ser('/dev/ttyS1')
         port.baudrate = 115200
         port.open()
         port.flushInput()
