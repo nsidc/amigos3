@@ -8,7 +8,7 @@ from gps import gps_data as gps_data
 from gpio import *
 from vaisala import average_data as average_data
 from onvif.onvif import ptz_client as ptz
-from cr1000x import test as write_file
+from cr1000x import write_file as write_file
 from onboard_device import get_humidity, get_temperature
 # import monitor as monitor
 
@@ -25,22 +25,22 @@ class cold_test():
     def gps_schedule(self):
         gps = gps_data()
         # add gps schedules
-        self.sched_test.every().hours.at(":30").do(gps.get_binex)
+        self.sched_test.every().hour.at(":30").do(gps.get_binex)
 
     def camera_schedule(self):
         cam = ptz()
-        self.sched_test.every().hours.at(":40").do(cam.cam_test)
+        self.sched_test.every().minute.do(cam.cam_test)
 
     def cr100x_schedule(self):
         # add cr100 schedules
-        self.sched_test.every().hours.at(":20").do(write_file)
+        self.sched_test.every().hour.at(":20").do(write_file)
 
     def solar_schedule(self):
         pass
 
     def onboard_device(self):
-        self.sched_test.every().minutes.do(get_humidity)
-        self.sched_test.every().minutes.do(get_temperature)
+        self.sched_test.every().minute.do(get_humidity)
+        self.sched_test.every().minute.do(get_temperature)
 
     def sched(self):
         # load all the schedules
@@ -59,22 +59,22 @@ class summer():
 
     def vaisala_schedule(self):
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_summer.every().hours.at(":58").do(average_data)  # add vaisala schedule
+        self.sched_summer.every().hour.at(":58").do(average_data)  # add vaisala schedule
 
     def gps_schedule(self):
         gps = gps_data()
         # add gps schedules
-        self.sched_summer.every().days.at("05:10").do(gps.get_binex)
-        self.sched_summer.every().days.at("11:10").do(gps.get_binex)
-        self.sched_summer.every().days.at("17:10").do(gps.get_binex)
-        self.sched_summer.every().days.at("23:10").do(gps.get_binex)
+        self.sched_summer.every().day.at("05:10").do(gps.get_binex)
+        self.sched_summer.every().day.at("11:10").do(gps.get_binex)
+        self.sched_summer.every().day.at("17:10").do(gps.get_binex)
+        self.sched_summer.every().day.at("23:10").do(gps.get_binex)
 
     def camera_schedule(self):
         pass
 
     def cr100x_schedule(self):
         # add cr100 schedules
-        self.sched_summer.every().hours.at(":55").do(test)
+        self.sched_summer.every().hour.at(":55").do(write_file)
 
     def sched(self):
         # load all the schedules
@@ -91,19 +91,19 @@ class winter():
 
     def vaisala_schedule(self):
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_winter.every().hours.at(":58").do(average_data)
+        self.sched_winter.every().hour.at(":58").do(average_data)
 
     def gps_schedule(self):
         gps = gps_data()
         # add gps schedules
-        self.sched_winter.every().days.at("23:10").do(gps.get_binex)
+        self.sched_winter.every().day.at("23:10").do(gps.get_binex)
 
     def camera_schedule(self):
         pass
 
     def cr100x_schedule(self):
         # add cr100x schedules
-        self.sched_winter.every().hours.at(":55").do(test)
+        self.sched_winter.every().hour.at(":55").do(write_file)
 
     def sched(self):
         # load all the winter schedule

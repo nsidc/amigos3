@@ -74,6 +74,8 @@ class gps_data():
             # At every exit close the port, and turn off the GPS
             if self.port:
                 self.port.close()
+            writeFile('/media/mmcblk0p1/amigos/amigos/logs/gps_binex_data.txt',
+                      "-"*50 + "\n", 'a+')
             gps_off(bit=1)
             disable_serial()
 

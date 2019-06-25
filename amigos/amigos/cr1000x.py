@@ -5,7 +5,7 @@ from pycampbellcr1000 import CR1000
 def finddata():
     device = CR1000.from_url('tcp:192.168.0.30:6785')
     Data = device.get_data('Public')
-#     print(Data[0])
+    print(Data[0])
     data = str(Data)
     # finds strings inbetween parenthesis
     Timestamp = data[data.find("datetime(")+9:data.find(")")]
@@ -39,12 +39,12 @@ def finddata():
     return labels, values
 
 
-def writefile():
+def write_file():
     labels, values = finddata()
-    therms = open("/media/mmcblk0p1/amigos/amigos/logs/thermdata.txt", "a+")
+    therms = open("thermdata.log", "a+")
     for i in range(len(labels)):
         therms.write(labels[i] + ': ' + values[i] + "\n")
-    therms.write("-"*50)
+    therms.write("\n" + "-"*50 + "\n")
     therms.close()
 
 
@@ -59,4 +59,4 @@ def writefile():
 if __name__ == "__main__":
     finddata()
 
-    writefile()
+    write_file()
