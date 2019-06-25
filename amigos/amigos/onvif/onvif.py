@@ -31,12 +31,12 @@ class ptz_client():
     def __init__(self):
 
         self.msg = None
-        self.url = 'http://192.168.1.108/onvif/ptz_service'
+        self.url = 'http://192.168.0.108/onvif/ptz_service'
         self.header = None
         self.unit_degreePan = 0.0027777778*2
         self.unit_degreeTilt = 0.0055555556*4
         self.path = os.getcwd()
-        self.snapShop_url = "http://192.168.1.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
+        self.snapShop_url = "http://192.168.0.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
 
     def __get_service(self, service):
         """[summary]
@@ -63,7 +63,7 @@ snapSho
 
         if service != None and service != 'getstatus':
 
-            with open("/media/mmcblk0p1/amigos/amigos/soap/soap_{0}.xml".format(service), 'r') as soap:
+            with open("/media/mmcblk0p1/amigos/amigos/onvif/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()  # open the file
             # calculate the value of the pan  [-1 to 1]
             pan = pan*self.unit_degreePan
@@ -87,7 +87,7 @@ snapSho
         # for the function get status
         else:
             # print(self.path)
-            with open("/media/mmcblk0p1/amigos/amigos/soap/soap_{0}.xml".format(service), 'r') as soap:
+            with open("/media/mmcblk0p1/amigos/amigos/onvif/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()
 
     def send(self, typeof, pan=None, tilt=None, zoom=None):
@@ -167,12 +167,14 @@ snapSho
         # send the username and password authentication
         response = requests.get(
             self.snapShop_url, auth=HTTPDigestAuth(username, password))
-        f = open('pic.jpg', 'wb')  # opening
+        f = open('/media/mmcblk0p1/amigos/amigos/pic.jpg', 'wb')  # opening
 
         # Write the file to the time stamp
-        newname = 'photo'+dt[0:-7]+'.jpg'
+        newname = '/media/mmcblk0p1/amigos/amigos/'+'photo'+dt[0:-7]+'.jpg'
         # print(dt[0:-7])
-        os.rename('pic.jpg', newname)
+        subprocess.call("mv {0} {1}".format(
+            '/media/mmcblk0p1/amigos/amigos/pic.jpg', newname), shell=True)
+        # os.rename('/media/mmcblk0p1/amigos/amigos/pic.jpg', newname)
         sleep(2)
         f.write(response.content)
         f.close()
@@ -180,17 +182,17 @@ snapSho
             newname, "/media/mmcblk0p1/amigos/amigos/picture/"), shell=True)
 
     def cam_test(self):
-        self.send(typeof='relative', pan=25, tilt=0, zoom=0)
+        self.send(typeof='absolute', pan=25, tilt=0, zoom=0)
         sleep(2)
         self.snapShot()
-        self.send(typeof='relative', pan=25, tilt=25, zoom=10)
+        self.send(typeof='absolute', pan=25, tilt=25, zoom=10)
         self.snapShot()
         sleep(2)
-        self.send(typeof='relative', pan=100, tilt=-45, zoom=10)
+        self.send(typeof='absolute', pan=100, tilt=-45, zoom=10)
         self.snapShot()
         sleep(2)
-        self.send(typeof='relative', pan=-100, tilt=-45, zoom=10)
-        self.snapShop()
+        self.send(typeof='absolute', pan=-100, tilt=45, zoom=10)
+        self.snapShot()
 
 
 # Test the code here
