@@ -6,7 +6,7 @@ from datetime import datetime
 from copy import deepcopy
 from gps import gps_data as gps_data
 from gpio import *
-from vaisala import average_data as average_data
+from vaisala import Average_Reading as Average_Reading
 from onvif.onvif import ptz_client as ptz
 from cr1000x import write_file as write_file
 from onboard_device import get_humidity, get_temperature
@@ -19,8 +19,9 @@ class cold_test():
 
     def vaisala_schedule(self):
         # Perform this measurement reading every hour between :10 to :12 and :50 to :52
-        self.sched_test.every().hours.at(":10").do(average_data)
-        self.sched_test.every().hours.at(":50").do(average_data)
+        Avg_Reading = Average_Reading()
+        self.sched_test.every().hours.at(":10").do(Avg_Reading.average_data)
+        self.sched_test.every().hours.at(":50").do(Avg_Reading.average_data)
         pass
 
     def gps_schedule(self):
@@ -60,7 +61,8 @@ class summer():
 
     def vaisala_schedule(self):
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_summer.every().hour.at(":58").do(average_data)  # add vaisala schedule
+        Avg_Reading = Average_Reading()
+        self.sched_summer.every().hour.at(":58").do(Avg_Reading.average_data) 
 
     def gps_schedule(self):
         gps = gps_data()
@@ -92,7 +94,8 @@ class winter():
 
     def vaisala_schedule(self):
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_winter.every().hour.at(":58").do(average_data)
+        Avg_Reading = Average_Reading()
+        self.sched_winter.every().hour.at(":58").do(Avg_Reading.average_data)
 
     def gps_schedule(self):
         gps = gps_data()

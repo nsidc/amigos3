@@ -85,7 +85,7 @@ def gps_off(bit):
 
 def weather_on(bit):
     """
-    Turn the power off gps module on after toggling the bit
+    Turn the power on weather module on after toggling the bit
     """
 
     if bit:
@@ -101,7 +101,7 @@ def weather_on(bit):
 
 def weather_off(bit):
     """
-    Turn the power off gps module on after toggling the bit
+    Turn the power off weather module on after toggling the bit
     """
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
