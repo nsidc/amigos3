@@ -19,8 +19,9 @@ class cold_test():
 
     def vaisala_schedule(self):
         # Perform this measurement reading every hour between :58 to :00
-        # self.sched_test.every().hours.at(":50").do(average_data)  # add vaisala schedule
-        pass
+        self.sched_test.every().hours.at(":10").do(average_data)  # add vaisala schedule
+
+        self.sched_test.every().hours.at(":50").do(average_data)  # add vaisala schedule
 
     def gps_schedule(self):
         gps = gps_data()
@@ -29,11 +30,12 @@ class cold_test():
 
     def camera_schedule(self):
         cam = ptz()
-        self.sched_test.every().minute.do(cam.cam_test)
+        self.sched_test.every().hour.at(":45").do(cam.cam_test)
 
     def cr100x_schedule(self):
         # add cr100 schedules
         self.sched_test.every().hour.at(":20").do(write_file)
+        self.sched_test.every().hour.at(":5").do(write_file)
 
     def solar_schedule(self):
         pass
