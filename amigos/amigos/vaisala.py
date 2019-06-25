@@ -91,15 +91,6 @@ def average_data():
     #Clear the ascii data file to be used again to read fresh data next hour 
     open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ascii.txt","w").close()
 
-def vaisala_schedule():
-    vaisala = schedule.Scheduler()
-    #Perform this measurement reading every hour between :58 to :00
-    vaisala.every().hours.at(":58").do(average_data)
-    while True:
-        vaisala.run_pending()
-        sleep(1)
-
-
 
 if __name__ == "__main__":
-    vaisala_schedule()
+    average_data()
