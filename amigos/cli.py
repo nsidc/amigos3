@@ -6,7 +6,7 @@ import amigos.watchdog as watchdog
 import amigos.gpio as gpio
 from amigos.onvif.onvif import ptz_client as client
 import sys
-from amigos.vaisala import vaisala_schedule as vaisala_schedule
+from amigos.vaisala import average_data as average_data
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()
@@ -232,7 +232,7 @@ def iridium(args):
 def weather(args):
     if args.weather_collect:
         #call averaging script 
-        vaisala_schedule()
+        average_data()
     elif args.weather_all:
         #Call function to display all current live data 
         pass
