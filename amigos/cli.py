@@ -168,13 +168,13 @@ def power(args):
     elif args.power_on:
         gpio.power_up(1)
     elif args.modem_off:
-        gpio.modem_off(int(args.modem_off))
+        gpio.modem_off(1)
     elif args.modem_on:
-        gpio.modem_on(int(args.modem_on))
+        gpio.modem_on(1)
     elif args.gps_on:
-        gpio.gps_on(int(args.gps_on))
+        gpio.gps_on(1)
     elif args.gps_off:
-        gpio.gps_off(int(args.gps_off))
+        gpio.gps_off(1)
     else:
         print("Too few arguments. No device specified.")
 
@@ -213,7 +213,7 @@ def watch_dog(args, val):
         watchdog.set_mode(
             mode=int(val))
     elif args.deactivate:
-        watchdog.set_mode(default=True)
+        watchdog.set_mode(mode=6)
     elif args.sleep:
         print("Enter 2 for an hour and 3 for 3 minutes of sleep:\n")
         watchdog.set_mode(
