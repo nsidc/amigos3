@@ -87,7 +87,15 @@ def weather_on(bit):
     """
     Turn the power on weather module on after toggling the bit
     """
+    is_on = False
 
+#   Check to see if weather station is already on/already reading through the schedule loop - set flag
+    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log","r") as logfile:
+         bits = logfile.read().split(",")
+        if bits[1][6] = "1":
+            is_on = True
+
+    return True
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
@@ -97,7 +105,6 @@ def weather_on(bit):
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
         __update_bit(bit_string[0] + ','+bit_str)
-    return True
 
 
 def weather_off(bit):
