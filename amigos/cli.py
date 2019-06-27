@@ -6,7 +6,6 @@ import amigos.watchdog as watchdog
 import amigos.gpio as gpio
 from amigos.onvif.onvif import ptz_client as client
 import sys
-from amigos.vaisala import vaisala_schedule as vaisala_schedule
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()
@@ -30,37 +29,37 @@ def args_parser():
 
     # group of command for weather viewing
     weather = parser.add_argument_group('Read weather', 'show live weather data')
-    weather.add_argument('-weather_collect', help='Run data collecting program', action='store_true')
+    weather.add_argument('-weather_collect',
+                         help='Run data collecting program', action='store_true')
     weather.add_argument('-weather_all', help='View all live data', action='store_true')
     weather.add_argument('-dir', '--wind_direction',
-                        help='View average wind direction (Degrees)', action='store_true')
+                         help='View average wind direction (Degrees)', action='store_true')
     weather.add_argument('-speed', '--wind_speed',
-                        help='View average wind speed (m/s)', action='store_true')
+                         help='View average wind speed (m/s)', action='store_true')
     weather.add_argument('-temp', '--air_temp',
-                        help='View current air temperature (C)', action='store_true')
+                         help='View current air temperature (C)', action='store_true')
     weather.add_argument('-hum', '--humidity',
-                        help='View current relative humidity (%%RH)', action='store_true')
+                         help='View current relative humidity (%%RH)', action='store_true')
     weather.add_argument('-pres', '--pressure',
-                        help='View current air pressure (hPa)', action='store_true')
+                         help='View current air pressure (hPa)', action='store_true')
     weather.add_argument('-r_acc', '--rain_acculumation',
-                        help='View rain accumulation over last storm (mm)', action='store_true')
+                         help='View rain accumulation over last storm (mm)', action='store_true')
     weather.add_argument('-r_dur', '--rain_duration',
-                        help='View rain duration over last storm (s)', action='store_true')
+                         help='View rain duration over last storm (s)', action='store_true')
     weather.add_argument('-r_int', '--rain_intensity',
-                        help='View rain intensity over last storm (mm/hour)', action='store_true')
+                         help='View rain intensity over last storm (mm/hour)', action='store_true')
     weather.add_argument('-r_pint', '--rain_peak_intensity',
-                        help='View rain peak intensity over last storm (mm/hour)', action='store_true')
+                         help='View rain peak intensity over last storm (mm/hour)', action='store_true')
     weather.add_argument('-h_acc', '--hail_acculumation',
-                        help='View hail accumulation over last storm (hits/cm^2)', action='store_true')
+                         help='View hail accumulation over last storm (hits/cm^2)', action='store_true')
     weather.add_argument('-h_dur', '--hail_duration',
-                        help='View hail duration over last storm (s)', action='store_true')
+                         help='View hail duration over last storm (s)', action='store_true')
     weather.add_argument('-h_int', '--hail_intensity',
-                        help='View hail intensity over last storm (hits/cm^2/hour)', action='store_true')
+                         help='View hail intensity over last storm (hits/cm^2/hour)', action='store_true')
     weather.add_argument('-h_pint', '--hail_peak_intensity',
-                        help='View hail peak intensity over last storm (hits/cm^2/hour)', action='store_true')
+                         help='View hail peak intensity over last storm (hits/cm^2/hour)', action='store_true')
     weather.add_argument('-unit', '--vaisala_unit',
-                        help='View Vaisala unit information', action='store_true')
-
+                         help='View Vaisala unit information', action='store_true')
 
     # group of command for watchdog configureting
     wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
@@ -231,13 +230,13 @@ def iridium(args):
 
 def weather(args):
     if args.weather_collect:
-        #call averaging script 
+        # call averaging script
         vaisala_schedule()
     elif args.weather_all:
-        #Call function to display all current live data 
+        # Call function to display all current live data
         pass
     elif args.wind_direction:
-        #Call function to retrieve this data point from vaisala script
+        # Call function to retrieve this data point from vaisala script
         pass
     else:
         pass
@@ -271,4 +270,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

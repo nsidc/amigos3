@@ -4,6 +4,7 @@ from serial import Serial as ser
 from time import sleep
 # import binascii as bina
 from gpio import gps_off, gps_on, enable_serial, disable_serial
+import subprocess as subprocess
 
 
 def writeFile(file_name, strings, form):
@@ -63,19 +64,33 @@ class gps_data():
                 self.port.write(self.cmd['binex']+'\r')
                 sleep(2)
                 data = self.port.read(self.port.inWaiting())
-                if self.port.inWaiting() != 0:
-                    sleep(2)
-                    data = data+self.port.read(self.port.inWaiting())
                 writeFile(
-                    '/media/mmcblk0p1/amigos/amigos/logs/gps_binex_data.txt', data, 'a+')
-                sleep(self.interval)
+                    '/media/mmcblk0p1/amigos/amigos/logs/gps_binex_data_temp.log', data, 'w+')
+                try:
+                    subprocess.call(
+                        "cat /media/mmcblk0p1/amigos/amigos/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/amigos/amigos/logs/gps_binex_data.log", shell=True)
+                except:
+                    writeFile(
+                        '/media/mmcblk0p1/amigos/amigos/logs/gps_binex_data.log', '', 'a+')
+                    subprocess.call(
+                        "cat /media/mmcblk0p1/amigos/amigos/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/amigos/amigos/logs/gps_binex_data.log", shell=True)
+                sleep(2)
+                if self.port.inWaiting() != 0:
+                    data = data+self.port.read(self.port.inWaiting())
+                    writeFile(
+                        '/media/mmcblk0p1/amigos/amigos/logs/gps_binex_data_temp.log', data, 'w+')
+                    sleep(1)
+                    subprocess.call(
+                        "cat /media/mmcblk0p1/amigos/amigos/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/amigos/amigos/logs/gps_binex_data.log", shell=True)
+                sleep(self.interval-5)
                 self.sequence = self.sequence+1
+                print(self.sequence)
         finally:
             # At every exit close the port, and turn off the GPS
             if self.port:
                 self.port.close()
-            writeFile('/media/mmcblk0p1/amigos/amigos/logs/gps_binex_data.txt',
-                      "-"*50 + "\n", 'a+')
+            subprocess.call(
+                "rm /media/mmcblk0p1/amigos/amigos/logs/gps_binex_data_temp.log", shell=True)
             gps_off(bit=1)
             disable_serial()
 
@@ -101,7 +116,7 @@ class gps_data():
                 sleep(2)
                 data = self.port.read(self.port.inWaiting())
                 writeFile(
-                    '/media/mmcblk0p1/amigos/amigos/logs/gps_nmea_data.txt', data, 'a+')
+                    '/media/mmcblk0p1/amigos/amigos/logs/gps_nmea_data.log', data, 'a+')
                 sleep(self.interval)
                 self.sequence = self.sequence+1
         finally:

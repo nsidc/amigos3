@@ -32,13 +32,13 @@ def read_data():
         t = 0
         # Read composite data message (all readings) every 10 seconds for 2 minutes
         while t <= 120:
-            with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII.txt", "a+") as raw_data:
+            with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII.log", "a+") as raw_data:
                 port.flushInput()
                 data = port.readline()
                 raw_data.write(data)
                 sleep(10)
             t = t+10
-            print(t)
+            # print(t)
     finally:
         # Turn off Weather Station
         weather_off(1)
@@ -48,7 +48,7 @@ def clean_data():
     # put all the mesaurements into a matrix (array of arrays)
     float_array_final = []
     string_array_final = []
-    with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII.txt", "r") as f:
+    with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII.log", "r") as f:
         for line in f:
             if "0R0" in line:
                 string_array_raw = re.findall(r"[-+]?\d*\.\d+|\d+", line)
@@ -101,7 +101,7 @@ def average_data():
                      str(data_array_final[15]) + ".\n\n\n")
     # Clear the ascii data file to be used again to read fresh data next hour
     subprocess.call(
-        "rm /media/mmcblk0p1/amigos/amigos/logs/weather_data_ascii.txt", shell=True)
+        "rm /media/mmcblk0p1/amigos/amigos/logs/weather_data_ascii.log", shell=True)
 
 
 if __name__ == "__main__":
