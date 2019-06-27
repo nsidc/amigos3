@@ -97,6 +97,7 @@ def weather_on(bit):
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
         __update_bit(bit_string[0] + ','+bit_str)
+    return True
 
 
 def weather_off(bit):
@@ -112,6 +113,7 @@ def weather_off(bit):
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
         __update_bit(bit_string[0] + ','+bit_str)
+    return False
 
 
 def power_down(bit):
