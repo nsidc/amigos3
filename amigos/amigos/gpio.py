@@ -87,15 +87,6 @@ def weather_on(bit):
     """
     Turn the power on weather module on after toggling the bit
     """
-    is_on = False
-
-#   Check to see if weather station is already on/already reading through the schedule loop - set flag
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log","r") as logfile:
-         bits = logfile.read().split(",")
-        if bits[1][6] = "1":
-            is_on = True
-
-    return True
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
@@ -239,6 +230,14 @@ def iridium_off(bit):
         print("ok")
         __update_bit(bit_str + ','+bit_string[1])
 
+
+def is_on_checker(bit_index,bit_number):
+    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log","r") as logfile:
+        bits = logfile.read().split(",")
+        if bits[bit_index][bit_number] == "1":
+            return True
+        else:
+            return False
 
 
 #def dts_on(bit):
