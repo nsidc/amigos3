@@ -98,13 +98,7 @@ class Average_Reading():
 #Class that will allow the user to access specific weather data points whenever needed 
 class Live_Data():
     def read_data(self):
-        is_on = False
         try:
-            #Check to see if weather station is already on/already reading through the schedule loop - set flag
-            with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log","r") as logfile
-                bits = logfile.read().split(",")
-                if bits[1][6] = "1":
-                    is_on = True
             #Turn on Weather Station
             weather_on(1)
             sleep(10)
