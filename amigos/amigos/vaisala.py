@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Sid Arora
 # UPDATED AS OF 6/25/19
 
@@ -6,6 +7,16 @@
 
 # Import Modules
 import time
+=======
+#Sid Arora
+#UPDATED AS OF 6/25/19
+
+#This Program will read in data from the Vaisala Weather Sensor
+#It can read data over long periods of time and perform averages or can output live data
+
+#Import Modules
+import time
+>>>>>>> 91fbcf58faa2e935cb258206d85307ee95520d2e
 from time import sleep
 import serial
 import re

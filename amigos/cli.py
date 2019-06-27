@@ -6,9 +6,15 @@ import amigos.watchdog as watchdog
 import amigos.gpio as gpio
 from amigos.onvif.onvif import ptz_client as client
 import sys
+from amigos.vaisala import Average_Reading as Average_Reading
+from amigos.vaisala import Live_Data as Live_Data
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()
+
+# Create instances of vaisala script classes
+Avg_Reading = Average_Reading()
+Live_Readings = Live_Data()
 
 
 def args_parser():
@@ -29,9 +35,9 @@ def args_parser():
 
     # group of command for weather viewing
     weather = parser.add_argument_group('Read weather', 'show live weather data')
-    weather.add_argument('-weather_collect',
-                         help='Run data collecting program', action='store_true')
-    weather.add_argument('-weather_all', help='View all live data', action='store_true')
+    weather.add_argument('weather', help='View all live data', nargs='?')
+    weather.add_argument('-c', '--collect',
+                         help='Run data averaging program', action='store_true')
     weather.add_argument('-dir', '--wind_direction',
                          help='View average wind direction (Degrees)', action='store_true')
     weather.add_argument('-speed', '--wind_speed',
@@ -42,7 +48,7 @@ def args_parser():
                          help='View current relative humidity (%%RH)', action='store_true')
     weather.add_argument('-pres', '--pressure',
                          help='View current air pressure (hPa)', action='store_true')
-    weather.add_argument('-r_acc', '--rain_acculumation',
+    weather.add_argument('-r_acc', '--rain_accumulation',
                          help='View rain accumulation over last storm (mm)', action='store_true')
     weather.add_argument('-r_dur', '--rain_duration',
                          help='View rain duration over last storm (s)', action='store_true')
@@ -50,7 +56,7 @@ def args_parser():
                          help='View rain intensity over last storm (mm/hour)', action='store_true')
     weather.add_argument('-r_pint', '--rain_peak_intensity',
                          help='View rain peak intensity over last storm (mm/hour)', action='store_true')
-    weather.add_argument('-h_acc', '--hail_acculumation',
+    weather.add_argument('-h_acc', '--hail_accumulation',
                          help='View hail accumulation over last storm (hits/cm^2)', action='store_true')
     weather.add_argument('-h_dur', '--hail_duration',
                          help='View hail duration over last storm (s)', action='store_true')
@@ -229,17 +235,41 @@ def iridium(args):
 
 
 def weather(args):
-    if args.weather_collect:
-        # call averaging script
-        vaisala_schedule()
-    elif args.weather_all:
-        # Call function to display all current live data
-        pass
+    # call averaging function from vaisala script in avg class - to start long-term data collection
+    if args.collect:
+        Avg_Reading.average_data()
+    # call function to retrieve specific data point from vaisala script in live data class
     elif args.wind_direction:
-        # Call function to retrieve this data point from vaisala script
-        pass
+        Live_Readings.wind_direction()
+    elif args.wind_speed:
+        Live_Readings.wind_speed()
+    elif args.air_temp:
+        Live_Readings.air_temperature()
+    elif args.humidity:
+        Live_Readings.humidity()
+    elif args.pressure:
+        Live_Readings.pressure()
+    elif args.rain_accumulation:
+        Live_Readings.rain_accumulation()
+    elif args.rain_duration:
+        Live_Readings.rain_duration()
+    elif args.rain_intensity:
+        Live_Readings.rain_intensity()
+    elif args.rain_peak_intensity:
+        Live_Readings.rain_peak_intensity()
+    elif args.hail_accumulation:
+        Live_Readings.hail_accumulation()
+    elif args.hail_duration:
+        Live_Readings.hail_duration()
+    elif args.hail_intensity:
+        Live_Readings.hail_intensity()
+    elif args.hail_peak_intensity:
+        Live_Readings.hail_peak_intensity()
+    elif args.vaisala_unit:
+        Live_Readings.vaisala_unit()
+    # show all weather data points if only the weather argument is given
     else:
-        pass
+        Live_Readings.weather_all()
 
 
 def main():
