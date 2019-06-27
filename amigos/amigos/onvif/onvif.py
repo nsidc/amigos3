@@ -10,6 +10,7 @@ from time import sleep
 from requests.auth import HTTPDigestAuth
 import datetime
 import time
+import random
 # from xml.etree import ElementTree as et
 
 # class urls():
@@ -182,16 +183,20 @@ snapSho
             newname, "/media/mmcblk0p1/amigos/amigos/picture/"), shell=True)
 
     def cam_test(self):
-        self.send(typeof='absolute', pan=25, tilt=0, zoom=0)
+        self.send(typeof='absolute', pan=random.randint(-180, 180),
+                  tilt=random.randint(-45, 45), zoom=random.randint(0, 100))
         sleep(2)
         self.snapShot()
-        self.send(typeof='absolute', pan=25, tilt=25, zoom=10)
+        self.send(typeof='absolute', pan=-100,
+                  tilt=0, zoom=random.randint(0, 100))
         self.snapShot()
         sleep(2)
-        self.send(typeof='absolute', pan=100, tilt=-45, zoom=10)
+        self.send(typeof='absolute', pan=180,
+                  tilt=0, zoom=1)
         self.snapShot()
         sleep(2)
-        self.send(typeof='absolute', pan=-100, tilt=45, zoom=10)
+        self.send(typeof='absolute', pan=random.randint(-180, 180),
+                  tilt=random.randint(-45, 45), zoom=1)
         self.snapShot()
 
 

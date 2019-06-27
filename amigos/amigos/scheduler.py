@@ -1,15 +1,14 @@
 # # scheduling system
 from schedule import schedule as schedule
-import threading
 from time import sleep
 from datetime import datetime
-from copy import deepcopy
 from gps import gps_data as gps_data
-from gpio import *
+from gpio import power_up
 from vaisala import average_data as average_data
 from onvif.onvif import ptz_client as ptz
-from cr1000x import write_file as write_file
+from cr1000x import cr1000x as cr1000x
 from onboard_device import get_humidity, get_temperature
+from solar import readsolar
 # import monitor as monitor
 
 
@@ -19,9 +18,9 @@ class cold_test():
 
     def vaisala_schedule(self):
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_test.every().hours.at(":10").do(average_data)  # add vaisala schedule
+        self.sched_test.every().hour.at(":10").do(average_data)  # add vaisala schedule
 
-        self.sched_test.every().hours.at(":50").do(average_data)  # add vaisala schedule
+        self.sched_test.every().hour.at(":50").do(average_data)  # add vaisala schedule
 
     def gps_schedule(self):
         gps = gps_data()
@@ -31,14 +30,17 @@ class cold_test():
     def camera_schedule(self):
         cam = ptz()
         self.sched_test.every().hour.at(":45").do(cam.cam_test)
+        self.sched_test.every().hour.at(":01").do(cam.cam_test)
 
     def cr100x_schedule(self):
         # add cr100 schedules
-        self.sched_test.every().hour.at(":20").do(write_file)
-        self.sched_test.every().hour.at(":5").do(write_file)
+        cr = cr1000x()
+        self.sched_test.every().hour.at(":20").do(cr.write_file)
+        self.sched_test.every().hour.at(":05").do(cr.write_file)
 
     def solar_schedule(self):
-        pass
+        self.sched_test.every().hour.at(":15").do(readsolar)
+        self.sched_test.every().hour.at(":55").do(readsolar)
 
     def onboard_device(self):
         self.sched_test.every().minute.do(get_humidity)
@@ -183,6 +185,7 @@ def run_schedule():
 # running this script start the schedule
 if __name__ == "__main__":
     # run_schedule()
+    power_up(1)
     t = cold_test()
     s = t.sched()
     while True:
