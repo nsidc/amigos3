@@ -141,10 +141,7 @@ class Live_Data():
         finally:
             # Turn off Weather Station
             port.close()
-            if is_on == False:
-                weather_off(1)
-            else:
-                is_on = False
+            weather_off(1)
 
     def clean_data(self):
         try:
