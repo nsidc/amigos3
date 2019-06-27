@@ -4,7 +4,7 @@ from time import sleep
 from datetime import datetime
 from gps import gps_data as gps_data
 from gpio import power_up
-from vaisala import average_data as average_data
+from vaisala import Average_Reading as vg
 from onvif.onvif import ptz_client as ptz
 from cr1000x import cr1000x as cr1000x
 from onboard_device import get_humidity, get_temperature
@@ -17,10 +17,11 @@ class cold_test():
         self.sched_test = schedule.Scheduler()  # create a new schedule instance
 
     def vaisala_schedule(self):
+        v = vg()
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_test.every().hour.at(":10").do(average_data)  # add vaisala schedule
+        self.sched_test.every().hour.at(":10").do(v.average_data)  # add vaisala schedule
 
-        self.sched_test.every().hour.at(":50").do(average_data)  # add vaisala schedule
+        self.sched_test.every().hour.at(":50").do(v.average_data)  # add vaisala schedule
 
     def gps_schedule(self):
         gps = gps_data()
@@ -62,8 +63,9 @@ class summer():
         self.sched_summer = schedule.Scheduler()  # create a new schedule instance
 
     def vaisala_schedule(self):
+        v = vg()
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_summer.every().hour.at(":58").do(average_data)  # add vaisala schedule
+        self.sched_summer.every().hour.at(":58").do(v.average_data)  # add vaisala schedule
 
     def gps_schedule(self):
         gps = gps_data()
@@ -78,7 +80,8 @@ class summer():
 
     def cr100x_schedule(self):
         # add cr100 schedules
-        self.sched_summer.every().hour.at(":55").do(write_file)
+        cr = cr1000x()
+        self.sched_summer.every().hour.at(":55").do(cr.write_file)
 
     def sched(self):
         # load all the schedules
@@ -94,8 +97,9 @@ class winter():
         self.sched_winter = schedule.Scheduler()
 
     def vaisala_schedule(self):
+        v = vg()
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_winter.every().hour.at(":58").do(average_data)
+        self.sched_winter.every().hour.at(":58").do(v.average_data)
 
     def gps_schedule(self):
         gps = gps_data()
@@ -107,7 +111,8 @@ class winter():
 
     def cr100x_schedule(self):
         # add cr100x schedules
-        self.sched_winter.every().hour.at(":55").do(write_file)
+        cr = cr1000x()
+        self.sched_winter.every().hour.at(":55").do(cr.write_file)
 
     def sched(self):
         # load all the winter schedule
