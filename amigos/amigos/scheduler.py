@@ -3,12 +3,14 @@ from schedule import schedule as schedule
 from time import sleep
 from datetime import datetime
 from gps import gps_data as gps_data
-from gpio import power_up
+from gpio import modem_on
 from vaisala import Average_Reading as vg
 from onvif.onvif import ptz_client as ptz
 from cr1000x import cr1000x as cr1000x
 from onboard_device import get_humidity, get_temperature
 from solar import readsolar
+from watchdog import set_mode as dog_mode
+import ast
 # import monitor as monitor
 
 
@@ -22,22 +24,24 @@ class cold_test():
         self.sched_test.every().hour.at(":10").do(v.average_data)  # add vaisala schedule
 
         self.sched_test.every().hour.at(":50").do(v.average_data)  # add vaisala schedule
+        self.sched_test.every().hour.at(":42").do(v.average_data)
 
     def gps_schedule(self):
         gps = gps_data()
         # add gps schedules
         self.sched_test.every().hour.at(":30").do(gps.get_binex)
+        self.sched_test.every().hour.at(":59").do(gps.get_binex)
 
     def camera_schedule(self):
         cam = ptz()
         self.sched_test.every().hour.at(":45").do(cam.cam_test)
-        self.sched_test.every().hour.at(":01").do(cam.cam_test)
+        self.sched_test.every().hour.at(":25").do(cam.cam_test)
 
     def cr100x_schedule(self):
         # add cr100 schedules
         cr = cr1000x()
         self.sched_test.every().hour.at(":20").do(cr.write_file)
-        self.sched_test.every().hour.at(":05").do(cr.write_file)
+        self.sched_test.every().hour.at(":07").do(cr.write_file)
 
     def solar_schedule(self):
         self.sched_test.every().hour.at(":15").do(readsolar)
@@ -123,6 +127,27 @@ class winter():
         return self.sched_winter
 
 
+def execute():
+    pass
+
+
+def get_schedule():
+    data = None
+    try:
+        with open('media/mmcblk0p1/amigos/amigos/logs/new_schedule.log') as update:
+            data = update.read()
+        if data:
+            data = data.split(',')
+            data[0] = ast.literal_eval(data[0])
+            data[1] = ast.literal_eval(data[1])
+            if not isinstance(data[0], 'dict') and not isinstance(data[1], 'dict') and not isinstance(data, 'list'):
+                return None
+            return data[0], data[1]
+    except:
+        pass
+    return None
+
+
 def run_schedule():
     # winter time frame
     winter_time = {'start': {'day': 1,
@@ -136,6 +161,7 @@ def run_schedule():
                    'end': {'day': 30,
                            'month': 4}
                    }
+
     # track thw rumming schedule
     winter_running = False
     summer_running = False
@@ -146,6 +172,10 @@ def run_schedule():
     winter_task = w.sched()
     # run forever
     while True:
+        new_sched = get_schedule()
+        if new_sched:
+            winter_time = new_sched[0]
+            summer_time = new_sched[0]
         # get the today date (tritron time must update to uptc time)
         today = datetime.datetime.now()
         # create datetime instance of winter and summer bracket
@@ -190,9 +220,12 @@ def run_schedule():
 # running this script start the schedule
 if __name__ == "__main__":
     # run_schedule()
-    power_up(1)
+    modem_on(1)
     t = cold_test()
     s = t.sched()
+    dog = dog_mode(mode=None)
+    dog.run_all()
     while True:
+        dog.run_pending()
         s.run_pending()
         sleep(1)

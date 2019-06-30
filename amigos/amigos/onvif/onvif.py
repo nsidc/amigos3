@@ -189,12 +189,16 @@ snapSho
         self.snapShot()
         self.send(typeof='absolute', pan=-100,
                   tilt=0, zoom=random.randint(0, 100))
-        self.snapShot()
         sleep(2)
+        self.snapShot()
+        sleep(1)
+
         self.send(typeof='absolute', pan=180,
                   tilt=0, zoom=1)
-        self.snapShot()
         sleep(2)
+
+        self.snapShot()
+        sleep(1)
         self.send(typeof='absolute', pan=random.randint(-180, 180),
                   tilt=random.randint(-45, 45), zoom=1)
         self.snapShot()

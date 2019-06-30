@@ -12,8 +12,10 @@ def send(message):
         return
     port.write(message)
 
+    return read()
 
-def read(message):
+
+def read():
     try:
         port = ser('/dev/ttyS1')
         port.baudrate = 115200
@@ -22,5 +24,5 @@ def read(message):
     except:
         print('Unable to open port')
         return None
-    rev = port.readline(message)
+    rev = port.read(port.inWating())
     return rev

@@ -13,6 +13,7 @@ import datetime
 import math
 from gpio import weather_on
 from gpio import weather_off
+from gpio import is_on_checker
 import subprocess as subprocess
 
 # Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
@@ -33,7 +34,7 @@ class Average_Reading():
             t = 0
             # Read composite data message (all readings) every 10 seconds for 2 minutes and write to temporary ascii text file
             while t <= 120:
-                with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII.log", "a+") as raw_data:
+                with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII_schedule.log", "a+") as raw_data:
                     port.flushInput()
                     data = port.readline()
                     raw_data.write(data)
@@ -49,7 +50,7 @@ class Average_Reading():
             # put all the mesaurements into a matrix (array of arrays)
             float_array_final = []
             string_array_final = []
-            with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII.log", "r") as f:
+            with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII_schedule.log", "r") as f:
                 for line in f:
                     if "0R0" in line:
                         string_array_raw = re.findall(
@@ -61,7 +62,7 @@ class Average_Reading():
         finally:
             # Erase the tempoerary ascii data file
             subprocess.call(
-                "rm /media/mmcblk0p1/amigos/amigos/logs/weather_data_ascii.log", shell=True)
+                "rm /media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII_schedule.log", shell=True)
         return string_array_final, float_array_final
 
     def average_data(self):
@@ -120,9 +121,11 @@ class Average_Reading():
 class Live_Data():
     def read_data(self):
         try:
-            # Turn on Weather Station
-            weather_on(1)
-            sleep(10)
+            is_on = is_on_checker(1, 6)
+            if not is_on:
+                # Turn on Weather Station
+                weather_on(1)
+                sleep(10)
             # Read lines from port
             port = serial.Serial("/dev/ttyS5")
             port.baudrate = 115200
@@ -132,22 +135,23 @@ class Live_Data():
             t = 0
             # Take data for 5 seconds to make sure that a composite data message has time to send from the Vaisala
             while t <= 5:
-                with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII.log", "a+") as raw_data:
+                with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII_live.log", "a+") as raw_data:
                     port.flushInput()
                     data = port.readline()
                     raw_data.write(data)
                     sleep(1)
                 t = t+1
         finally:
-            # Turn off Weather Station
-            port.close()
-            weather_off(1)
+            if not is_on:
+                # Turn off Weather Station
+                port.close()
+                weather_off(1)
 
     def clean_data(self):
         try:
             self.read_data()
             string_array_final = []
-            with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII.log", "r") as f:
+            with open("/media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII_live.log", "r") as f:
                 # only take the last 0R0 line of the 5 - second data collection interval for translation
                 for line in f:
                     if "0R0" in line:
@@ -159,7 +163,7 @@ class Live_Data():
         finally:
             # Erase the temporary ascii text file
             subprocess.call(
-                "rm /media/mmcblk0p1/amigos/amigos/logs/weather_data_ascii.log", shell=True)
+                "rm /media/mmcblk0p1/amigos/amigos/logs/weather_data_ASCII_live.log", shell=True)
         return string_array_final
 
     def weather_all(self):
@@ -192,8 +196,6 @@ class Live_Data():
         print("Vaisala Supply Voltage (V): " +
               str(string_array_final[15]) + ".\n")
 
-
-cr = cr1000x()
     def wind_direction(self):
         string_array_final = self.clean_data()
         now = datetime.datetime.now()
@@ -220,7 +222,7 @@ cr = cr1000x()
         print("\nCurrent Date and Time: " + now.strftime("%Y-%m-%d %H:%M:%S"))
         print("Relative Humidity (%RH): " + str(string_array_final[3]) + ".\n")
 
-    def pressure(self): cr = cr1000x()
+    def pressure(self):
         string_array_final = self.clean_data()
         now = datetime.datetime.now()
         print("\nCurrent Date and Time: " + now.strftime("%Y-%m-%d %H:%M:%S"))

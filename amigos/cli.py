@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import threading
 import os.path
 import amigos.argparse as argparse
 import amigos.watchdog as watchdog
@@ -115,6 +114,8 @@ def args_parser():
                        help='power down all peripherals', action='store_true')
     power.add_argument('-on', '--power_on',
                        help='power up all peripherals', action='store_true')
+    power.add_argument('-r', '--reboot',
+                       help='reboot system', action='store_true')
 
     camera = parser.add_argument_group(
         'Camera Control', 'Control camera position, take pictures and more')
@@ -175,6 +176,8 @@ def power(args):
         gpio.gps_on(1)
     elif args.gps_off:
         gpio.gps_off(1)
+    elif args.reboot:
+        gpio.reboot(1)
     else:
         print("Too few arguments. No device specified.")
 
@@ -210,16 +213,16 @@ def camera(args, val):
 def watch_dog(args, val):
     if args.update:
         print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
-        watchdog.set_mode(
+        watchdog.run_dog(
             mode=int(val))
     elif args.deactivate:
-        watchdog.set_mode(mode=6)
+        watchdog.run_dog(mode=6)
     elif args.sleep:
         print("Enter 2 for an hour and 3 for 3 minutes of sleep:\n")
-        watchdog.set_mode(
+        watchdog.run_dog(
             mode=int(val))
     else:
-        watchdog.set_mode(mode=None)
+        watchdog.run_dog(mode=None)
 
 
 def cr1000x(args):
@@ -233,6 +236,9 @@ def dts(args):
 def iridium(args):
     pass
 
+
+def gps(args):
+    pass
 
 def weather(args):
     # call averaging function from vaisala script in avg class - to start long-term data collection

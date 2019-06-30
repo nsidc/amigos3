@@ -1,5 +1,4 @@
 # Battery, CPU and other ressources monitoring
-import threading
 from time import sleep
 from schedule import schedule as schedule
 import subprocess as subprocess
@@ -50,15 +49,16 @@ def set_mode(mode=None):
     elif mode == 2:
         __go_sleep_1hour()
         return
+    return wdog
 
-    def __run_task(wdog=wdog):
-        wdog.run_all()
-        while True:
-            wdog.run_pending()
-            sleep(1)
+
+def run_dog(mode=None):
+    wdog = set_mode(mode)
+    wdog.run_all()
+    while True:
+        wdog.run_pending()
+        sleep(1)
     # run a thread in background
-    st1 = threading.Thread(target=__run_task)
-    st1.start()
     # run_task()
     # while True:
     #     print(st1.isDaemon())

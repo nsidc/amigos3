@@ -123,9 +123,23 @@ def power_down(bit):
         sleep(2)
         __toggle(bit)
         subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        print("ok\nTitron is going down now!")
+        print("Tritron is going down now!")
         sleep(2)
         subprocess.call("shutdown -h now", shell=True)
+
+
+def reboot(bit):
+    if bit:
+        bit_string = "0b00000000,0b00000000,0b00000000"
+        __update_bit(bit_string)
+        __toggle(bit-1)
+        subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
+        __toggle(bit)
+        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
+        print("Tritron is going down now for reboot!")
+        sleep(2)
+        subprocess.call("reboot", shell=True)
 
 
 def power_up(bit):
@@ -259,6 +273,12 @@ def disable_serial():
         "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
     print("ok")
     __update_bit(bit_string[0] + ','+bit_string[1]+','+bit_str)
+
+
+def is_on_checker(bit_index, bit_number):
+    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as logfile:
+        bits = logfile.read().split(",")
+        return int(bits[bit_index][bit_number])
 
 # def dts_on(bit):
 #    """
