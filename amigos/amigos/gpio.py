@@ -247,7 +247,7 @@ def enable_serial():
 
 def disable_serial():
     """
-    Enable serial communication
+    disable serial communication
     """
     with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
         bit_string = power_log.read().split(',')
