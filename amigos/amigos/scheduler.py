@@ -134,7 +134,7 @@ def execute():
 def get_schedule():
     data = None
     try:
-        with open('media/mmcblk0p1/amigos/amigos/logs/new_schedule.log') as update:
+        with open('media/mmcblk0p1/amigos/amigos/logs/new_schedule.log', 'r') as update:
             data = update.read()
         if data:
             data = data.split(',')

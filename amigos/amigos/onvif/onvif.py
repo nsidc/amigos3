@@ -107,24 +107,29 @@ snapSho
             [instance] -- return the reply from the server as instance
         """
         # check if the input is not specified used the current value from the camera.
-        if pan == None:
-            pan = float(self.getStatus()[0])/self.unit_degreePan
-        if tilt == None:
-            tilt = float(self.getStatus()[1])/self.unit_degreeTilt
-        if zoom == None:
-            zoom = float(self.getStatus()[2])*10
-        # get the message body to be sent and apply all the value specified
+        try:
 
-        self.__get_soap(service=typeof.capitalize()+"Move",
-                        pan=pan, tilt=tilt, zoom=zoom)
+            if pan == None:
+                pan = float(self.getStatus()[0])/self.unit_degreePan
+            if tilt == None:
+                tilt = float(self.getStatus()[1])/self.unit_degreeTilt
+            if zoom == None:
+                zoom = float(self.getStatus()[2])*10
+            # get the message body to be sent and apply all the value specified
 
-        # get apply the service the the header message
-        self.__get_service(typeof)
-        # print(self.msg)
-        # print('-'*50)
-        reply = requests.post(self.url, data=self.msg, headers=self.header)
-        # print(reply.text)
-        return reply  # return the reply.
+            self.__get_soap(service=typeof.capitalize()+"Move",
+                            pan=pan, tilt=tilt, zoom=zoom)
+
+            # get apply the service the the header message
+            self.__get_service(typeof)
+            # print(self.msg)
+            # print('-'*50)
+            reply = requests.post(self.url, data=self.msg, headers=self.header)
+            # print(reply.text)
+
+            return reply  # return the reply.
+        except:
+            return None
 
     def getStatus(self, output=False):
         """Get the starus of the camera
@@ -154,33 +159,37 @@ snapSho
             pan, tilt, zoom))
 
     def snapShot(self):
-        """get a snapshot
-        """
-        dt = str(datetime.datetime.now()).split(" ")
-        da = dt[0].split('-')
-        da = "".join(da)
-        ti = dt[1].split(':')
-        ti = "".join(ti)
-        dt = da+ti
-        username = 'admin'  # The cameras user name
-        password = '10iLtxyh'  # the cameras password
+        try:
+            """
+            get a snapshot
+            """
+            dt = str(datetime.datetime.now()).split(" ")
+            da = dt[0].split('-')
+            da = "".join(da)
+            ti = dt[1].split(':')
+            ti = "".join(ti)
+            dt = da+ti
+            username = 'admin'  # The cameras user name
+            password = '10iLtxyh'  # the cameras password
 
-        # send the username and password authentication
-        response = requests.get(
-            self.snapShop_url, auth=HTTPDigestAuth(username, password))
-        f = open('/media/mmcblk0p1/amigos/amigos/pic.jpg', 'wb')  # opening
+            # send the username and password authentication
+            response = requests.get(
+                self.snapShop_url, auth=HTTPDigestAuth(username, password))
+            f = open('/media/mmcblk0p1/amigos/amigos/pic.jpg', 'wb')  # opening
 
-        # Write the file to the time stamp
-        newname = '/media/mmcblk0p1/amigos/amigos/'+'photo'+dt[0:-7]+'.jpg'
-        # print(dt[0:-7])
-        subprocess.call("mv {0} {1}".format(
-            '/media/mmcblk0p1/amigos/amigos/pic.jpg', newname), shell=True)
-        # os.rename('/media/mmcblk0p1/amigos/amigos/pic.jpg', newname)
-        sleep(2)
-        f.write(response.content)
-        f.close()
-        subprocess.call("mv {0} {1}".format(
-            newname, "/media/mmcblk0p1/amigos/amigos/picture/"), shell=True)
+            # Write the file to the time stamp
+            newname = '/media/mmcblk0p1/amigos/amigos/'+'photo'+dt[0:-7]+'.jpg'
+            # print(dt[0:-7])
+            subprocess.call("mv {0} {1}".format(
+                '/media/mmcblk0p1/amigos/amigos/pic.jpg', newname), shell=True)
+            # os.rename('/media/mmcblk0p1/amigos/amigos/pic.jpg', newname)
+            sleep(2)
+            f.write(response.content)
+            f.close()
+            subprocess.call("mv {0} {1}".format(
+                newname, "/media/mmcblk0p1/amigos/amigos/picture/"), shell=True)
+        except:
+            pass
 
     def cam_test(self):
         self.send(typeof='absolute', pan=random.randint(-180, 180),

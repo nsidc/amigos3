@@ -34,8 +34,7 @@ def readsolar():
             data2 = int(data2, 16)
             # print(data2)
             date = str(datetime.datetime.now())
-            data = date + "\n" + "solar1: " + \
-                str(data1) + "\n" + "solar2: " + str(data2)
+            data = date + "  " + str(data1) + "  " + str(data2) + "\n"
         data = str(data)
         # print(data)
         with open("/media/mmcblk0p1/amigos/amigos/logs/solar_data.log", "a+") as solar:
