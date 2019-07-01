@@ -33,7 +33,7 @@ def modem_on(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_str + ','+bit_string[1])
+        __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
 def modem_off(bit):
@@ -49,7 +49,7 @@ def modem_off(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_str + ','+bit_string[1])
+        __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
 def gps_on(bit):
@@ -64,7 +64,7 @@ def gps_on(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_string[0] + ','+bit_str)
+        __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
 def gps_off(bit):
@@ -80,13 +80,14 @@ def gps_off(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_string[0] + ','+bit_str)
+        __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
 def weather_on(bit):
     """
-    Turn the power on weather module on after toggling the bit
+    Turn the power off gps module on after toggling the bit
     """
+
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
@@ -95,12 +96,12 @@ def weather_on(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_string[0] + ','+bit_str)
+        __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
 def weather_off(bit):
     """
-    Turn the power off weather module on after toggling the bit
+    Turn the power off gps module on after toggling the bit
     """
     if bit:
         with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
@@ -110,22 +111,35 @@ def weather_off(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_string[0] + ','+bit_str)
-    return False
+        __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
 def power_down(bit):
     if bit:
-        bit_string = "0b00000000,0b00000000"
+        bit_string = "0b00000000,0b00000000,0b00000000"
         __update_bit(bit_string)
         __toggle(bit-1)
         subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
         sleep(2)
         __toggle(bit)
         subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        print("ok\nTitron is going down now!")
+        print("Tritron is going down now!")
         sleep(2)
         subprocess.call("shutdown -h now", shell=True)
+
+
+def reboot(bit):
+    if bit:
+        bit_string = "0b00000000,0b00000000,0b00000000"
+        __update_bit(bit_string)
+        __toggle(bit-1)
+        subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
+        __toggle(bit)
+        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
+        print("Tritron is going down now for reboot!")
+        sleep(2)
+        subprocess.call("reboot", shell=True)
 
 
 def power_up(bit):
@@ -136,7 +150,7 @@ def power_up(bit):
         __toggle(bit)
         subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
         print("ok")
-        __update_bit('0b11111111,0b11111111')
+        __update_bit('0b11111111,0b11111111,0b11111111')
 
 
 def cr1000_on(bit):
@@ -151,7 +165,7 @@ def cr1000_on(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_string[0] + ','+bit_str)
+        __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
 def cr1000_off(bit):
@@ -166,7 +180,7 @@ def cr1000_off(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_string[0] + ','+bit_str)
+        __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
 def router_on(bit):
@@ -181,7 +195,7 @@ def router_on(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_str + ','+bit_string[1])
+        __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
 def router_off(bit):
@@ -197,7 +211,7 @@ def router_off(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_str + ','+bit_string[1])
+        __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
 def iridium_on(bit):
@@ -212,7 +226,7 @@ def iridium_on(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_str + ','+bit_string[1])
+        __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
 def iridium_off(bit):
@@ -228,19 +242,45 @@ def iridium_off(bit):
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
         print("ok")
-        __update_bit(bit_str + ','+bit_string[1])
+        __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
-def is_on_checker(bit_index,bit_number):
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log","r") as logfile:
+def enable_serial():
+    """
+    Enable serial communication
+    """
+    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        bit_string = power_log.read().split(',')
+        bit_str = bit_string[2][0:8]+"1"+bit_string[2][9:]
+    __toggle(2)
+    sleep(1)
+    subprocess.call(
+        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+    print("ok")
+    __update_bit(bit_string[0] + ','+bit_string[1]+','+bit_str)
+
+
+def disable_serial():
+    """
+    Enable serial communication
+    """
+    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        bit_string = power_log.read().split(',')
+        bit_str = bit_string[2][0:8]+"0"+bit_string[2][9:]
+    __toggle(2)
+    sleep(1)
+    subprocess.call(
+        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+    print("ok")
+    __update_bit(bit_string[0] + ','+bit_string[1]+','+bit_str)
+
+
+def is_on_checker(bit_index, bit_number):
+    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as logfile:
         bits = logfile.read().split(",")
-        if bits[bit_index][bit_number] == "1":
-            return True
-        else:
-            return False
+        return int(bits[bit_index][bit_number])
 
-
-#def dts_on(bit):
+# def dts_on(bit):
 #    """
 #    Turn the power off gps module on after toggling the bit
 #    """
@@ -256,7 +296,7 @@ def is_on_checker(bit_index,bit_number):
 #        __update_bit(bit_string[0] + ','+bit_str)
 #
 #
-#def dts_off(bit):
+# def dts_off(bit):
 #    """
 #    Turn the power off gps module on after toggling the bit
 #    """
