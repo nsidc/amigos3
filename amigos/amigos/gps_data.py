@@ -4,7 +4,6 @@ from serial import Serial as ser
 from time import sleep
 # import binascii as bina
 from gpio import gps_off, gps_on
-from radium import read, send
 
 
 def writeFile(file_name, strings, form):
