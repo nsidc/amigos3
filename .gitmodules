@@ -1,6 +1,9 @@
-[submodule "amigos/PyCampbellCR1000"]
-	path = amigos/PyCampbellCR1000
-	url = https://github.com/LionelDarras/PyCampbellCR1000
 [submodule "amigos/ext/PyCampbellCR1000"]
 	path = amigos/ext/PyCampbellCR1000
 	url = https://github.com/LionelDarras/PyCampbellCR1000
+[submodule "amigos/ext/pynmea2"]
+	path = amigos/ext/pynmea2
+	url = git@github.com:Knio/pynmea2.git
+[submodule "amigos/ext/requests"]
+	path = amigos/ext/requests
+	url = https://github.com/kennethreitz/requests.git
