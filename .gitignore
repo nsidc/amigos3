@@ -214,12 +214,12 @@ dmypy.json
 # End of https://www.gitignore.io/api/c,c++,linux,python
 .vscode
 XDG_CACHE_HOME
-pycampbellcr1000/
-pynmea2/
-requests/
-pylink/
-schedule/
-.DS_STORE
+amigos/pycampbellcr1000
+amigos/pynmea2
+amigos/requests
+amigos/pylink/
+amigos/schedule/
+**/*.DS_STORE
 .txt
 .log
 .jpg
