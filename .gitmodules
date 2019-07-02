@@ -7,3 +7,9 @@
 [submodule "amigos/ext/requests"]
 	path = amigos/ext/requests
 	url = https://github.com/kennethreitz/requests.git
+[submodule "amigos/ext/amigos/ext/urllib3"]
+	path = amigos/ext/urllib3
+	url = https://github.com/urllib3/urllib3.git
+[submodule "amigos/ext/chardet"]
+	path = amigos/ext/chardet
+	url = https://github.com/chardet/chardet.git
