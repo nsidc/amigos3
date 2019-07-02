@@ -1,3 +1,6 @@
 [submodule "amigos/PyCampbellCR1000"]
 	path = amigos/PyCampbellCR1000
 	url = https://github.com/LionelDarras/PyCampbellCR1000
+[submodule "amigos/ext/PyCampbellCR1000"]
+	path = amigos/ext/PyCampbellCR1000
+	url = https://github.com/LionelDarras/PyCampbellCR1000
