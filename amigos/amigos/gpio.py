@@ -20,11 +20,6 @@ def __toggle(bit):
         "echo {0} > /sys/class/gpio/pwr_ctl/index".format(bit), shell=True)
 
 
-        __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
-
-        __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
-
-
 def modem_on(bit):
     """
     Turn modem module power on after toggling the bit

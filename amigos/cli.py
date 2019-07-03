@@ -70,10 +70,10 @@ def args_parser():
     #Group of commands for device checker 
     device = parser.add_argument_group('See devices ON', 'see devives OFF')
     device.add_argument('device', help='View all devices ON/OFF', nargs='?')
-    device.add_argument('--on', 
+    device.add_argument('-run', '--running', 
                          help='Show all ON devices', action='store_true')
-    device.add_argument('--off',
-                         help='Show all OFF devices', action='store_true')
+    device.add_argument('-n_run', '--not_running',
+                        help='Show all OFF devices', action='store_true')
 
 
 
@@ -252,9 +252,9 @@ def gps(args):
     pass
 
 def device(args):
-    if args.on:
+    if args.running:
         is_on()
-    elif args.off:
+    elif args.not_running:
         is_off()
     else: 
         is_on()

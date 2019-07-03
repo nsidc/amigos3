@@ -1,10 +1,7 @@
 #Sid Arora
-#Updated as of 7/1/19
+#Updated as of 7/3/19
 
 #This script will allow the user to see which devices are currently on or off
-
-#Import modules 
-import re
 
 #Function to read the power log
 def read_log():
@@ -18,143 +15,147 @@ def read_log():
     except:
         print("Problem reading the power log file")
     else:
-        #logic to create array of first bit elements 
+        #logic to create array of zero bit elements 
         array0raw = list(f)
-        array0final = array0raw[1:9]
+        array0final = array0raw[2:10]
+
+        #logic to create array of first bit elements 
+        array1raw = list(f)
+        array1final = array1raw[13:21]
 
         #logic to create array of second bit elements 
-        array1raw = list(f)
-        array1final = array1raw[10:18]
-
-        #logic to create array of third bit elements 
         array2raw = list(f)
-        array2final = array2raw[19:27]
+        array2final = array2raw[24:32]
 
     return array0final,array1final,array2final
 
-#Function to output which modules are ON 
-def is_on():
+#Function to sort the array elements into "on" or "off" arrays 
+def sorting():
     array0final,array1final,array2final = read_log()
-    #if statements for "zero" array
+    is_on_array = []
+    is_off_array = []
+
+    #eight if statements for "zero" bit array 
     if array0final[0] == "1":
         pass
-    if array0final[1] == "1":
+    else:
         pass
+    if array0final[1] == "1":
+        is_on_array.append("DTS/Windows is ON")
+    else:
+        is_off_array.append("DTS/Windows is OFF")
     if array0final[2] == "1":
         pass
-    if array0final[3] == "1":
-        print("Iridium is ON")
-    if array0final[4] == "1":
-        print("Modem is ON")
-    if array0final[5] == "1":
-        print("Router is ON")
-    if array0final[6] == "1":
+    else:
         pass
+    if array0final[3] == "1":
+        is_on_array.append("CR1000 is ON")
+    else:
+        is_off_array.append("CR1000 is OFF")
+    if array0final[4] == "1":
+        is_on_array.append("Weather is ON")
+    else:
+        is_off_array.append("Weather is OFF")
+    if array0final[5] == "1":
+        pass
+    else:
+        pass
+    if array0final[6] == "1":
+        is_on_array.append("GPS is ON")
+    else:
+        is_off_array.append("GPS is OFF")
     if array0final[7] == "1":
         pass
+    else:
+        pass
 
-    #if statements for "one" array
+    #eight if statements for "first" bit array 
     if array1final[0] == "1":
+        pass
+    else:
         pass
     if array1final[1] == "1":
         pass
+    else:
+        pass
     if array1final[2] == "1":
         pass
-    if array1final[3] == "1":
-        print("CR is ON")
-    if array1final[4] == "1":
-        print("Weather is ON")
-    if array1final[5] == "1":
+    else:
         pass
+    if array1final[3] == "1":
+        is_on_array.append("Iridium is ON")
+    else:
+        is_off_array.append("Iridium is OFF")
+    if array1final[4] == "1":
+        is_on_array.append("Modem is ON")
+    else:
+        is_off_array.append("Modem is OFF")
+    if array1final[5] == "1":
+        is_on_array.append("Router is ON")
+    else:
+        is_off_array.append("Router is OFF")
     if array1final[6] == "1":
-        print("GPS is ON")
+        pass
+    else:
+        pass
     if array1final[7] == "1":
         pass
+    else:
+        pass
 
-    #if statements for "two" array
+    #eight if statements for "second" bit array 
     if array2final[0] == "1":
+        pass
+    else:
         pass
     if array2final[1] == "1":
         pass
+    else:
+        pass
     if array2final[2] == "1":
+        pass
+    else:
         pass
     if array2final[3] == "1":
         pass
+    else:
+        pass
     if array2final[4] == "1":
+        pass
+    else:
         pass
     if array2final[5] == "1":
         pass
+    else:
+        pass
     if array2final[6] == "1":
-        print("Serial port is ON")
+        is_on_array.append("Serial is ON")
+    else:
+        is_off_array.append("Serial is OFF")
     if array2final[7] == "1":
         pass
+    else:
+        pass
 
-#Function to output which modules are OFF 
+    return is_on_array,is_off_array
+
+def is_on():
+    is_on_array,is_off_array = sorting()
+    for i in range(len(is_on_array)):
+        print(is_on_array[i])
+    is_on_array = []
+    is_off_array = []
+
 def is_off():
-    array0final,array1final,array2final = read_log()
-    #if statements for "zero" array
-    if array0final[0] == "0":
-        pass
-    if array0final[1] == "0":
-        pass
-    if array0final[2] == "0":
-        pass
-    if array0final[3] == "0":
-        print("Iridium is OFF")
-    if array0final[4] == "0":
-        print("Modem is OFF")
-    if array0final[5] == "0":
-        print("Router is OFF")
-    if array0final[6] == "0":
-        pass
-    if array0final[7] == "0":
-        pass
-
-    #if statements for "one" array
-    if array1final[0] == "0":
-        pass
-    if array1final[1] == "0":
-        pass
-    if array1final[2] == "0":
-        pass
-    if array1final[3] == "0":
-        print("CR is OFF")
-    if array1final[4] == "0":
-        print("Weather is OFF")
-    if array1final[5] == "0":
-        pass
-    if array1final[6] == "0":
-        print("GPS is OFF")
-    if array1final[7] == "0":
-        pass
-
-    #if statements for "two" array
-    if array2final[0] == "0":
-        pass
-    if array2final[1] == "0":
-        pass
-    if array2final[2] == "0":
-        pass
-    if array2final[3] == "0":
-        pass
-    if array2final[4] == "0":
-        pass
-    if array2final[5] == "0":
-        pass
-    if array2final[6] == "0":
-        print("Serial port is OFF")
-    if array2final[7] == "0":
-        pass
+    is_on_array,is_off_array = sorting()
+    for j in range(len(is_off_array)):
+        print(is_off_array[j])
+    is_on_array = []
+    is_off_array = []
 
 #Main Function
 if __name__ == "__main__":
     is_on()
     is_off()
-
-
-
-#Test on amigos command line
-#comment out nicely and all formatting - all comment instructions too 
-#upload to my branch on git 
 
 
