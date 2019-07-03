@@ -13,3 +13,6 @@
 [submodule "amigos/ext/idna"]
 	path = amigos/ext/idna
 	url = https://github.com/kjd/idna.git
+[submodule "amigos/ext/chardet"]
+	path = amigos/ext/chardet
+	url = https://github.com/chardet/chardet.git
