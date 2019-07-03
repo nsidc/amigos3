@@ -16,3 +16,6 @@
 [submodule "amigos/ext/chardet"]
 	path = amigos/ext/chardet
 	url = https://github.com/chardet/chardet.git
+[submodule "amigos/ext/PyLink"]
+	path = amigos/ext/PyLink
+	url = https://github.com/LionelDarras/PyLink.git
