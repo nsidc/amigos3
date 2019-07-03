@@ -10,9 +10,6 @@
 [submodule "amigos/ext/amigos/ext/urllib3"]
 	path = amigos/ext/urllib3
 	url = https://github.com/urllib3/urllib3.git
-[submodule "amigos/ext/chardet"]
-	path = amigos/ext/chardet
-	url = https://github.com/chardet/chardet.git
 [submodule "amigos/ext/idna"]
 	path = amigos/ext/idna
 	url = https://github.com/kjd/idna.git
