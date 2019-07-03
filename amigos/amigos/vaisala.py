@@ -17,8 +17,6 @@ from gpio import is_on_checker
 import subprocess as subprocess
 
 # Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
-
-
 class Average_Reading():
     def read_data(self):
         try:
