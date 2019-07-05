@@ -34,6 +34,7 @@ class cold_test():
 
     def camera_schedule(self):
         cam = ptz()
+        
         self.sched_test.every().hour.at(":45").do(cam.cam_test)
         self.sched_test.every().hour.at(":25").do(cam.cam_test)
 

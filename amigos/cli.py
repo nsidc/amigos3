@@ -7,6 +7,8 @@ from amigos.onvif.onvif import ptz_client as client
 import sys
 from amigos.vaisala import Average_Reading as Average_Reading
 from amigos.vaisala import Live_Data as Live_Data
+from amigos.device import is_on, is_off
+from amigos.iridium import read as read_sbd, send as send_sbd
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()
@@ -66,6 +68,14 @@ def args_parser():
     weather.add_argument('-unit', '--vaisala_unit',
                          help='View Vaisala unit information', action='store_true')
 
+    # Group of commands for device checker
+    device = parser.add_argument_group('See devices ON', 'see devives OFF')
+    device.add_argument('device', help='View all devices ON/OFF', nargs='?')
+    device.add_argument('-run', '--running',
+                        help='Show all ON devices', action='store_true')
+    device.add_argument('-n_run', '--not_running',
+                        help='Show all OFF devices', action='store_true')
+
     # group of command for watchdog configureting
     wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
     wdog.add_argument(
@@ -106,16 +116,38 @@ def args_parser():
                        help='Iridium on', action='store_true')
     power.add_argument('-i_off', '--iridium_off',
                        help='Iridium off', action='store_true')
-#    power.add_argument('-dts_on', '--dts_on',
-#                       help='dts on', action='store_true')
-#    power.add_argument('-dts_off', '--dts_off',
-#                       help='dts off', action='store_true')
+    power.add_argument('-d_on', '--dts_on',
+                       help='dts on', action='store_true')
+    power.add_argument('-d_off', '--dts_off',
+                       help='dts off', action='store_true')
     power.add_argument('-off', '--power_off',
                        help='power down all peripherals', action='store_true')
     power.add_argument('-on', '--power_on',
                        help='power up all peripherals', action='store_true')
     power.add_argument('-r', '--reboot',
                        help='reboot system', action='store_true')
+    power.add_argument('-sbd_on', '--sbd_on',
+                       help='power on sbd pin', action='store_true')
+    power.add_argument('-sbd_off', '--sbd_off',
+                       help='power off sbd pin', action='store_true')
+
+    ser = parser.add_argument_group(
+        'Serial com enable/disable', 'control serial communication')
+    ser.add_argument(
+        'serial', help='required a secondary command', nargs='?')
+    ser.add_argument('-e', '--enable',
+                     help='enable serial com', action='store_true')
+    ser.add_argument('-dis', '--disable',
+                     help='disable serial com', action='store_true')
+
+    sbd = parser.add_argument_group(
+        'send/receive sbd', 'controlfor sbd message')
+    sbd.add_argument(
+        'sbd', help='required a secondary command', nargs='?')
+    sbd.add_argument('-send', '--send',
+                     help='send sbd', action='store_true')
+    sbd.add_argument('-read', '--read',
+                     help='read sbd', action='store_true')
 
     camera = parser.add_argument_group(
         'Camera Control', 'Control camera position, take pictures and more')
@@ -160,10 +192,10 @@ def power(args):
         gpio.iridium_on(1)
     elif args.iridium_off:
         gpio.iridium_off(1)
-#        elif args.dts_on:
-#            gpio.dts_on(1)
-#        elif args.dts_off:
-#            gpio.dts_off(1)
+    elif args.dts_on:
+        gpio.dts_on(1)
+    elif args.dts_off:
+        gpio.dts_off(1)
     elif args.power_off:
         gpio.power_down(1)
     elif args.power_on:
@@ -178,8 +210,19 @@ def power(args):
         gpio.gps_off(1)
     elif args.reboot:
         gpio.reboot(1)
+    elif args.sbd_on:
+        gpio.sbd_on(1)
+    elif args.sbd_off:
+        gpio.sbd_off(1)
     else:
         print("Too few arguments. No device specified.")
+
+
+def enabler(args):
+    if args.enable:
+        gpio.enable_serial()
+    elif args.disable:
+        gpio.disable_serial()
 
 
 def camera(args, val):
@@ -234,11 +277,27 @@ def dts(args):
 
 
 def iridium(args):
-    pass
+    if args.read:
+        print(read_sbd())
+    if args.send:
+        message = raw_input()
+        message = message + '\r\n'
+        send_sbd(message)
 
 
 def gps(args):
     pass
+
+
+def device(args):
+    if args.running:
+        is_on()
+    elif args.not_running:
+        is_off()
+    else:
+        is_on()
+        is_off()
+
 
 def weather(args):
     # call averaging function from vaisala script in avg class - to start long-term data collection
@@ -297,6 +356,12 @@ def main():
         camera(args, val)
     elif args.schedule == 'weather':
         weather(args)
+    elif args.schedule == 'device':
+        device(args)
+    elif args.schedule == 'serial':
+        enabler(args)
+    elif args.schedule == 'sbd':
+        iridium(args)
     else:
         print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")

@@ -36,7 +36,7 @@ class cr1000x:
         Q = str(data[0]['Q'])
         tcdt = str(data[0]['TCDT'])
         labels = ['Timestamp', 'RecNbr', 'Batt_volt', 'Ptemp_C', 'R6', 'R10', 'R20', 'R2_5', 'R4_5',
-                  'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T8_5', 'DT', 'Q', 'TCDT']
+                  'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T6_5','T8_5', 'DT', 'Q', 'TCDT']
         values = [Timestamp, RecNbr, Batt_volt, Ptemp_C, R6, R10, R20, R2_5,
                   R4_5, R6_5, R8_5, T6, T10, T20, T40, T2_5, T4_5, T8_5, dt, Q, tcdt]
         return labels, values

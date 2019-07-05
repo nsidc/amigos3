@@ -2,6 +2,7 @@ import functools
 
 import functools
 from schedule import schedule as schedule
+from serial import Serial as ser
 
 
 def catch_exceptions(cancel_on_failure=False):
@@ -17,3 +18,9 @@ def catch_exceptions(cancel_on_failure=False):
                     return schedule.CancelJob
         return wrapper
     return catch_exceptions_decorator
+
+
+def printf(message):
+    port = ser('/dev/ttyS3')
+    port.baudrate = 115200
+    port.write(message)

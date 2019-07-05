@@ -5,7 +5,7 @@ Contains classes for  transport implementations.
 """
 import requests
 import os
-import subprocess as subprocess
+import subprocess
 from time import sleep
 from requests.auth import HTTPDigestAuth
 import datetime

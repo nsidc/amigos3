@@ -4,8 +4,7 @@ from serial import Serial as ser
 from time import sleep
 # import binascii as bina
 from gpio import gps_off, gps_on, enable_serial, disable_serial
-import subprocess as subprocess
-
+import subprocess 
 
 def writeFile(file_name, strings, form):
     """

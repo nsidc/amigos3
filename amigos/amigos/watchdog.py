@@ -1,7 +1,7 @@
 # Battery, CPU and other ressources monitoring
 from time import sleep
-from schedule import schedule as schedule
-import subprocess as subprocess
+from schedule import schedule
+import subprocess
 
 
 def __toggle_1hour():

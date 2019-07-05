@@ -14,7 +14,7 @@ import math
 from gpio import weather_on
 from gpio import weather_off
 from gpio import is_on_checker
-import subprocess as subprocess
+import subprocess 
 
 # Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
 
