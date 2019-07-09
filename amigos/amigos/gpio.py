@@ -1,6 +1,6 @@
 import subprocess as subprocess
 from time import sleep
-from excep import printf
+from execp import printf
 bit_string = []
 
 
@@ -32,7 +32,7 @@ def modem_on(bit):
         # printf(hex(int(bit_string[0], 2)))
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf('Modern turned on')
         __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
@@ -48,7 +48,7 @@ def modem_off(bit):
         sleep(1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("Modern turned off")
         __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
@@ -63,7 +63,7 @@ def gps_on(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("gps turned on")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -79,7 +79,7 @@ def gps_off(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("gps turned off")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -95,7 +95,7 @@ def sbd_on(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("sbd turned on")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -111,7 +111,7 @@ def sbd_off(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("sbd turned off")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -127,7 +127,7 @@ def weather_on(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("Weather station turned on")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -142,7 +142,7 @@ def weather_off(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("weather station turned off")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -181,7 +181,7 @@ def power_up(bit):
         sleep(2)
         __toggle(bit)
         subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
-        printf("ok")
+        printf("All devices powered on")
         __update_bit('0b11111111,0b11111111,0b11111111')
 
 
@@ -196,7 +196,7 @@ def cr1000_on(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("CR1000x turned on")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -211,7 +211,7 @@ def cr1000_off(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("CR1000x turned off")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -226,7 +226,7 @@ def router_on(bit):
         __toggle(bit)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("router turned on")
         __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
@@ -242,7 +242,7 @@ def router_off(bit):
         sleep(1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("router turned off")
         __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
@@ -257,7 +257,7 @@ def iridium_on(bit):
         __toggle(bit)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("iridium  turned on")
         __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
@@ -273,7 +273,7 @@ def iridium_off(bit):
         sleep(1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("iridium turned off")
         __update_bit(bit_string[0] + ','+bit_str+','+bit_string[2])
 
 
@@ -288,7 +288,7 @@ def dts_on(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("dts turned on")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -303,7 +303,7 @@ def dts_off(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("ok")
+        printf("dts turned on")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -318,7 +318,7 @@ def enable_serial():
     sleep(1)
     subprocess.call(
         "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-    printf("ok")
+    printf("serial communication enable")
     __update_bit(bit_string[0] + ','+bit_string[1]+','+bit_str)
 
 
@@ -333,7 +333,7 @@ def disable_serial():
     sleep(1)
     subprocess.call(
         "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-    printf("ok")
+    printf("serial communication disable")
     __update_bit(bit_string[0] + ','+bit_string[1]+','+bit_str)
 
 

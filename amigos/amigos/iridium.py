@@ -1,5 +1,5 @@
 from serial import Serial as ser
-from gpio import sbd_off, sbd_on, enable_serial, disable_serial
+from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on
 from time import sleep
 
 

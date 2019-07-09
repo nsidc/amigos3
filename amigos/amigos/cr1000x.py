@@ -1,6 +1,8 @@
 from pycampbellcr1000 import CR1000
 from gpio import cr1000_off, cr1000_on
 from time import sleep
+from execp import printf
+import traceback
 
 
 class cr1000x:
@@ -36,7 +38,7 @@ class cr1000x:
         Q = str(data[0]['Q'])
         tcdt = str(data[0]['TCDT'])
         labels = ['Timestamp', 'RecNbr', 'Batt_volt', 'Ptemp_C', 'R6', 'R10', 'R20', 'R2_5', 'R4_5',
-                  'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T6_5','T8_5', 'DT', 'Q', 'TCDT']
+                  'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T6_5', 'T8_5', 'DT', 'Q', 'TCDT']
         values = [Timestamp, RecNbr, Batt_volt, Ptemp_C, R6, R10, R20, R2_5,
                   R4_5, R6_5, R8_5, T6, T10, T20, T40, T2_5, T4_5, T8_5, dt, Q, tcdt]
         return labels, values
@@ -46,13 +48,20 @@ class cr1000x:
         try:
             labels, values = self.finddata()
         except:
-            pass
+            printf('Unable to acquire cr1000x data')
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))
         else:
             therms = open(
                 "/media/mmcblk0p1/amigos/amigos/logs/thermdata.log", "a+")
-            for i in range(len(labels)):
-                therms.write(labels[i] + ': ' + values[i] + "\n")
-            therms.close()
+            try:
+                for i in range(len(labels)):
+                    therms.write(labels[i] + ': ' + values[i] + "\n")
+                therms.close()
+            except:
+                printf('failed to format cr100x data. raw data {0}')
+                traceback.print_exc(
+                    file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))
         finally:
             cr1000_off(1)
 

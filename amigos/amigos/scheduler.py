@@ -11,6 +11,11 @@ from onboard_device import get_humidity, get_temperature
 from solar import readsolar
 from watchdog import set_mode as dog_mode
 import ast
+from execp import printf, sig_handler, terminateProcess
+import signal
+import sys
+import traceback
+from monitor import schedule_health
 # import monitor as monitor
 
 
@@ -24,7 +29,6 @@ class cold_test():
         self.sched_test.every().hour.at(":10").do(v.average_data)  # add vaisala schedule
 
         self.sched_test.every().hour.at(":50").do(v.average_data)  # add vaisala schedule
-        self.sched_test.every().hour.at(":42").do(v.average_data)
 
     def gps_schedule(self):
         gps = gps_data()
@@ -34,7 +38,7 @@ class cold_test():
 
     def camera_schedule(self):
         cam = ptz()
-        
+
         self.sched_test.every().hour.at(":45").do(cam.cam_test)
         self.sched_test.every().hour.at(":25").do(cam.cam_test)
 
@@ -42,7 +46,7 @@ class cold_test():
         # add cr100 schedules
         cr = cr1000x()
         self.sched_test.every().hour.at(":20").do(cr.write_file)
-        self.sched_test.every().hour.at(":07").do(cr.write_file)
+        self.sched_test.every().hour.at(":42").do(cr.write_file)
 
     def solar_schedule(self):
         self.sched_test.every().hour.at(":15").do(readsolar)
@@ -128,8 +132,22 @@ class winter():
         return self.sched_winter
 
 
-def execute():
-    pass
+class monitor():
+    def __init__(self, *args, **kwargs):
+        self.sched_monitor = schedule.Scheduler()
+
+    def execute(self):
+        pass
+
+    def health(self):
+        self.sched_monitor.every().hour.at(':28').do(schedule_health)
+
+    def voltage(self):
+        pass
+
+    def sched(self):
+        self.health()
+        return self.sched_monitor
 
 
 def get_schedule():
@@ -220,13 +238,40 @@ def run_schedule():
 
 # running this script start the schedule
 if __name__ == "__main__":
+    # register the signals to be caught
+    signal.signal(signal.SIGHUP, sig_handler)
+    signal.signal(signal.SIGINT, terminateProcess)
+    signal.signal(signal.SIGQUIT, sig_handler)
+    signal.signal(signal.SIGILL, sig_handler)
+    signal.signal(signal.SIGTRAP, sig_handler)
+    signal.signal(signal.SIGABRT, sig_handler)
+    signal.signal(signal.SIGBUS, sig_handler)
+    signal.signal(signal.SIGFPE, sig_handler)
+    #signal.signal(signal.SIGKILL, sig_handler)
+    signal.signal(signal.SIGUSR1, sig_handler)
+    signal.signal(signal.SIGSEGV, sig_handler)
+    signal.signal(signal.SIGUSR2, sig_handler)
+    signal.signal(signal.SIGPIPE, sig_handler)
+    signal.signal(signal.SIGALRM, sig_handler)
+    signal.signal(signal.SIGTERM, terminateProcess)
     # run_schedule()
-    modem_on(1)
-    t = cold_test()
-    s = t.sched()
-    dog = dog_mode(mode=None)
-    dog.run_all()
-    while True:
-        dog.run_pending()
-        s.run_pending()
-        sleep(1)
+    try:
+        modem_on(1)
+        t = cold_test()
+        s = t.sched()
+        dog = dog_mode(mode=1)
+        dog.run_all()
+        mo = monitor()
+        m = mo.sched()
+        while True:
+            m.run_pending()
+            dog.run_pending()
+            s.run_pending()
+            with open('/media/mmcblk0p1/amigos/amigos/logs/sched.log', 'w+') as sched_log:
+                sched_log.write(str(m.jobs)+',' + str(s.jobs))
+            sleep(1)
+    except Exception as err:
+        printf('Scheduler failed with error message :' +
+               str(err) + str(sys.exc_info()[0]) + '\n' + 'Trying to restart scheduler')
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))

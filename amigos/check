@@ -1,0 +1,38 @@
+if ps| grep scheduler | grep -v -q grep; then
+
+echo none > /dev/null
+
+else
+
+date >> /media/mmcblk0p1/amigos/amigos/logs/system.log
+python /media/mmcblk0p1/amigos/amigos/scheduler.py >>/media/mmcblk0p1/amigos/amigos/logs/schedule.log &
+
+sleep 1
+
+# power up the router 
+echo 1 > /sys/class/gpio/pwr_ctl/index
+sleep 1
+echo 0x08 > /sys/class/gpio/pwr_ctl/data 
+
+fi
+
+#Watchdog set
+sleep 1
+echo 0 > /sys/class/gpio/wdt_ctl/data
+sleep 1
+echo 1 > /sys/class/gpio/wdt_ctl/data
+ 
+cp -r /var/volatile/log/ /media/mmcblk0p1/amigos/amigos/logs/
+dmesg > /media/mmcblk0p1/amigos/amigos/logs/dmesg.log
+
+
+last_run="$(date -r /media/mmcblk0p1/amigos/amigos/logs/system.log +%s)"
+time_now="$(date +%s)"
+
+diff=$((time_now - last_run)) 
+if (( $diff > 3600 )); then
+pidd="$(pgrep python)"
+echo "Scheduler freezed" >> /media/mmcblk0p1/amigos/amigos/logs/system.log
+kill -9 $pidd
+echo $diff
+fi

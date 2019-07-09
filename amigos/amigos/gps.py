@@ -4,7 +4,9 @@ from serial import Serial as ser
 from time import sleep
 # import binascii as bina
 from gpio import gps_off, gps_on, enable_serial, disable_serial
-import subprocess 
+import subprocess
+from execp import printf
+
 
 def writeFile(file_name, strings, form):
     """
@@ -47,6 +49,7 @@ class gps_data():
         Take no argument
         Return None
         """
+        printf('GPS data acquisition started')
         try:
             # try opening the port
             self.port.open()
