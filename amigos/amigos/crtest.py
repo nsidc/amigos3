@@ -11,7 +11,6 @@ class cr1000x:
         data = device.get_data('Public')
         # print(data[0])
         # finds strings inbetween parenthesis
-
         Timestamp = str(data[0]['Datetime'])
         RecNbr = str(data[0]['RecNbr'])
         Batt_volt = str(data[0]['Batt_volt'])
