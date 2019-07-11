@@ -155,6 +155,9 @@ def power_down(bit):
         sleep(2)
         __toggle(bit)
         subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
+        __toggle(2)
+        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
         printf("Tritron is going down now!")
         sleep(2)
         subprocess.call("shutdown -h now", shell=True)
@@ -169,6 +172,9 @@ def reboot(bit):
         sleep(2)
         __toggle(bit)
         subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
+        __toggle(2)
+        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
         printf("Tritron is going down now for reboot!")
         sleep(2)
         subprocess.call("reboot", shell=True)
@@ -180,6 +186,9 @@ def power_up(bit):
         subprocess.call("echo 0xFF> /sys/class/gpio/pwr_ctl/data", shell=True)
         sleep(2)
         __toggle(bit)
+        subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
+        __toggle(2)
         subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
         printf("All devices powered on")
         __update_bit('0b11111111,0b11111111,0b11111111')
@@ -303,7 +312,7 @@ def dts_off(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("dts turned on")
+        printf("dts turned off")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 

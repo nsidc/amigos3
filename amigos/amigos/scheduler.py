@@ -15,7 +15,7 @@ from execp import printf, sig_handler, terminateProcess
 import signal
 import sys
 import traceback
-from monitor import schedule_health
+from monitor import get_schedule_health, put_to_sleep
 # import monitor as monitor
 
 
@@ -26,35 +26,35 @@ class cold_test():
     def vaisala_schedule(self):
         v = vg()
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_test.every().hour.at(":10").do(v.average_data)  # add vaisala schedule
+        # add vaisala schedule
 
-        self.sched_test.every().hour.at(":50").do(v.average_data)  # add vaisala schedule
+        self.sched_test.every().hour.at(":40").do(v.average_data)  # add vaisala schedule
 
     def gps_schedule(self):
         gps = gps_data()
-        # add gps schedules
-        self.sched_test.every().hour.at(":30").do(gps.get_binex)
-        self.sched_test.every().hour.at(":59").do(gps.get_binex)
+        # add gps schedulesself.sched_summer.every().day.at("05:10").do(gps.get_binex)
+        self.sched_test.every().day.at("05:10").do(gps.get_binex)
+        self.sched_test.every().day.at("11:10").do(gps.get_binex)
+        self.sched_test.every().day.at("17:10").do(gps.get_binex)
+        self.sched_test.every().day.at("23:10").do(gps.get_binex)
 
     def camera_schedule(self):
         cam = ptz()
 
-        self.sched_test.every().hour.at(":45").do(cam.cam_test)
         self.sched_test.every().hour.at(":25").do(cam.cam_test)
 
     def cr100x_schedule(self):
         # add cr100 schedules
         cr = cr1000x()
-        self.sched_test.every().hour.at(":20").do(cr.write_file)
-        self.sched_test.every().hour.at(":42").do(cr.write_file)
+        self.sched_test.every().hour.at(":50").do(cr.write_file)
 
     def solar_schedule(self):
         self.sched_test.every().hour.at(":15").do(readsolar)
-        self.sched_test.every().hour.at(":55").do(readsolar)
+        self.sched_test.every().hour.at(":56").do(readsolar)
 
     def onboard_device(self):
-        self.sched_test.every().minute.do(get_humidity)
-        self.sched_test.every().minute.do(get_temperature)
+        self.sched_test.every().minute.at(":30").do(get_humidity)
+        self.sched_test.every().minute.at(":33").do(get_temperature)
 
     def sched(self):
         # load all the schedules
@@ -140,13 +140,15 @@ class monitor():
         pass
 
     def health(self):
-        self.sched_monitor.every().hour.at(':28').do(schedule_health)
+        self.sched_monitor.every(15).minutes.at(':13').do(get_schedule_health)
 
     def voltage(self):
-        pass
+        self.sched_monitor.every(15).minutes.at(":14").do(put_to_sleep)
 
     def sched(self):
         self.health()
+        self.voltage()
+        self.execute()
         return self.sched_monitor
 
 

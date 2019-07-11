@@ -26,12 +26,12 @@ def __toggle_3min():
 
 def __go_sleep_3min():
     # put the board to sleep for 3 min
-    subprocess.call('bash /media/mmcblk0p1/sleep_3min', shell=True)
+    subprocess.call('bash /root/sleep_3min', shell=True)
 
 
 def __go_sleep_1hour():
     # put the board to sleep for 3 min
-    subprocess.call('bash /media/mmcblk0p1/sleep_1hour', shell=True)
+    subprocess.call('bash /root/sleep_long', shell=True)
 
 
 def set_mode(mode=None):

@@ -17,7 +17,7 @@ from gpio import is_on_checker
 import subprocess
 from execp import printf
 import traceback
-
+from onboard_device import get_battery_current
 # Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
 
 
@@ -25,8 +25,11 @@ class Average_Reading():
     def read_data(self):
         try:
             # Turn on Weather Station
+            s_curr = get_battery_current()
             weather_on(1)
-            sleep(10)
+            sleep(20)
+            e_curr = get_battery_current()
+            printf("Vaisala consumed about {0} amps".format(e_curr-s_curr))
             # Read in the weather sensor data and write to an ascii text file
             port = serial.Serial("/dev/ttyS5")
             port.baudrate = 115200

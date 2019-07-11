@@ -4,6 +4,7 @@ from serial import Serial as ser
 from time import sleep
 # import binascii as bina
 from gpio import gps_off, gps_on, enable_serial, disable_serial
+from onboard_device import get_battery_current
 import subprocess
 from execp import printf
 
@@ -50,6 +51,7 @@ class gps_data():
         Return None
         """
         printf('GPS data acquisition started')
+        s_curr = get_battery_current()
         try:
             # try opening the port
             self.port.open()
@@ -62,6 +64,8 @@ class gps_data():
         else:
             self.port.flushInput()
             self.sequence = 1
+            e_curr = get_battery_current()
+            printf("GPS consumed about {0} amps".format(e_curr-s_curr))
             while self.sequence <= self.timeout*60/self.interval:
                 self.port.write(self.cmd['binex']+'\r')
                 sleep(2)
