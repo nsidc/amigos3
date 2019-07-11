@@ -10,6 +10,6 @@
 [submodule "amigos/amigos/requests"]
 	path = amigos/amigos/requests
 	url = https://github.com/CooviM/requests
-[submodule "amigos/amigos/schedule]
+[submodule "amigos/amigos/schedule"]
 	path = amigos/amigos/schedule
 	url = https://github.com/CooviM/schedule
