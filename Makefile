@@ -29,3 +29,6 @@ test: lint  # run unit tests
 
 install: env submodules # install the environment and local source
 	python setup.py develop
+
+deploy: # sync the code to the amigos box
+	rsync -avz --exclude .git amigos root@192.168.0.80:/media/mmcblk0p1
