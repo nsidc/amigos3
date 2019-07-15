@@ -37,7 +37,7 @@ def put_to_sleep():
     try:
         if voltage < 2:
             voltage = voltage*10
-            printf("Voltage reading biased, it is getting too cold here: Reading {0} volt and {1} amps".format(
+            printf("Voltage reading biased: Reading {0} volt and {1} amps".format(
                 voltage, current))
         if voltage < 11.0:
             had_slept = None
