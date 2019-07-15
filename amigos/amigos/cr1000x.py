@@ -1,12 +1,18 @@
 from pycampbellcr1000 import CR1000
 from gpio import cr1000_off, cr1000_on
 from time import sleep
+from execp import printf
+import traceback
+from onboard_device import get_battery_current
 
 
 class cr1000x:
     def finddata(self):
+        s_curr = get_battery_current()
         cr1000_on(1)
         sleep(90)
+        e_curr = get_battery_current()
+        printf("CR100x consumed about {0} amps".format(e_curr-s_curr))
         device = CR1000.from_url('tcp:192.168.0.30:6785')
         data = device.get_data('Public')
         # print(data[0])
@@ -35,24 +41,32 @@ class cr1000x:
         dt = str(data[0]['DT'])
         Q = str(data[0]['Q'])
         tcdt = str(data[0]['TCDT'])
-        labels = ['Timestamp', 'RecNbr', 'Batt_volt', 'Ptemp_C', 'R6', 'R10', 'R20', 'R2_5', 'R4_5',
-                  'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T8_5', 'DT', 'Q', 'TCDT']
+        labels = ['Timestamp', 'RecNbr', 'Batt_volt', 'Ptemp_C', 'R40', 'R6', 'R10', 'R20', 'R2_5', 'R4_5',
+                  'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T6_5', 'T8_5', 'DT', 'Q', 'TCDT']
         values = [Timestamp, RecNbr, Batt_volt, Ptemp_C, R6, R10, R20, R2_5,
-                  R4_5, R6_5, R8_5, T6, T10, T20, T40, T2_5, T4_5, T8_5, dt, Q, tcdt]
+                  R4_5, R6_5, R8_5, R40, T6, T6_5, T10, T20, T40, T2_5, T4_5, T8_5, dt, Q, tcdt]
         return labels, values
 # write to txt file
 
     def write_file(self):
         try:
             labels, values = self.finddata()
-        except:
-            pass
+        except Exception as err:
+            printf('Unable to acquire cr1000x data with exception {0}'.format(err))
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))
         else:
             therms = open(
                 "/media/mmcblk0p1/amigos/amigos/logs/thermdata.log", "a+")
-            for i in range(len(labels)):
-                therms.write(labels[i] + ': ' + values[i] + "\n")
-            therms.close()
+            try:
+                for i in range(len(labels)):
+                    therms.write(labels[i] + ': ' + values[i] + "\n")
+                therms.close()
+            except Exception as err:
+                printf(
+                    'failed to format cr1000x data with exception {1}. raw data {0}'.format(values, err))
+                traceback.print_exc(
+                    file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))
         finally:
             cr1000_off(1)
 

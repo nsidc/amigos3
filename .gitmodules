@@ -1,3 +1,15 @@
-[submodule "amigos/PyCampbellCR1000"]
-	path = amigos/PyCampbellCR1000
-	url = https://github.com/LionelDarras/PyCampbellCR1000
+[submodule "amigos/amigos/pylink"]
+	path = amigos/amigos/pylink
+	url = https://github.com/CooviM/pylink
+[submodule "amigos/amigos/pycampbellcr1000"]
+	path = amigos/amigos/pycampbellcr1000
+	url = https://github.com/CooviM/pycampbellcr1000
+[submodule "amigos/amigos/pynmea2"]
+	path = amigos/amigos/pynmea2
+	url = https://github.com/CooviM/pynmea2
+[submodule "amigos/amigos/requests"]
+	path = amigos/amigos/requests
+	url = https://github.com/CooviM/requests
+[submodule "amigos/amigos/schedule"]
+	path = amigos/amigos/schedule
+	url = https://github.com/CooviM/schedule

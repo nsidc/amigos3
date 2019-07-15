@@ -5,7 +5,7 @@ Contains classes for  transport implementations.
 """
 import requests
 import os
-import subprocess as subprocess
+import subprocess
 from time import sleep
 from requests.auth import HTTPDigestAuth
 import datetime
@@ -38,6 +38,11 @@ class ptz_client():
         self.unit_degreeTilt = 0.0055555556*4
         self.path = os.getcwd()
         self.snapShop_url = "http://192.168.0.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
+
+    def printf(self, message):
+        with open('/media/mmcblk0p1/amigos/amigos/logs/system.log', 'a+') as log:
+            date = str(datetime.datetime.now()) + ': '
+            log.write(date + message + '\n')
 
     def __get_service(self, service):
         """[summary]
@@ -116,11 +121,12 @@ snapSho
             if zoom == None:
                 zoom = float(self.getStatus()[2])*10
             # get the message body to be sent and apply all the value specified
-
+            self.printf(
+                'moving camera to tilt {0},  pan {1} and zoom {2}'.format(tilt, pan, zoom))
             self.__get_soap(service=typeof.capitalize()+"Move",
                             pan=pan, tilt=tilt, zoom=zoom)
 
-            # get apply the service the the header message
+            # get apply the service to the header message
             self.__get_service(typeof)
             # print(self.msg)
             # print('-'*50)
@@ -129,6 +135,7 @@ snapSho
 
             return reply  # return the reply.
         except:
+            self.printf("Unable to communicate with camera")
             return None
 
     def getStatus(self, output=False):
@@ -138,7 +145,7 @@ snapSho
             [floats] -- the current pan, tilt and the zoom
         """
         self.__get_soap('getstatus')  # get the message for status
-
+        self.printf('Getting camera status')
         self.header = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/GetStatus",
                        'Content-Type': 'application/soap+xml'}  # The header of the status
         reply = requests.post(self.url, data=self.msg,
@@ -151,6 +158,8 @@ snapSho
         tilt = float(reply.text.split('><')[7].split(
             '"')[5])
         if output == False:
+            self.printf("camera sttatus: PAN_Position: {0}, TITL_Position: {1}, ZOOM_Position: {2}".format(
+                pan, tilt, zoom))
             return pan, tilt, zoom
         zoom = zoom*100
         pan = pan/self.unit_degreePan
@@ -163,6 +172,7 @@ snapSho
             """
             get a snapshot
             """
+            self.printf("Camera Getting snapShot")
             dt = str(datetime.datetime.now()).split(" ")
             da = dt[0].split('-')
             da = "".join(da)
@@ -188,8 +198,9 @@ snapSho
             f.close()
             subprocess.call("mv {0} {1}".format(
                 newname, "/media/mmcblk0p1/amigos/amigos/picture/"), shell=True)
+            self.printf("Camera snapShot success")
         except:
-            pass
+            self.printf('Unable to take snapshot')
 
     def cam_test(self):
         self.send(typeof='absolute', pan=random.randint(-180, 180),

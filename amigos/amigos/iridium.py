@@ -1,28 +1,36 @@
 from serial import Serial as ser
+from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on
+from time import sleep
+from execp import printf
 
 
 def send(message):
     try:
         port = ser('/dev/ttyS1')
-        port.baudrate = 115200
+        port.baudrate = 9600
         port.open()
-        port.flushInput()
+        sbd_on(1)
+        sleep(1)
+        enable_serial()
+        sleep(1)
     except:
-        print('Unable to open port')
-        return
-    port.write(message)
-
-    return read()
+        printf('Unable to open port')
+    else:
+        port.write(message + '\r')
+        printf('sent SBD message: {0} {1}'.format(message, '\r'))
+    finally:
+        disable_serial()
+        sbd_off(1)
 
 
 def read():
     try:
         port = ser('/dev/ttyS1')
-        port.baudrate = 115200
+        port.baudrate = 9600
+        port.timeout = 60
         port.open()
-        port.flushInput()
     except:
-        print('Unable to open port')
+        printf('Unable to open port')
         return None
-    rev = port.read(port.inWating())
+    rev = port.read(port.inWaiting())
     return rev
