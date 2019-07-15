@@ -50,13 +50,13 @@ def put_to_sleep():
                 printf('Voltage still too low, going on long sleep (1 hour). Reading {0} volt and {1} amps'.format(
                     voltage, current))
                 call('rm /media/mmcblk0p1/amigos/amigos/logs/sleep.log', shell=True)
-                set_mode(2)
+                # set_mode(2)
             else:
                 with open('/media/mmcblk0p1/amigos/amigos/logs/sleep.log', 'w+') as sched_log:
                     sched_log.write('1')
                 printf('Voltage too low, going on 3 minutes sleep. Reading {0} volt and {1} amps'.format(
                     voltage, current))
-                set_mode(3)
+                # set_mode(3)
         elif voltage > 14.0:
             printf('Voltage is to high. Reading {0} volt and {1} amps'.format(
                 voltage, current))
