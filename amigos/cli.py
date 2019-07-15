@@ -19,160 +19,168 @@ Live_Readings = Live_Data()
 
 
 def args_parser():
-    val = None
-    if len(sys.argv) > 3:
-        val = sys.argv[-1]
-        sys.argv.pop(-1)
-    parser = argparse.ArgumentParser(prog='Amigos', add_help=False)
-    # Group or command for schedule viewing
-    schedule = parser.add_argument_group(
-        'Set or View Schedules', 'Show all the schedules')
-    schedule.add_argument(
-        'schedule', help='View all pending schedule', nargs='?')
-    schedule.add_argument(
-        '-s', '--summer', help='View summer schedule', action='store_true')
-    schedule.add_argument(
-        '-w', '--winter', help='View winter schedule', action='store_true')
+    try:
+        val = None
+        if len(sys.argv) > 3:
+            val = sys.argv[-1]
+            sys.argv.pop(-1)
+        parser = argparse.ArgumentParser(prog='Amigos', add_help=False)
+        # Group or command for schedule viewing
+        schedule = parser.add_argument_group(
+            'Set or View Schedules', 'Show all the schedules')
+        schedule.add_argument(
+            'schedule', help='View all pending schedule', nargs='?')
+        schedule.add_argument(
+            '-s', '--summer', help='View summer schedule', action='store_true')
+        schedule.add_argument(
+            '-w', '--winter', help='View winter schedule', action='store_true')
 
-    # group of command for weather viewing
-    weather = parser.add_argument_group('Read weather', 'show live weather data')
-    weather.add_argument('weather', help='View all live data', nargs='?')
-    weather.add_argument('-c', '--collect',
-                         help='Run data averaging program', action='store_true')
-    weather.add_argument('-dir', '--wind_direction',
-                         help='View average wind direction (Degrees)', action='store_true')
-    weather.add_argument('-speed', '--wind_speed',
-                         help='View average wind speed (m/s)', action='store_true')
-    weather.add_argument('-temp', '--air_temp',
-                         help='View current air temperature (C)', action='store_true')
-    weather.add_argument('-hum', '--humidity',
-                         help='View current relative humidity (%%RH)', action='store_true')
-    weather.add_argument('-pres', '--pressure',
-                         help='View current air pressure (hPa)', action='store_true')
-    weather.add_argument('-r_acc', '--rain_accumulation',
-                         help='View rain accumulation over last storm (mm)', action='store_true')
-    weather.add_argument('-r_dur', '--rain_duration',
-                         help='View rain duration over last storm (s)', action='store_true')
-    weather.add_argument('-r_int', '--rain_intensity',
-                         help='View rain intensity over last storm (mm/hour)', action='store_true')
-    weather.add_argument('-r_pint', '--rain_peak_intensity',
-                         help='View rain peak intensity over last storm (mm/hour)', action='store_true')
-    weather.add_argument('-h_acc', '--hail_accumulation',
-                         help='View hail accumulation over last storm (hits/cm^2)', action='store_true')
-    weather.add_argument('-h_dur', '--hail_duration',
-                         help='View hail duration over last storm (s)', action='store_true')
-    weather.add_argument('-h_int', '--hail_intensity',
-                         help='View hail intensity over last storm (hits/cm^2/hour)', action='store_true')
-    weather.add_argument('-h_pint', '--hail_peak_intensity',
-                         help='View hail peak intensity over last storm (hits/cm^2/hour)', action='store_true')
-    weather.add_argument('-unit', '--vaisala_unit',
-                         help='View Vaisala unit information', action='store_true')
+        # group of command for weather viewing
+        weather = parser.add_argument_group('Read weather', 'show live weather data')
+        weather.add_argument('weather', help='View all live data', nargs='?')
+        weather.add_argument('-c', '--collect',
+                             help='Run data averaging program', action='store_true')
+        weather.add_argument('-dir', '--wind_direction',
+                             help='View average wind direction (Degrees)', action='store_true')
+        weather.add_argument('-speed', '--wind_speed',
+                             help='View average wind speed (m/s)', action='store_true')
+        weather.add_argument('-temp', '--air_temp',
+                             help='View current air temperature (C)', action='store_true')
+        weather.add_argument('-hum', '--humidity',
+                             help='View current relative humidity (%%RH)', action='store_true')
+        weather.add_argument('-pres', '--pressure',
+                             help='View current air pressure (hPa)', action='store_true')
+        weather.add_argument('-r_acc', '--rain_accumulation',
+                             help='View rain accumulation over last storm (mm)', action='store_true')
+        weather.add_argument('-r_dur', '--rain_duration',
+                             help='View rain duration over last storm (s)', action='store_true')
+        weather.add_argument('-r_int', '--rain_intensity',
+                             help='View rain intensity over last storm (mm/hour)', action='store_true')
+        weather.add_argument('-r_pint', '--rain_peak_intensity',
+                             help='View rain peak intensity over last storm (mm/hour)', action='store_true')
+        weather.add_argument('-h_acc', '--hail_accumulation',
+                             help='View hail accumulation over last storm (hits/cm^2)', action='store_true')
+        weather.add_argument('-h_dur', '--hail_duration',
+                             help='View hail duration over last storm (s)', action='store_true')
+        weather.add_argument('-h_int', '--hail_intensity',
+                             help='View hail intensity over last storm (hits/cm^2/hour)', action='store_true')
+        weather.add_argument('-h_pint', '--hail_peak_intensity',
+                             help='View hail peak intensity over last storm (hits/cm^2/hour)', action='store_true')
+        weather.add_argument('-unit', '--vaisala_unit',
+                             help='View Vaisala unit information', action='store_true')
 
-    # Group of commands for device checker
-    device = parser.add_argument_group('See devices ON', 'see devives OFF')
-    device.add_argument('device', help='View all devices ON/OFF', nargs='?')
-    device.add_argument('-run', '--running',
-                        help='Show all ON devices', action='store_true')
-    device.add_argument('-n_run', '--not_running',
-                        help='Show all OFF devices', action='store_true')
+        # Group of commands for device checker
+        device = parser.add_argument_group('See devices ON', 'see devives OFF')
+        device.add_argument('device', help='View all devices ON/OFF', nargs='?')
+        device.add_argument('-run', '--running',
+                            help='Show all ON devices', action='store_true')
+        device.add_argument('-n_run', '--not_running',
+                            help='Show all OFF devices', action='store_true')
 
-    # group of command for watchdog configureting
-    wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
-    wdog.add_argument(
-        'watchdog', help='View running watchdog setting', nargs='?')
-    wdog.add_argument('-u', '--update',
-                      help='update the watchdog cycle', action='store_true')
-    wdog.add_argument('-sl', '--sleep',
-                      help='Put board to sleep', action='store_true')
-    wdog.add_argument('-d', '--deactivate',
-                      help='deactivate watchdog from auto update', action='store_true')
+        # group of command for watchdog configureting
+        wdog = parser.add_argument_group('Set Watchdog', 'Change watch dog setup')
+        wdog.add_argument(
+            'watchdog', help='View running watchdog setting', nargs='?')
+        wdog.add_argument('-u', '--update',
+                          help='update the watchdog cycle', action='store_true')
+        wdog.add_argument('-sl', '--sleep',
+                          help='Put board to sleep', action='store_true')
+        wdog.add_argument('-d', '--deactivate',
+                          help='deactivate watchdog from auto update', action='store_true')
 
-    # power commands
-    power = parser.add_argument_group(
-        'Power Control', 'Control power on gpio pins')
-    power.add_argument(
-        'power', help='Need one of the secondary arguments bellow', nargs='?')
-    power.add_argument('-m_on', '--modem_on',
-                       help='Modem on', action='store_true')
-    power.add_argument('-m_off', '--modem_off',
-                       help='Modem off', action='store_true')
-    power.add_argument('-g_on', '--gps_on',
-                       help='GPS on', action='store_true')
-    power.add_argument('-g_off', '--gps_off',
-                       help='GPS off', action='store_true')
-    power.add_argument('-w_on', '--weather_on',
-                       help='Weather station on', action='store_true')
-    power.add_argument('-w_off', '--weather_off',
-                       help='Weather station off', action='store_true')
-    power.add_argument('-cr_on', '--cr1000_on',
-                       help='cr1000 on', action='store_true')
-    power.add_argument('-cr_off', '--cr1000_off',
-                       help='cr1000 off', action='store_true')
-    power.add_argument('-r_on', '--router_on',
-                       help='Router on', action='store_true')
-    power.add_argument('-r_off', '--router_off',
-                       help='Router off', action='store_true')
-    power.add_argument('-i_on', '--iridium_on',
-                       help='Iridium on', action='store_true')
-    power.add_argument('-i_off', '--iridium_off',
-                       help='Iridium off', action='store_true')
-    power.add_argument('-d_on', '--dts_on',
-                       help='dts on', action='store_true')
-    power.add_argument('-d_off', '--dts_off',
-                       help='dts off', action='store_true')
-    power.add_argument('-off', '--power_off',
-                       help='power down all peripherals', action='store_true')
-    power.add_argument('-on', '--power_on',
-                       help='power up all peripherals', action='store_true')
-    power.add_argument('-r', '--reboot',
-                       help='reboot system', action='store_true')
-    power.add_argument('-sbd_on', '--sbd_on',
-                       help='power on sbd pin', action='store_true')
-    power.add_argument('-sbd_off', '--sbd_off',
-                       help='power off sbd pin', action='store_true')
+        # power commands
+        power = parser.add_argument_group(
+            'Power Control', 'Control power on gpio pins')
+        power.add_argument(
+            'power', help='Need one of the secondary arguments bellow', nargs='?')
+        power.add_argument('-m_on', '--modem_on',
+                           help='Modem on', action='store_true')
+        power.add_argument('-m_off', '--modem_off',
+                           help='Modem off', action='store_true')
+        power.add_argument('-g_on', '--gps_on',
+                           help='GPS on', action='store_true')
+        power.add_argument('-g_off', '--gps_off',
+                           help='GPS off', action='store_true')
+        power.add_argument('-w_on', '--weather_on',
+                           help='Weather station on', action='store_true')
+        power.add_argument('-w_off', '--weather_off',
+                           help='Weather station off', action='store_true')
+        power.add_argument('-cr_on', '--cr1000_on',
+                           help='cr1000 on', action='store_true')
+        power.add_argument('-cr_off', '--cr1000_off',
+                           help='cr1000 off', action='store_true')
+        power.add_argument('-r_on', '--router_on',
+                           help='Router on', action='store_true')
+        power.add_argument('-r_off', '--router_off',
+                           help='Router off', action='store_true')
+        power.add_argument('-i_on', '--iridium_on',
+                           help='Iridium on', action='store_true')
+        power.add_argument('-i_off', '--iridium_off',
+                           help='Iridium off', action='store_true')
+        power.add_argument('-d_on', '--dts_on',
+                           help='dts on', action='store_true')
+        power.add_argument('-d_off', '--dts_off',
+                           help='dts off', action='store_true')
+        power.add_argument('-off', '--power_off',
+                           help='power down all peripherals', action='store_true')
+        power.add_argument('-on', '--power_on',
+                           help='power up all peripherals', action='store_true')
+        power.add_argument('-r', '--reboot',
+                           help='reboot system', action='store_true')
+        power.add_argument('-sbd_on', '--sbd_on',
+                           help='power on sbd pin', action='store_true')
+        power.add_argument('-sbd_off', '--sbd_off',
+                           help='power off sbd pin', action='store_true')
+        power.add_argument('-s_on', '--solar_on',
+                           help='power on solar sensor', action='store_true')
+        power.add_argument('-s_off', '--solar_off',
+                           help='power off solar sensor', action='store_true')
+        power.add_argument('-all_off', '--all_off',
+                           help='power off solar sensor', action='store_true')
 
-    ser = parser.add_argument_group(
-        'Serial com enable/disable', 'control serial communication')
-    ser.add_argument(
-        'serial', help='required a secondary command', nargs='?')
-    ser.add_argument('-e', '--enable',
-                     help='enable serial com', action='store_true')
-    ser.add_argument('-dis', '--disable',
-                     help='disable serial com', action='store_true')
+        ser = parser.add_argument_group(
+            'Serial com enable/disable', 'control serial communication')
+        ser.add_argument(
+            'serial', help='required a secondary command', nargs='?')
+        ser.add_argument('-e', '--enable',
+                         help='enable serial com', action='store_true')
+        ser.add_argument('-dis', '--disable',
+                         help='disable serial com', action='store_true')
 
-    sbd = parser.add_argument_group(
-        'send/receive sbd', 'controlfor sbd message')
-    sbd.add_argument(
-        'sbd', help='required a secondary command', nargs='?')
-    sbd.add_argument('-send', '--send',
-                     help='send sbd', action='store_true')
-    sbd.add_argument('-read', '--read',
-                     help='read sbd', action='store_true')
+        sbd = parser.add_argument_group(
+            'send/receive sbd', 'controlfor sbd message')
+        sbd.add_argument(
+            'sbd', help='required a secondary command', nargs='?')
+        sbd.add_argument('-send', '--send',
+                         help='send sbd', action='store_true')
+        sbd.add_argument('-read', '--read',
+                         help='read sbd', action='store_true')
 
-    camera = parser.add_argument_group(
-        'Camera Control', 'Control camera position, take pictures and more')
-    camera.add_argument(
-        'camera', help='required a secondary command', nargs='?')
-    camera.add_argument('-t', '--tilt',
-                        help='Move camera up', action='store_true')
-    camera.add_argument('-p', '--pan',
-                        help='Move camera to the left', action='store_true')
-    camera.add_argument('-z', '--zoom',
-                        help='zoom camera to the left', action='store_true')
+        camera = parser.add_argument_group(
+            'Camera Control', 'Control camera position, take pictures and more')
+        camera.add_argument(
+            'camera', help='required a secondary command', nargs='?')
+        camera.add_argument('-t', '--tilt',
+                            help='Move camera up', action='store_true')
+        camera.add_argument('-p', '--pan',
+                            help='Move camera to the left', action='store_true')
+        camera.add_argument('-z', '--zoom',
+                            help='zoom camera to the left', action='store_true')
+        camera.add_argument('-combo', '--combine_move',
+                            help='execute combine move on the camera', action='store_true')
+        camera.add_argument('-snap', '--snapshot',
+                            help='Take a snapshot', action='store_true')
+        camera.add_argument('-status', '--get_status',
+                            help='get status', action='store_true')
+        # help command
+        h = parser.add_argument_group('Help', 'show help menu')
+        h.add_argument('-h', '--help',
+                       help='Show this menu', action='store_true')
 
-    camera.add_argument('-combo', '--combine_move',
-                        help='execute combine move on the camera', action='store_true')
-    camera.add_argument('-snap', '--snapshot',
-                        help='Take a snapshot', action='store_true')
-    camera.add_argument('-status', '--get_status',
-                        help='get status', action='store_true')
-    # help command
-    h = parser.add_argument_group('Help', 'show help menu')
-    h.add_argument('-h', '--help',
-                   help='Show this menu', action='store_true')
-
-    # retrieve all arguments entered
-    return parser, val
+        # retrieve all arguments entered
+        return parser, val
+    except:
+        print("Invalid input. Type 'Amigos -h/--help'")
 
 
 def power(args):
@@ -214,6 +222,12 @@ def power(args):
         gpio.sbd_on(1)
     elif args.sbd_off:
         gpio.sbd_off(1)
+    elif args.solar_on:
+        gpio.solar_on()
+    elif args.solar_off:
+        gpio.solar_off()
+    elif args.all_off:
+        gpio.all_off(1)
     else:
         print("Too few arguments. No device specified.")
 
@@ -223,6 +237,8 @@ def enabler(args):
         gpio.enable_serial()
     elif args.disable:
         gpio.disable_serial()
+    else:
+        print("No such option! Try '-e', '-dis'")
 
 
 def camera(args, val):
@@ -249,8 +265,15 @@ def camera(args, val):
             tilt = float(val)
         elif args.zoom:
             zoom = float(val)
-        # print(pan, tilt, zoom)
+        else:
+            print(
+                "No value specified. Please, you must enter a value [pan],[tilt] or [zoom]")
+            return
+            # print(pan, tilt, zoom)
         ptz.send(typeof='absolute', pan=pan, tilt=tilt, zoom=zoom)
+
+    else:
+        print("No such option, try '-t', '-p' or '-z'")
 
 
 def watch_dog(args, val):

@@ -10,7 +10,7 @@ class cr1000x:
     def finddata(self):
         s_curr = get_battery_current()
         cr1000_on(1)
-        sleep(40)
+        sleep(90)
         e_curr = get_battery_current()
         printf("CR100x consumed about {0} amps".format(e_curr-s_curr))
         device = CR1000.from_url('tcp:192.168.0.30:6785')

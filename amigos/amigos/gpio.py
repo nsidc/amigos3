@@ -180,6 +180,51 @@ def reboot(bit):
         subprocess.call("reboot", shell=True)
 
 
+def all_off(bit):
+    if bit:
+        bit_string = "0b00000000,0b00000000,0b00000000"
+        __update_bit(bit_string)
+        __toggle(bit-1)
+        subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
+        __toggle(bit)
+        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
+        sleep(2)
+        __toggle(2)
+        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
+        printf("Turning off all devices now!")
+
+
+def solar_on():
+    """
+    Enabled 5 volt to solar sensor
+    """
+    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        bit_string = power_log.read().split(',')
+        bit_str = bit_string[2][0:6]+"1"+bit_string[2][7:]
+    __toggle(2)
+    sleep(1)
+    subprocess.call(
+        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+    printf("solar sensor turned on")
+    __update_bit(bit_string[0] + ','+bit_string[1]+','+bit_str)
+
+
+def solar_off():
+    """
+    Disable 5 volt to solar sensor
+    """
+    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        bit_string = power_log.read().split(',')
+        bit_str = bit_string[2][0:6]+"0"+bit_string[2][7:]
+    __toggle(2)
+    sleep(1)
+    subprocess.call(
+        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+    printf("solar sensor turned off")
+    __update_bit(bit_string[0] + ','+bit_string[1]+','+bit_str)
+
+
 def power_up(bit):
     if bit:
         __toggle(bit-1)

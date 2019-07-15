@@ -35,6 +35,10 @@ def put_to_sleep():
     voltage = get_battery_voltage()
     current = get_battery_current()
     try:
+        if voltage < 2:
+            voltage = voltage*10
+            printf("Voltage reading biased, it is getting too cold here: Reading {0} volt and {1} amps".format(
+                voltage, current))
         if voltage < 11.0:
             had_slept = None
             try:
@@ -72,7 +76,8 @@ def get_schedule_health():
                   stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         out = p.communicate()
         out = out[0].replace(' ', '')
-        out = int(out[10:15])
+        st = out.find('root')
+        out = int(out[st+5:st+10])
     except:
         printf("Schedule health: Failed to check schedule health")
         traceback.print_exc(
@@ -89,6 +94,4 @@ def get_schedule_health():
 
 
 if __name__ == "__main__":
-    get_schedule_statut()
     get_schedule_health()
-    put_to_sleep()

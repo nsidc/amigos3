@@ -16,7 +16,7 @@ def get_humidity():
         with open('/media/mmcblk0p1/amigos/amigos/logs/onboard_humid_temp.log', 'r') as temp:
             data = float(temp.read())/1000
         with open('/media/mmcblk0p1/amigos/amigos/logs/onboard_humid.log', 'a+') as humid:
-            humid.write(date + '\n' + str(data)+'\n')
+            humid.write(date + ' ,' + str(data)+'\n')
         sleep(2)
         call(
             'rm /media/mmcblk0p1/amigos/amigos/logs/onboard_humid_temp.log', shell=True)
@@ -36,7 +36,7 @@ def get_temperature():
         with open('/media/mmcblk0p1/amigos/amigos/logs/onboard_temperature_temp.log', 'r') as temp:
             data = float(temp.read())/1000
         with open('/media/mmcblk0p1/amigos/amigos/logs/onboard_temperature.log', 'a+') as temp:
-            temp.write(date + '\n' + str(data)+'\n')
+            temp.write(date + ' ,' + str(data)+'\n')
         sleep(2)
         call(
             'rm /media/mmcblk0p1/amigos/amigos/logs/onboard_temperature_temp.log', shell=True)
@@ -57,7 +57,8 @@ def get_battery_voltage():
         p = Popen("cat /sys/class/gpio/mcp3208-gpio/data",
                   stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         out = p.communicate()
-        volt = (((float(int('0x'+out[0], 16))*Vref_10)/Vdividor)*Vmultiplier)/Vfinal_dividor
+        volt = (((float(int('0x'+out[0], 16))*Vref_10) /
+                 Vdividor)*Vmultiplier)/Vfinal_dividor
         return volt
     except:
         printf('Failed to acquire board input voltage')
@@ -67,16 +68,16 @@ def get_battery_voltage():
 
 def get_battery_current():
     try:  # get the current of the battery
-        dividor=4095
+        dividor = 4095
         # was 829 org
-        multiplier=790
-        final_dividor=100
+        multiplier = 790
+        final_dividor = 100
         call('echo 5 > /sys/class/gpio/mcp3208-gpio/index', shell=True)
         sleep(1)
-        p=Popen("cat /sys/class/gpio/mcp3208-gpio/data",
+        p = Popen("cat /sys/class/gpio/mcp3208-gpio/data",
                   stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-        out=p.communicate()
-        curr=(float(int('0x'+out[0], 16))*multiplier/dividor)/final_dividor
+        out = p.communicate()
+        curr = (float(int('0x'+out[0], 16))*multiplier/dividor)/final_dividor
         return curr
     except:
         printf('Failed to acquire board input current')
