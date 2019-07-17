@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os.path
+import math
 import amigos.argparse as argparse
 import amigos.watchdog as watchdog
 import amigos.gpio as gpio
@@ -9,13 +10,15 @@ from amigos.vaisala import Average_Reading as Average_Reading
 from amigos.vaisala import Live_Data as Live_Data
 from amigos.device import is_on, is_off
 from amigos.iridium import read as read_sbd, send as send_sbd
+from amigos.cr1000x import cr1000x_live as cr1000x_live
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()
 
-# Create instances of vaisala script classes
+# Create instances of script classes
 Avg_Reading = Average_Reading()
 Live_Readings = Live_Data()
+CR = cr1000x_live()
 
 
 def args_parser():
@@ -37,7 +40,7 @@ def args_parser():
 
         # group of command for weather viewing
         weather = parser.add_argument_group('Read weather', 'show live weather data')
-        weather.add_argument('weather', help='View all live data', nargs='?')
+        weather.add_argument('weather', help='View all live weather data', nargs='?')
         weather.add_argument('-c', '--collect',
                              help='Run data averaging program', action='store_true')
         weather.add_argument('-dir', '--wind_direction',
@@ -68,6 +71,16 @@ def args_parser():
                              help='View hail peak intensity over last storm (hits/cm^2/hour)', action='store_true')
         weather.add_argument('-unit', '--vaisala_unit',
                              help='View Vaisala unit information', action='store_true')
+
+        # Group of commands for CR1000x 
+        cr = parser.add_argument_group('Read CR1000x', 'show live CR1000x data')
+        cr.add_argument('cr', help='View all live CR1000x data', nargs='?')
+        cr.add_argument('-sn', '--snow',
+                             help='View Snow Height data', action='store_true')
+        cr.add_argument('-th', '--therm',
+                             help='View Snow Height data', action='store_true')
+
+
 
         # Group of commands for device checker
         device = parser.add_argument_group('See devices ON', 'see devives OFF')
@@ -291,8 +304,32 @@ def watch_dog(args, val):
         watchdog.run_dog(mode=None)
 
 
-def cr1000x(args):
-    pass
+def cr1000x(args,val):
+    if args.snow:
+        #Show all snow height data 
+        CR.snow_height()
+    elif args.therm:
+        if float(val) == 6.0:
+            CR.therm6()
+        elif float(val) == 10.0:
+            CR.therm10()
+        elif float(val) == 20.0:
+            CR.therm20()
+        elif float(val) == 40.0:
+            CR.therm40()
+        elif math.floor(float(val)) == 2.0:
+            CR.therm2_5()
+        elif math.floor(float(val)) == 4.0:
+            CR.therm4_5()
+        elif math.ceil(float(val)) == 7.0:
+            CR.therm6_5()
+        elif math.floor(float(val)) == 8.0:
+            CR.therm8_5()
+        else:
+            CR.cr_therms()
+    else:
+        #Show all CR data all therms AND snow height 
+        CR.cr_all()
 
 
 def dts(args):
@@ -379,6 +416,8 @@ def main():
         camera(args, val)
     elif args.schedule == 'weather':
         weather(args)
+    elif args.schedule == 'cr':
+        cr1000x(args,val)
     elif args.schedule == 'device':
         device(args)
     elif args.schedule == 'serial':

@@ -11,6 +11,7 @@ from requests.auth import HTTPDigestAuth
 import datetime
 import time
 import random
+import traceback
 # from xml.etree import ElementTree as et
 
 # class urls():
@@ -122,7 +123,7 @@ snapSho
                 zoom = float(self.getStatus()[2])*10
             # get the message body to be sent and apply all the value specified
             self.printf(
-                'moving camera to tilt {0},  pan {1} and zoom {2}'.format(tilt, pan, zoom))
+                'To tilt {0},  pan {1} and zoom {2}'.format(tilt, pan, zoom))
             self.__get_soap(service=typeof.capitalize()+"Move",
                             pan=pan, tilt=tilt, zoom=zoom)
 
@@ -136,6 +137,8 @@ snapSho
             return reply  # return the reply.
         except:
             self.printf("Unable to communicate with camera")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))
             return None
 
     def getStatus(self, output=False):
@@ -201,27 +204,34 @@ snapSho
             self.printf("Camera snapShot success")
         except:
             self.printf('Unable to take snapshot')
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))
 
-    def cam_test(self):
-        self.send(typeof='absolute', pan=random.randint(-180, 180),
-                  tilt=random.randint(-45, 45), zoom=random.randint(0, 100))
-        sleep(2)
-        self.snapShot()
-        self.send(typeof='absolute', pan=-100,
-                  tilt=0, zoom=random.randint(0, 100))
+    def move(self):
+        self.printf("Camera moving north")
+        self.send('absolute', pan=0, tilt=0, zoom=0)
         sleep(2)
         self.snapShot()
         sleep(1)
-
-        self.send(typeof='absolute', pan=180,
-                  tilt=0, zoom=1)
+        self.printf("Camera moving east")
+        self.send('absolute', pan=90, tilt=0, zoom=0)
         sleep(2)
-
         self.snapShot()
         sleep(1)
-        self.send(typeof='absolute', pan=random.randint(-180, 180),
-                  tilt=random.randint(-45, 45), zoom=1)
+        self.printf("Camera moving west")
+        self.send('absolute', pan=-90, tilt=0, zoom=0)
+        sleep(2)
         self.snapShot()
+        sleep(1)
+        self.printf("Camera moving down")
+        self.send('absolute', pan=0, tilt=45, zoom=0)
+        sleep(2)
+        self.snapShot()
+        self.printf("Camera moving to mirror, demo only")
+        # add later
+        self.printf("Done! Sending camera lens to Home")
+        sleep(1)
+        self.send('absolute', pan=0, tilt=-45, zoom=0)
 
 
 # Test the code here
