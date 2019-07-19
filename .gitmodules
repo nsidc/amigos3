@@ -1,0 +1,3 @@
+[submodule "amigos/amigos/schedule"]
+	path = amigos/amigos/schedule
+	url = https://github.com/CooviM/schedule
