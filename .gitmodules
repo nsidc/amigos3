@@ -1,21 +1,15 @@
-[submodule "amigos/ext/PyCampbellCR1000"]
-	path = amigos/ext/PyCampbellCR1000
-	url = https://github.com/LionelDarras/PyCampbellCR1000
-[submodule "amigos/ext/pynmea2"]
-	path = amigos/ext/pynmea2
-	url = git@github.com:Knio/pynmea2.git
-[submodule "amigos/ext/requests"]
-	path = amigos/ext/requests
-	url = https://github.com/kennethreitz/requests.git
-[submodule "amigos/ext/amigos/ext/urllib3"]
-	path = amigos/ext/urllib3
-	url = https://github.com/urllib3/urllib3.git
-[submodule "amigos/ext/idna"]
-	path = amigos/ext/idna
-	url = https://github.com/kjd/idna.git
-[submodule "amigos/ext/chardet"]
-	path = amigos/ext/chardet
-	url = https://github.com/chardet/chardet.git
-[submodule "amigos/ext/PyLink"]
-	path = amigos/ext/PyLink
-	url = https://github.com/LionelDarras/PyLink.git
+[submodule "amigos/amigos/pylink"]
+	path = amigos/amigos/pycampbellcr1000/pylink
+	url = https://github.com/CooviM/pylink
+[submodule "amigos/amigos/pycampbellcr1000"]
+	path = amigos/amigos/pycampbellcr1000
+	url = https://github.com/CooviM/pycampbellcr1000
+[submodule "amigos/amigos/pynmea2"]
+	path = amigos/amigos/pynmea2
+	url = https://github.com/CooviM/pynmea2
+[submodule "amigos/amigos/requests"]
+	path = amigos/amigos/requests
+	url = https://github.com/CooviM/requests
+[submodule "amigos/amigos/schedule"]
+	path = amigos/amigos/schedule
+	url = https://github.com/CooviM/schedule
