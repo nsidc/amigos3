@@ -6,15 +6,9 @@
 
 Dependencies in the development environment are managed with [Conda](https://docs.conda.io/en/latest/index.html).
 
-1. Initialize submodules (run in repository root directory)
-
-    ```
-    $ git submodule init && git submodule update
-    ```
-
 1. Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anoconda](https://www.anaconda.com/distribution/)
+1. from the repository directory, run
 
-1. Create the environment (run in repository root directory)
 
     ```
     $ conda env create -f environment.yml
@@ -62,9 +56,5 @@ Hard way:
 1. Run tests
 
     ```
-    $ pytest --ignore amigos/ext
+    $ pytest
     ```
-
-### Deployment
-
-TODO
