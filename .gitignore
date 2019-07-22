@@ -92,6 +92,7 @@ dkms.conf
 __pycache__/
 *.py[cod]
 *$py.class
+.pyc
 
 # C extensions
 
@@ -214,11 +215,7 @@ dmypy.json
 # End of https://www.gitignore.io/api/c,c++,linux,python
 .vscode
 XDG_CACHE_HOME
-# pycampbellcr1000/
-# pynmea2/
-# requests/
-# pylink/
-# schedule/
+.vscode/
 .DS_STORE
 .txt
 .log
