@@ -302,6 +302,7 @@ def run_schedule():
     # run forever
     while True:
         if not is_on_checker(1, 6):
+            modem_on(1)
             printf("Amigos! Wakes up! Job(s) awaiting.")
             mem = get_system_performance()
             printf("System performance before: {0}K used ram, {1}K free ram, {2}K cached , and {3}K buffer".format(

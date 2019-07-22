@@ -34,7 +34,7 @@ def __go_sleep_1hour():
     subprocess.call('bash /root/sleep_long', shell=True)
 
 
-def set_mode(mode=None):
+def set_mode(mode=None, Sleep_time=3):
     wdog = schedule.Scheduler()
     if mode is 0 or mode is None:  # reset the power to the boar every hour. This keep the board on continuously
         wdog.every(45).minutes.do(__toggle_1hour).tag('hourly-dog')
@@ -43,16 +43,15 @@ def set_mode(mode=None):
         printf("Auto watchdog is set to 3 minutes")
         return wdog
     elif mode == 3:
-        __go_sleep_3min()
-        return
-    elif mode == 2:
-        __go_sleep_1hour()
+        subprocess.call(
+            "bash /media/mmcblk0p1/amigos/amigos/sleep/sleep {0}".format(Sleep_time), shell=True)
         return
     return wdog
 
 
 def run_dog(mode=None):
     wdog = set_mode(mode)
+    
     wdog.run_all()
     while True:
         wdog.run_pending()
