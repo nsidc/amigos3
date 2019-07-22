@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import os.path
-import amigos.argparse as argparse
-import amigos.watchdog as watchdog
-import amigos.gpio as gpio
-from amigos.onvif.onvif import ptz_client as client
 import sys
+
+import amigos.argparse as argparse
+import amigos.gpio as gpio
+import amigos.watchdog as watchdog
+from amigos.onvif.onvif import ptz_client as client
 from amigos.vaisala import Average_Reading as Average_Reading
 from amigos.vaisala import Live_Data as Live_Data
+
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()
