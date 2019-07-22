@@ -16,7 +16,7 @@ def dialin():
 def dialout():
     router_off(1)
     sleep(1)
-    iridium_off(1)
+    iridium_on(1)
     sleep(60)
     iridium_off(1)
     router_off(1)
@@ -27,8 +27,10 @@ def send(message="Testing"):
         port = ser('/dev/ttyS1')
         port.baudrate = 9600
         port.open()
+        iridium_on(1)
         sbd_on(1)
         sleep(1)
+        iridium_off(1)
         enable_serial()
         sleep(1)
     except:
@@ -40,6 +42,7 @@ def send(message="Testing"):
     finally:
         disable_serial()
         sbd_off(1)
+        iridium_off(1)
 
 
 def read():

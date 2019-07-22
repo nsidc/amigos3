@@ -82,7 +82,7 @@ def args_parser():
         cr.add_argument('-th', '--therm',
                         help='View Snow Height data', action='store_true')
 
-        #Group of command for solar sensors
+        # Group of command for solar sensors
         solar = parser.add_argument_group('Read Solar Sensors', 'show live Solar data')
         solar.add_argument('solar', help='View all live solar data', nargs='?')
         solar.add_argument('-sol_1', '--solar_data_1',
@@ -297,7 +297,12 @@ def camera(args, val):
         print("No such option, try '-t', '-p' or '-z'")
 
 
+def sleep():
+    pass
+
+
 def watch_dog(args, val):
+    print("This will not affect the watchdog! Only sleep option can work")
     if args.update:
         print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
         watchdog.run_dog(
@@ -314,7 +319,7 @@ def watch_dog(args, val):
 
 def cr1000x(args, val):
     if args.snow:
-        #Show all snow height data
+        # Show all snow height data
         CR.snow_height()
     elif args.therm:
         if float(val) == 6.0:
@@ -336,7 +341,7 @@ def cr1000x(args, val):
         else:
             CR.cr_therms()
     else:
-        #Show all CR data all therms AND snow height
+        # Show all CR data all therms AND snow height
         CR.cr_all()
 
 
