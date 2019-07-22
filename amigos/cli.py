@@ -2,10 +2,9 @@
 import os.path
 import math
 import amigos.argparse as argparse
-import amigos.watchdog as watchdog
 import amigos.gpio as gpio
+import amigos.watchdog as watchdog
 from amigos.onvif.onvif import ptz_client as client
-import sys
 from amigos.vaisala import Average_Reading as Average_Reading
 from amigos.vaisala import Live_Data as Live_Data
 from amigos.device import is_on, is_off
