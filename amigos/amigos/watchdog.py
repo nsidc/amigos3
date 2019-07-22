@@ -44,14 +44,14 @@ def set_mode(mode=None, Sleep_time=3):
         return wdog
     elif mode == 3:
         subprocess.call(
-            "bash /media/mmcblk0p1/amigos/amigos/sleep/sleep {0}".format(Sleep_time), shell=True)
+            "bash /media/mmcblk0p1/amigos/sleep {0}".format(Sleep_time), shell=True)
         return
     return wdog
 
 
 def run_dog(mode=None):
     wdog = set_mode(mode)
-    
+
     wdog.run_all()
     while True:
         wdog.run_pending()
