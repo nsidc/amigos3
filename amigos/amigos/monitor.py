@@ -120,7 +120,7 @@ def put_to_inactive_sleep():
             "No task in the next {0} minutes. Going on StandBy".format(time_interval))
         all_off(1)
         call(
-            "bash /media/mmcblk0p1/amigos/amigos/sleep/sleep {0}".format(time_interval), shell=True)
+            "bash /media/mmcblk0p1/amigos/sleep {0}".format(time_interval), shell=True)
 
 
 def put_to_power_sleep():
