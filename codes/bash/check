@@ -10,7 +10,7 @@ while [ $i -le 3 ]
 do
 if ps| grep scheduler | grep -v -q grep; then
 
-echo none > /dev/null
+echo "none" > /dev/null
 
 else
 time_now="$(date)"
