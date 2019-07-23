@@ -5,7 +5,7 @@ bit_string = []
 
 
 def __update_bit(bit):
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "w") as power_log:
+    with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "w") as power_log:
         power_log.write(bit)
 
 
@@ -25,7 +25,7 @@ def modem_on(bit):
     Turn modem module power on after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = str(power_log.read()).split(",")
             bit_str = bit_string[1][0:6]+"1"+bit_string[1][7:]
         __toggle(bit)
@@ -41,7 +41,7 @@ def modem_off(bit):
     Turn modem module power off after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(',')
             bit_str = bit_string[1][0:6]+"0"+bit_string[1][7:]
         __toggle(bit)
@@ -57,7 +57,7 @@ def gps_on(bit):
     Turn gps module power on after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(',')
             bit_str = bit_string[0][0:8]+"1"+bit_string[0][9]
         __toggle(bit-1)
@@ -73,7 +73,7 @@ def gps_off(bit):
     """
 
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(',')
             bit_str = bit_string[0][0:8]+"0"+bit_string[0][9:]
         __toggle(bit-1)
@@ -89,7 +89,7 @@ def sbd_on(bit):
     """
 
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
             bit_str = bit_string[0][0:9]+"1"
         __toggle(bit-1)
@@ -105,7 +105,7 @@ def sbd_off(bit):
     """
 
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
             bit_str = bit_string[0][0:9]+"0"
         __toggle(bit-1)
@@ -121,7 +121,7 @@ def weather_on(bit):
     """
 
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
             bit_str = bit_string[0][0:6]+"1"+bit_string[0][7:]
         __toggle(bit-1)
@@ -136,7 +136,7 @@ def weather_off(bit):
     Turn weather module power off after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
             bit_str = bit_string[0][0:6]+"0"+bit_string[0][7:]
         __toggle(bit-1)
@@ -199,7 +199,7 @@ def V5_ENA_ON():
     """
     Enabled 5 volt switch
     """
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+    with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
         bit_string = power_log.read().split(',')
         bit_str = bit_string[2][0:9]+"1"
     __toggle(2)
@@ -214,7 +214,7 @@ def V5_ENA_OFF():
     """
     Disabled 5 volt switch
     """
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+    with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
         bit_string = power_log.read().split(',')
         bit_str = bit_string[2][0:9]+"0"
     __toggle(2)
@@ -229,7 +229,7 @@ def solar_on():
     """
     Enabled 5 volt to solar sensor
     """
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+    with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
         bit_string = power_log.read().split(',')
         bit_str = bit_string[2][0:6]+"1"+bit_string[2][7:]
     __toggle(2)
@@ -244,7 +244,7 @@ def solar_off():
     """
     Disable 5 volt to solar sensor
     """
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+    with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
         bit_string = power_log.read().split(',')
         bit_str = bit_string[2][0:6]+"0"+bit_string[2][7:]
     __toggle(2)
@@ -274,7 +274,7 @@ def cr1000_on(bit):
     Turn cr1000 module power on after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
             bit_str = bit_string[0][0:5]+"1"+bit_string[0][6:]
         __toggle(bit-1)
@@ -289,7 +289,7 @@ def cr1000_off(bit):
     Turn cr1000 module power off after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
             bit_str = bit_string[0][0:5]+"0"+bit_string[0][6:]
         __toggle(bit-1)
@@ -304,7 +304,7 @@ def router_on(bit):
     Turn router module power on after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = str(power_log.read()).split(",")
             bit_str = bit_string[1][0:7]+"1"+bit_string[1][8:]
         __toggle(bit)
@@ -319,7 +319,7 @@ def router_off(bit):
     Turn router module power off after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(',')
             bit_str = bit_string[1][0:7]+"0"+bit_string[1][8:]
         __toggle(bit)
@@ -335,7 +335,7 @@ def iridium_on(bit):
     Turn iridium module power on after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = str(power_log.read()).split(",")
             bit_str = bit_string[1][0:5]+"1"+bit_string[1][6:]
         __toggle(bit)
@@ -350,7 +350,7 @@ def iridium_off(bit):
     Turn iridium module power off after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(',')
             bit_str = bit_string[1][0:5]+"0"+bit_string[1][6:]
         __toggle(bit)
@@ -366,7 +366,7 @@ def dts_on(bit):
     Turn windows/dts module power on after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
             bit_str = bit_string[0][0:3]+"1"+bit_string[0][4:]
         __toggle(bit-1)
@@ -381,7 +381,7 @@ def dts_off(bit):
     Turn windows/dts module power off after toggling the bit
     """
     if bit:
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
             bit_string = power_log.read().split(",")
             bit_str = bit_string[0][0:3]+"0"+bit_string[0][4:]
         __toggle(bit-1)
@@ -395,7 +395,7 @@ def enable_serial():
     """
     Enable serial communication
     """
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+    with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
         bit_string = power_log.read().split(',')
         bit_str = bit_string[2][0:8]+"1"+bit_string[2][9:]
     __toggle(2)
@@ -410,7 +410,7 @@ def disable_serial():
     """
     Enable serial communication
     """
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as power_log:
+    with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power_log:
         bit_string = power_log.read().split(',')
         bit_str = bit_string[2][0:8]+"0"+bit_string[2][9:]
     __toggle(2)
@@ -422,6 +422,6 @@ def disable_serial():
 
 
 def is_on_checker(bit_index, bit_number):
-    with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as logfile:
+    with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as logfile:
         bits = logfile.read().split(",")
         return int(bits[bit_index][bit_number])
