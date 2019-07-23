@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os.path
 import math
 import python.argparse as argparse
 import python.gpio as gpio
@@ -11,8 +10,6 @@ from python.device import is_on, is_off
 from python.iridium import read as read_sbd, send as send_sbd
 from python.cr1000x import cr1000x_live as cr1000x_live
 from python.solar import solar_live as solar_live
-my_path = os.path.abspath(os.path.dirname(__file__))
-path = os.path.join(my_path, "text.txt")
 ptz = client()
 
 # Create instances of script classes
