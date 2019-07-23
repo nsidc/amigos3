@@ -69,7 +69,7 @@ snapSho
 
         if service != None and service != 'getstatus':
 
-            with open("/media/mmcblk0p1/amigos/soap_{0}.xml".format(service), 'r') as soap:
+            with open("/media/mmcblk0p1/codes/onvif/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()  # open the file
             # calculate the value of the pan  [-1 to 1]
             pan = pan*self.unit_degreePan
@@ -93,7 +93,7 @@ snapSho
         # for the function get status
         else:
             # print(self.path)
-            with open("/media/mmcblk0p1/amigos/soap_{0}.xml".format(service), 'r') as soap:
+            with open("/media/mmcblk0p1/codes/onvif/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()
 
     def send(self, typeof, pan=None, tilt=None, zoom=None):

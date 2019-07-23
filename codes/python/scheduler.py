@@ -1,11 +1,12 @@
 # # scheduling system
-from schedule import schedule as schedule
+
+from schedule import schedule
 from time import sleep
 from datetime import datetime
 from gps import gps_data as gps_data
 from gpio import modem_on, is_on_checker
 from vaisala import Average_Reading as vg
-from onvif.onvif import ptz_client as ptz
+from onvif import ptz_client as ptz
 from cr1000x import cr1000x as cr1000x
 from onboard_device import get_humidity, get_temperature
 from solar import readsolar
@@ -15,7 +16,7 @@ import signal
 import sys
 import traceback
 from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sleep, clear_cached, get_system_performance, has_slept
-from iridium import send as sbd_send, read as sbd_read, dialin, dialout
+from iridium import send as sbd_send, read as sbd_read, dial_in, dial_out
 from dts import test as dts_test
 # import monitor as monitor
 
@@ -100,6 +101,7 @@ class summer():
         self.sched_summer.every().hour.at(":56").do(readsolar)
 
     def dial_out(self):
+        d = dial_out()
         # # box a
         # self.sched_summer.every().day.at("06:10").do(dial_out)
         # self.sched_summer.every().day.at("12:10").do(dial_out)
@@ -111,13 +113,14 @@ class summer():
         # self.sched_summer.every().day.at("18:20").do(dial_out)
         # self.sched_summer.every().day.at("00:20").do(dial_out)
         # # box c
-        self.sched_summer.every().day.at("06:30").do(dialout)
-        self.sched_summer.every().day.at("12:30").do(dialout)
-        self.sched_summer.every().day.at("18:30").do(dialout)
-        self.sched_summer.every().day.at("00:30").do(dialout)
+        self.sched_summer.every().day.at("06:30").do(d.dialout)
+        self.sched_summer.every().day.at("12:30").do(d.dialout)
+        self.sched_summer.every().day.at("18:30").do(d.dialout)
+        self.sched_summer.every().day.at("00:30").do(d.dialout)
 
     def dial_in(self):
-        self.sched_summer.every().day.at("19:20").do(dialin)
+        d = dial_in()
+        self.sched_summer.every().day.at("19:20").do(d.dialin)
 
     def dts(self):
         self.sched_summer.every().day.at("03:05").do(dts_test)
@@ -174,15 +177,18 @@ class winter():
         self.sched_winter.every().hour.at(":56").do(readsolar)
 
     def dial_out(self):
+        d = dial_out()
         # # box a
         # self.sched_winter.every().day.at("00:10").do(dial_out)
         # # box b
         # self.sched_winter.every().day.at("00:20").do(dial_out)
         # # box c
-        self.sched_winter.every().day.at("00:30").do(dialout)
+        self.sched_winter.every().day.at("00:30").do(d.dialout)
 
     def dial_in(self):
-        self.sched_winter.every().day.at("19:20").do(dialin)
+
+        d = dial_in()
+        self.sched_winter.every().day.at("19:20").do(d.dialin)
 
     def dts(self):
         self.sched_winter.every().day.at("21:05").do(dts_test)

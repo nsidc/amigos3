@@ -1,5 +1,7 @@
 # from watchdog import set_mode
 # from scheduler import run_schedule
+import shutil
+#import os
 from subprocess import Popen, PIPE, call
 from execp import printf
 from onboard_device import get_battery_current, get_battery_voltage
@@ -16,8 +18,30 @@ def get_disk_space():
     pass
 
 
-def backup():
-    pass
+def backup(sub_files):
+    # files = ["gps_binex.log", "weather_data.log", "thermostat.log", "solar.log", ]
+    source = "/media/mmcblk0p1/logs"
+    gps = "/media/mmcblk0p1/backups/gps"
+    cr1000 = "/media/mmcblk0p1/backups/cr1000x"
+    weather = "/media/mmcblk0p1/backups/weather"
+    dts = "/media/mmcblk0p1/backups/dts"
+    solar = "/media/mmcblk0p1/backups/solar"
+    time_now = datetime.datetime.now()
+    time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
+        str(time_now.day) + "_" + str(time_now.hour) + str(time_now.minute)
+    # for sub_files in files:
+    if sub_files.find("gps"):
+        new_name = gps + sub_files + time_now
+    elif sub_files.find("weather"):
+        new_name = weather + sub_files + time_now
+    elif sub_files.find("therm"):
+        new_name = cr1000 + sub_files + time_now
+    elif sub_files.find("solar"):
+        new_name = solar + sub_files + time_now
+    elif sub_files.find("dts"):
+        new_name = dts + sub_files + time_now
+    sub_files = source + sub_files
+    shutil.move(sub_files, new_name)
 
 
 def free_space():
@@ -127,9 +151,9 @@ def put_to_inactive_sleep():
             "No task in the next {0} minutes. Going on StandBy".format(time_interval))
         with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
             slept.write("1")
-        all_off(1)
-        call(
-            "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(time_interval), shell=True)
+        # all_off(1)
+        # call(
+            # "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(time_interval), shell=True)
 
 
 def put_to_power_sleep():
@@ -152,12 +176,12 @@ def put_to_power_sleep():
                 printf('Voltage still too low, going back to a long sleep (1 hour). Reading {0} volt and {1} amps'.format(
                     voltage, current))
                 call('rm /media/mmcblk0p1/logs/sleep.log', shell=True)
-                call(
-                    "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(59), shell=True)
+                # call(
+                # "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(59), shell=True)
             else:
                 with open('/media/mmcblk0p1/logs/sleep.log', 'w+') as sched_log:
                     sched_log.write('1')
-                printf('Voltage too low, going back to 3 minutes sleep. Reading {0} volt and {1} amps'.format(
+                printf('Voltage too low, going back to 10 minutes sleep. Reading {0} volt and {1} amps'.format(
                     voltage, current))
                 # call(
                 # "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(10), shell = True)

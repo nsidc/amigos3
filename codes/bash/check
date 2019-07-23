@@ -2,29 +2,27 @@
 i="0"
 #Watchdog set
 sleep 1
-echo 0 > /sys/class/gpio/wdt_ctl/data
+echo 0 >/sys/class/gpio/wdt_ctl/data
 sleep 1
-echo 1 > /sys/class/gpio/wdt_ctl/data
+echo 1 >/sys/class/gpio/wdt_ctl/data
 
-while [ $i -le 3 ]
-do
-if ps| grep scheduler | grep -v -q grep; then
+while [ $i -le 3 ]; do
+    if ps | grep amigos.py | grep -v -q grep; then
 
-echo "none" > /dev/null
+        echo "none" >/dev/null
 
-else
-time_now="$(date)"
-echo "${time_now:0:19} ${time_now:24}: Restarting Scheduler" >> /media/mmcblk0p1/logs/system.log
-python /media/mmcblk0p1/codes/python/scheduler.py &
-
-sleep 1
-# power up the router
-echo 1 > /sys/class/gpio/pwr_ctl/index
-sleep 1
-echo 0x08 > /sys/class/gpio/pwr_ctl/data
-sleep 18
-fi
-i=$(($i+1));
+    else
+        time_now="$(date)"
+        echo "${time_now:0:19} ${time_now:24}: Restarting Scheduler" >>/media/mmcblk0p1/logs/system.log
+        python /media/mmcblk0p1/codes/amigos.py &
+        sleep 1
+        # power up the router
+        echo 1 >/sys/class/gpio/pwr_ctl/index
+        sleep 1
+        echo 0x08 >/sys/class/gpio/pwr_ctl/data
+        sleep 18
+    fi
+    i=$(($i + 1))
 done
 
 #cp -r /var/volatile/log/ /media/mmcblk0p1/logs/
@@ -34,8 +32,8 @@ last_run="$(date -r /media/mmcblk0p1/logs/system.log +%s)"
 time_now="$(date +%s)"
 
 diff=$((time_now - last_run))
-if (( $diff > 3600 )); then
-pidd="$(pgrep python)"
-echo "${time_now:0:19} ${time_now:24}: Scheduler freezed" >> /media/mmcblk0p1/logs/system.log
-kill -9 $pidd
+if (($diff > 3600)); then
+    pidd="$(pgrep python)"
+    echo "${time_now:0:19} ${time_now:24}: Scheduler freezed" >>/media/mmcblk0p1/logs/system.log
+    kill -9 $pidd
 fi
