@@ -1,11 +1,11 @@
 #!/bin/bash
-
-mkdir /media/mmcblk0p1/logs
+DIR=/media/mmcblk0p1/
+cd  $DIR && mkdir logs picture backups
 sleep 1
-mkdir /media/mmcblk0p1/pictures
+cd "{$DIR}/backups" && mkdir gps dts weather solar cr1000x
 sleep 1
-touch /media/mmcblk0p1/logs/power_log.log
+touch "{$DIR}logs/power_log.log"
 sleep 1
-echo "0b00000000,0b00000000,0b00000000" > /media/mmcblk0p1/logs/power_log.log
+echo "0b00000000,0b00000000,0b00000000" > "{$DIR}logs/power_log.log"
 
 echo "Done!"
