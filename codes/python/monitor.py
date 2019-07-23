@@ -2,11 +2,9 @@
 # from scheduler import run_schedule
 from subprocess import Popen, PIPE, call
 from execp import printf
-from time import sleep
 from onboard_device import get_battery_current, get_battery_voltage
-from watchdog import set_mode
 import traceback
-from gpio import all_off, modem_on, is_on_checker
+from gpio import all_off
 import datetime
 
 
