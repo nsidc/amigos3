@@ -1,13 +1,13 @@
 from pycampbellcr1000 import CR1000
-from gpio import cr1000_off, cr1000_on, is_on_checker, modem_on
+from gpio import cr1000_off, cr1000_on, is_on_checker, modem_on, modem_off
 from time import sleep
 from execp import printf
 import traceback
-from onboard_device import get_battery_current
 
 
 class cr1000x:
     def finddata(self):
+        modem_on(1)
         cr1000_on(1)
         sleep(90)
         device = CR1000.from_url('tcp:192.168.0.30:6785')
@@ -66,6 +66,7 @@ class cr1000x:
                     file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))
         finally:
             cr1000_off(1)
+            modem_off(1)
 
 # CR1000X Live Data Reading Class
 
@@ -73,6 +74,7 @@ class cr1000x:
 class cr1000x_live():
     def cr_read(self):
         try:
+            modem_on(1)
             is_on = is_on_checker(0, 5)
             if not is_on:
                 # Turn on CR1000x
@@ -90,6 +92,7 @@ class cr1000x_live():
             if not is_on:
                 # Turn off CR1000
                 cr1000_off(1)
+                modem_off(1)
         return data
 
     def cr_all(self):

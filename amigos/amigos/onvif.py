@@ -3,15 +3,14 @@
 """
 Contains classes for  transport implementations.
 """
-import requests
+from requests import get, post
 import os
 import subprocess
 from time import sleep
 from requests.auth import HTTPDigestAuth
 import datetime
-import time
-import random
 import traceback
+from gpio import modem_off, modem_on
 # from xml.etree import ElementTree as et
 
 # class urls():
@@ -70,7 +69,7 @@ snapSho
 
         if service != None and service != 'getstatus':
 
-            with open("/media/mmcblk0p1/amigos/amigos/onvif/soap_{0}.xml".format(service), 'r') as soap:
+            with open("/media/mmcblk0p1/amigos/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()  # open the file
             # calculate the value of the pan  [-1 to 1]
             pan = pan*self.unit_degreePan
@@ -94,7 +93,7 @@ snapSho
         # for the function get status
         else:
             # print(self.path)
-            with open("/media/mmcblk0p1/amigos/amigos/onvif/soap_{0}.xml".format(service), 'r') as soap:
+            with open("/media/mmcblk0p1/amigos/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()
 
     def send(self, typeof, pan=None, tilt=None, zoom=None):
@@ -131,7 +130,7 @@ snapSho
             self.__get_service(typeof)
             # print(self.msg)
             # print('-'*50)
-            reply = requests.post(self.url, data=self.msg, headers=self.header)
+            reply = post(self.url, data=self.msg, headers=self.header)
             # print(reply.text)
 
             return reply  # return the reply.
@@ -151,8 +150,8 @@ snapSho
         self.printf('Getting camera status')
         self.header = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/GetStatus",
                        'Content-Type': 'application/soap+xml'}  # The header of the status
-        reply = requests.post(self.url, data=self.msg,
-                              headers=self.header)  # reply is  an xml file
+        reply = post(self.url, data=self.msg,
+                     headers=self.header)  # reply is  an xml file
         # get the value of the pan, tilt and zoom from the text
         # print(reply.text)
         zoom = float(reply.text.split('><')[8].split('"')[3])
@@ -186,7 +185,7 @@ snapSho
             password = '10iLtxyh'  # the cameras password
 
             # send the username and password authentication
-            response = requests.get(
+            response = get(
                 self.snapShop_url, auth=HTTPDigestAuth(username, password))
             f = open('/media/mmcblk0p1/amigos/amigos/pic.jpg', 'wb')  # opening
 

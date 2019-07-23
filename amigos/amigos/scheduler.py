@@ -14,7 +14,7 @@ from execp import printf, sig_handler, terminateProcess
 import signal
 import sys
 import traceback
-from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sleep, clear_cached, get_system_performance
+from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sleep, clear_cached, get_system_performance, has_slept
 from iridium import send as sbd_send, read as sbd_read, dialin, dialout
 from dts import test as dts_test
 # import monitor as monitor
@@ -301,8 +301,7 @@ def run_schedule():
     monitor_task = m.sched()
     # run forever
     while True:
-        if not is_on_checker(1, 6):
-            modem_on(1)
+        if not has_slept:
             printf("Amigos! Wakes up! Job(s) awaiting.")
             mem = get_system_performance()
             printf("System performance before: {0}K used ram, {1}K free ram, {2}K cached , and {3}K buffer".format(
@@ -317,7 +316,6 @@ def run_schedule():
             printf("Checking for voltage level.")
             put_to_power_sleep()
             printf("All ready for task(s) execution!")
-            modem_on(1)
         new_sched = get_schedule()
         if new_sched:
             winter_time = new_sched[0]
