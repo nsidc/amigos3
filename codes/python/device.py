@@ -12,7 +12,7 @@ def read_log():
     array2raw = []
     try:
         # open power log file to read
-        with open("/media/mmcblk0p1/amigos/amigos/logs/power_log.log", "r") as log:
+        with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as log:
             f = log.read()
     except:
         print("Problem reading the power log file")

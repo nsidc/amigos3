@@ -40,7 +40,7 @@ class ptz_client():
         self.snapShop_url = "http://192.168.0.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
 
     def printf(self, message):
-        with open('/media/mmcblk0p1/amigos/amigos/logs/system.log', 'a+') as log:
+        with open('/media/mmcblk0p1/codes/python/logs/system.log', 'a+') as log:
             date = str(datetime.datetime.now()) + ': '
             log.write(date + message + '\n')
 
@@ -137,7 +137,7 @@ snapSho
         except:
             self.printf("Unable to communicate with camera")
             traceback.print_exc(
-                file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))
+                file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
             return None
 
     def getStatus(self, output=False):
@@ -187,24 +187,24 @@ snapSho
             # send the username and password authentication
             response = get(
                 self.snapShop_url, auth=HTTPDigestAuth(username, password))
-            f = open('/media/mmcblk0p1/amigos/amigos/pic.jpg', 'wb')  # opening
+            f = open('/media/mmcblk0p1/codes/python/pic.jpg', 'wb')  # opening
 
             # Write the file to the time stamp
-            newname = '/media/mmcblk0p1/amigos/amigos/'+'photo'+dt[0:-7]+'.jpg'
+            newname = '/media/mmcblk0p1/codes/python/'+'photo'+dt[0:-7]+'.jpg'
             # print(dt[0:-7])
             subprocess.call("mv {0} {1}".format(
-                '/media/mmcblk0p1/amigos/amigos/pic.jpg', newname), shell=True)
-            # os.rename('/media/mmcblk0p1/amigos/amigos/pic.jpg', newname)
+                '/media/mmcblk0p1/codes/python/pic.jpg', newname), shell=True)
+            # os.rename('/media/mmcblk0p1/codes/python/pic.jpg', newname)
             sleep(2)
             f.write(response.content)
             f.close()
             subprocess.call("mv {0} {1}".format(
-                newname, "/media/mmcblk0p1/amigos/amigos/picture/"), shell=True)
+                newname, "/media/mmcblk0p1/codes/python/picture/"), shell=True)
             self.printf("Camera snapShot taken")
         except:
             self.printf('Unable to take snapshot')
             traceback.print_exc(
-                file=open("/media/mmcblk0p1/amigos/amigos/logs/system.log", "a+"))
+                file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
 
     def move(self):
         self.printf("Camera moving north")
