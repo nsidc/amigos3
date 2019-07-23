@@ -1,16 +1,64 @@
 #!/bin/bash
 DIR=/media/mmcblk0p1/
-BLACK_HOLE= /dev/null
-cd  $DIR && mkdir logs pictures backups >  $BLACK_HOLE
-sleep 1
+BACKUPS="${DIR}/backups"
+DTS="${DIR}/backups/dts"
+GPS="${DIR}/backups/gps"
+WEATHER="${DIR}/backups/weather"
+SOLAR="${DIR}/backups/solar"
+CR1000X="${DIR}/backups/cr1000x"
+PICTURES="${DIR}/pictures"
+LOGS="${DIR}/logs"
+POWER="${DIR}/logs"
+SYSTEM="${DIR}logs/system.log"
+#BLACK_HOLE= /dev/null
+if [ ! -d $DIR ]; then
+    echo "This code can not run on this computer. Are  you on a Tritron board? If so check If SD_CARD directory In /media is named mmcblk0p1."
+    echo "In case the name let different let the sotware enginieurs know. Thanks"
+    exit
+fi
 
-cd "{$DIR}/backups" && mkdir gps dts weather solar cr1000x >  $BLACK_HOLE
-sleep 1
+if [ ! -d $LOGS ]; then
+    cd $DIR && mkdir logs && cd $LOGS && touch power_log.log && echo "0b00000000,0b00000000,0b00000000" >logs/power_log.log
 
-touch "{$DIR}logs/power_log.log" >  $BLACK_HOLE
-sleep 1
-
-echo "0b00000000,0b00000000,0b00000000" > "{$DIR}logs/power_log.log"
+else
+    if [ ! test power_log.log ]; then
+        cd $DIR && cd $LOGS && touch power_log.log && echo "0b00000000,0b00000000,0b00000000" >logs/power_log.log
+    else
+        cd $DIR && cd $LOGS && echo "0b00000000,0b00000000,0b00000000" >logs/power_log.log
+    fi
+fi
 
 time_now="$(date)"
-echo "${time_now:0:19} ${time_now:24}: All required folders and files created!"
+echo "${time_now:0:19} ${time_now:24}: Checking For missing folder and creating them!" >$SYSTEM
+
+if [ ! -d $PICTURES ]; then
+    cd $DIR && mkdir pictures
+fi
+
+if [ ! -d $BACKUPS ]; then
+    cd $DIR && mkdir backups
+else
+    if [ ! -d $GPS ]; then
+        cd "{$DIR}/backups" && mkdir gps
+    fi
+
+    if [ ! -d $DTS ]; then
+        cd "{$DIR}/backups" && mkdir dts
+    fi
+
+    if [ ! -d $WEATHER ]; then
+        cd "{$DIR}/backups" && mkdir weather
+    fi
+
+    if [ ! -d $SOLAR ]; then
+        cd "{$DIR}/backups" && mkdir solar
+    fi
+
+    if [ ! -d $CR1000X ]; then
+        cd "{$DIR}/backups" && mkdir CR1000x
+    fi
+
+fi
+
+time_now="$(date)"
+echo "${time_now:0:19} ${time_now:24}: All required folders and files created!" >$SYSTEM
