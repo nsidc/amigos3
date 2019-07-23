@@ -1,9 +1,8 @@
-
 #!/bin/bash
 
 mkdir /media/mmcblk0p1/logs
 sleep 1
-mkdir /media/mmcblk0p1/picture
+mkdir /media/mmcblk0p1/pictures
 sleep 1
 touch /media/mmcblk0p1/logs/power_log.log
 sleep 1

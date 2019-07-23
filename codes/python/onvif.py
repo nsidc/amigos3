@@ -199,7 +199,7 @@ snapSho
             f.write(response.content)
             f.close()
             subprocess.call("mv {0} {1}".format(
-                newname, "/media/mmcblk0p1/picture/"), shell=True)
+                newname, "/media/mmcblk0p1/pictures/"), shell=True)
             self.printf("Camera snapShot taken")
         except:
             self.printf('Unable to take snapshot')
