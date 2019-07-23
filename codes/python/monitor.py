@@ -187,19 +187,20 @@ def get_schedule_health():
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
     else:
-        if out > 30000:
+        if out > 20000:
             printf(
                 "Self destrying schedule ram memory consumption above {0}".format(out))
             kill()
         elif out < 15000:
-            printf('Schedule health: Normal at {0} Mb of ram'.format(out))
+            printf('Schedule health: Normal at {0} kb of ram'.format(out))
         elif out >= 15000 and out < 17000:
-            printf('Schedule health: warning at {0} Mb of ram'.format(out))
+            printf('Schedule health: warning at {0} kb of ram'.format(out))
         elif out == None:
             printf('Schedule health: Scheduler not running')
 
         else:
-            printf('Schedule health: critical  at {0} Mb of ram'.format(out))
+            printf(
+                'Schedule health: critical  at {0} kb of ram. Scheduler would be terminated at over 20000 kb'.format(out))
 
 
 if __name__ == "__main__":
