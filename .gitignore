@@ -222,3 +222,4 @@ XDG_CACHE_HOME
 .log
 .jpg
 isbd.py
+pexpect/
