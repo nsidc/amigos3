@@ -13,8 +13,10 @@ SYSTEM="${DIR}/logs/system.log"
 #BLACK_HOLE= /dev/null
 
 if [ ! -d $DIR ]; then
-    echo "This code can not run on this computer. Are  you on a Tritron board? If so check If SD_CARD directory In /media is named mmcblk0p1."
-    echo "In case the name let different let the sotware enginieurs know. Thanks"
+    echo "This code can not run on this computer. Are  sure you are on a Tritron board?"
+    echo "If so, check If SD_CARD directory In /media is named mmcblk0p1."
+    echo "In case the name is different, let the sotware enginieurs know. Thanks"
+    echo "Bruce: Coovi: coovi.meha@colorado.edu/720-468-9447"
     exit
 fi
 
