@@ -14,8 +14,8 @@ echo none > /dev/null
 
 else
 time_now="$(date)"
-echo "${time_now:0:19} ${time_now:24}: Restarting Scheduler" >> /media/mmcblk0p1/amigos/amigos/logs/system.log
-python /media/mmcblk0p1/amigos/amigos/scheduler.py &
+echo "${time_now:0:19} ${time_now:24}: Restarting Scheduler" >> /media/mmcblk0p1/logs/system.log
+python /media/mmcblk0p1/codes/python/scheduler.py &
 
 sleep 1
 # power up the router
@@ -27,15 +27,15 @@ fi
 i=$(($i+1));
 done
 
-#cp -r /var/volatile/log/ /media/mmcblk0p1/amigos/amigos/logs/
-#dmesg > /media/mmcblk0p1/amigos/amigos/logs/dmesg.log
+#cp -r /var/volatile/log/ /media/mmcblk0p1/logs/
+#dmesg > /media/mmcblk0p1/logs/dmesg.log
 
-last_run="$(date -r /media/mmcblk0p1/amigos/amigos/logs/system.log +%s)"
+last_run="$(date -r /media/mmcblk0p1/logs/system.log +%s)"
 time_now="$(date +%s)"
 
 diff=$((time_now - last_run))
 if (( $diff > 3600 )); then
 pidd="$(pgrep python)"
-echo "${time_now:0:19} ${time_now:24}: Scheduler freezed" >> /media/mmcblk0p1/amigos/amigos/logs/system.log
+echo "${time_now:0:19} ${time_now:24}: Scheduler freezed" >> /media/mmcblk0p1/logs/system.log
 kill -9 $pidd
 fi
