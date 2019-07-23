@@ -44,7 +44,7 @@ def set_mode(mode=None, Sleep_time=3):
         return wdog
     elif mode == 3:
         subprocess.call(
-            "bash /media/mmcblk0p1/amigos/sleep {0}".format(Sleep_time), shell=True)
+            "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(Sleep_time), shell=True)
         return
     return wdog
 

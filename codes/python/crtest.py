@@ -48,7 +48,7 @@ class cr1000x:
             pass
         else:
             therms = open(
-                "/media/mmcblk0p1/amigos/amigos/logs/thermdata_test.log", "a+")
+                "/media/mmcblk0p1/codes/python/logs/thermdata_test.log", "a+")
             for i in range(len(labels)):
                 therms.write(labels[i] + ': ' + values[i] + "\n")
             therms.close()
