@@ -131,7 +131,7 @@ def put_to_inactive_sleep():
             slept.write("1")
         all_off(1)
         call(
-            "bash /media/mmcblk0p1/amigos/sleep {0}".format(time_interval), shell=True)
+            "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(time_interval), shell=True)
 
 
 def put_to_power_sleep():
@@ -154,13 +154,15 @@ def put_to_power_sleep():
                 printf('Voltage still too low, going back to a long sleep (1 hour). Reading {0} volt and {1} amps'.format(
                     voltage, current))
                 call('rm /media/mmcblk0p1/amigos/amigos/logs/sleep.log', shell=True)
-                # set_mode(2)
+                call(
+                    "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(59), shell=True)
             else:
                 with open('/media/mmcblk0p1/amigos/amigos/logs/sleep.log', 'w+') as sched_log:
                     sched_log.write('1')
                 printf('Voltage too low, going back to 3 minutes sleep. Reading {0} volt and {1} amps'.format(
                     voltage, current))
-                # set_mode(3)
+                # call(
+                # "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(10), shell = True)
         elif voltage > 14.0:
             printf('Voltage is too high. Reading {0} volt and {1} amps'.format(
                 voltage, current))
