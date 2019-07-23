@@ -4,7 +4,7 @@ from subprocess import call
 
 # create missing folder and files
 try:
-    call("bash /media/mmcblk0p1/bash/missing", shell=True)
+    call("bash /media/mmcblk0p1/bash/missing > /dev/null", shell=True)
 except:
     pass
 # Put the submodules on the python import path
