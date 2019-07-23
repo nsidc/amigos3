@@ -13,4 +13,4 @@ sleep 1
 echo "0b00000000,0b00000000,0b00000000" > "{$DIR}logs/power_log.log"
 
 time_now="$(date)"
-echo "${time_now:0:19} ${time_now:24}: Files system initialisation finished"
+echo "${time_now:0:19} ${time_now:24}: All required folders and files created!"
