@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 import os.path
 import math
-import amigos.argparse as argparse
-import amigos.gpio as gpio
-import amigos.watchdog as watchdog
-from amigos.onvif import ptz_client as client
-from amigos.vaisala import Average_Reading as Average_Reading
-from amigos.vaisala import Live_Data as Live_Data
-from amigos.device import is_on, is_off
-from amigos.iridium import read as read_sbd, send as send_sbd
-from amigos.cr1000x import cr1000x_live as cr1000x_live
-from amigos.solar import solar_live as solar_live
+import python.argparse as argparse
+import python.gpio as gpio
+import python.watchdog as watchdog
+from python.onvif import ptz_client as client
+from python.vaisala import Average_Reading as Average_Reading
+from python.vaisala import Live_Data as Live_Data
+from python.device import is_on, is_off
+from python.iridium import read as read_sbd, send as send_sbd
+from python.cr1000x import cr1000x_live as cr1000x_live
+from python.solar import solar_live as solar_live
 my_path = os.path.abspath(os.path.dirname(__file__))
 path = os.path.join(my_path, "text.txt")
 ptz = client()

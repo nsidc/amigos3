@@ -207,30 +207,37 @@ snapSho
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
     def move(self):
-        self.printf("Camera moving north")
-        self.send('absolute', pan=0, tilt=0, zoom=0)
-        sleep(2)
-        self.snapShot()
-        sleep(1)
-        self.printf("Camera moving east")
-        self.send('absolute', pan=90, tilt=0, zoom=0)
-        sleep(2)
-        self.snapShot()
-        sleep(1)
-        self.printf("Camera moving west")
-        self.send('absolute', pan=-90, tilt=0, zoom=0)
-        sleep(2)
-        self.snapShot()
-        sleep(1)
-        self.printf("Camera moving down")
-        self.send('absolute', pan=0, tilt=-45, zoom=0)
-        sleep(2)
-        self.snapShot()
-        self.printf("Camera moving to mirror, demo only")
-        # add later
-        self.printf("Done! Sending camera lens to Home")
-        sleep(1)
-        self.send('absolute', pan=0, tilt=45, zoom=0)
+        try:
+            modem_on(1)
+            sleep(2)
+            self.printf("Camera moving north")
+            self.send('absolute', pan=0, tilt=0, zoom=0)
+            sleep(2)
+            self.snapShot()
+            sleep(1)
+            self.printf("Camera moving east")
+            self.send('absolute', pan=90, tilt=0, zoom=0)
+            sleep(2)
+            self.snapShot()
+            sleep(1)
+            self.printf("Camera moving west")
+            self.send('absolute', pan=-90, tilt=0, zoom=0)
+            sleep(2)
+            self.snapShot()
+            sleep(1)
+            self.printf("Camera moving down")
+            self.send('absolute', pan=0, tilt=-45, zoom=0)
+            sleep(2)
+            self.snapShot()
+            self.printf("Camera moving to mirror, demo only")
+            # add later
+            self.printf("Done! Sending camera lens to Home")
+            sleep(1)
+            self.send('absolute', pan=0, tilt=45, zoom=0)
+        except:
+            pass
+        finally:
+            modem_off(1)
 
 
 # Test the code here
