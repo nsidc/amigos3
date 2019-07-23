@@ -51,10 +51,10 @@ class cr1000x:
         except Exception as err:
             printf('Unable to acquire cr1000x data with exception {0}'.format(err))
             traceback.print_exc(
-                file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
             therms = open(
-                "/media/mmcblk0p1/codes/python/logs/thermdata.log", "a+")
+                "/media/mmcblk0p1/logs/thermdata.log", "a+")
             try:
                 for i in range(len(labels)):
                     therms.write(labels[i] + ': ' + values[i] + "\n")
@@ -63,7 +63,7 @@ class cr1000x:
                 printf(
                     'failed to format cr1000x data with exception {1}. raw data {0}'.format(values, err))
                 traceback.print_exc(
-                    file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+                    file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         finally:
             cr1000_off(1)
             modem_off(1)
@@ -83,7 +83,7 @@ class cr1000x_live():
         except:
             printf("Problem with port or problem with power to the CR1000")
             traceback.print_exc(
-                file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
             # Read data
             device = CR1000.from_url('tcp:192.168.0.30:6785')

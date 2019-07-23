@@ -71,23 +71,23 @@ class gps_data():
                 sleep(2)
                 data = self.port.read(self.port.inWaiting())
                 writeFile(
-                    '/media/mmcblk0p1/codes/python/logs/gps_binex_data_temp.log', data, 'w+')
+                    '/media/mmcblk0p1/logs/gps_binex_data_temp.log', data, 'w+')
                 try:
                     subprocess.call(
-                        "cat /media/mmcblk0p1/codes/python/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/codes/python/logs/gps_binex_data.log", shell=True)
+                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
                 except:
                     writeFile(
-                        '/media/mmcblk0p1/codes/python/logs/gps_binex_data.log', '', 'a+')
+                        '/media/mmcblk0p1/logs/gps_binex_data.log', '', 'a+')
                     subprocess.call(
-                        "cat /media/mmcblk0p1/codes/python/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/codes/python/logs/gps_binex_data.log", shell=True)
+                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
                 sleep(2)
                 if self.port.inWaiting() != 0:
                     data = data+self.port.read(self.port.inWaiting())
                     writeFile(
-                        '/media/mmcblk0p1/codes/python/logs/gps_binex_data_temp.log', data, 'w+')
+                        '/media/mmcblk0p1/logs/gps_binex_data_temp.log', data, 'w+')
                     sleep(1)
                     subprocess.call(
-                        "cat /media/mmcblk0p1/codes/python/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/codes/python/logs/gps_binex_data.log", shell=True)
+                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
                 sleep(self.interval-5)
                 self.sequence = self.sequence+1
                 print(self.sequence)
@@ -96,7 +96,7 @@ class gps_data():
             if self.port:
                 self.port.close()
             subprocess.call(
-                "rm /media/mmcblk0p1/codes/python/logs/gps_binex_data_temp.log", shell=True)
+                "rm /media/mmcblk0p1/logs/gps_binex_data_temp.log", shell=True)
             gps_off(bit=1)
             disable_serial()
 
@@ -122,7 +122,7 @@ class gps_data():
                 sleep(2)
                 data = self.port.read(self.port.inWaiting())
                 writeFile(
-                    '/media/mmcblk0p1/codes/python/logs/gps_nmea_data.log', data, 'a+')
+                    '/media/mmcblk0p1/logs/gps_nmea_data.log', data, 'a+')
                 sleep(self.interval)
                 self.sequence = self.sequence+1
         finally:

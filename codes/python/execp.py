@@ -20,7 +20,7 @@ def catch_exceptions(cancel_on_failure=False):
 
 
 def printf(message):
-    with open('/media/mmcblk0p1/codes/python/logs/system.log', 'a+') as log:
+    with open('/media/mmcblk0p1/logs/system.log', 'a+') as log:
         date = str(datetime.datetime.now()) + ': '
         log.write(date + message + '\n')
 

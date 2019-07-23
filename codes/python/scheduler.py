@@ -236,7 +236,7 @@ class monitor():
 def get_schedule():
     data = None
     try:
-        with open('media/mmcblk0p1/codes/python/logs/new_schedule.log', 'r') as update:
+        with open('media/mmcblk0p1/logs/new_schedule.log', 'r') as update:
             data = update.read()
         if data:
             data = data.split(',')
@@ -336,7 +336,7 @@ def run_schedule():
         monitor_task.run_pending()
         if winter_running:
             winter_task.run_pending()
-            with open('/media/mmcblk0p1/codes/python/logs/schedule.log', 'w+') as sched_log:
+            with open('/media/mmcblk0p1/logs/schedule.log', 'w+') as sched_log:
                 sched_log.write(str(sorted(winter_task.jobs)))
             if int(hours) == 00 and int(minutes) == 15:
                 winter_running = False
@@ -351,7 +351,7 @@ def run_schedule():
 
         elif summer_running:
             summer_task.run_pending()
-            with open('/media/mmcblk0p1/codes/python/logs/schedule.log', 'w+') as sched_log:
+            with open('/media/mmcblk0p1/logs/schedule.log', 'w+') as sched_log:
                 sched_log.write(str(sorted(summer_task.jobs)))
             if int(hours) == 00 and int(minutes) == 15:
                 summer_running = False  # set flag
@@ -412,7 +412,7 @@ if __name__ == "__main__":
         printf('Scheduler failed with error message :' +
                str(err) + str(sys.exc_info()[0]) + '\n' + 'Trying to restart scheduler')
         traceback.print_exc(
-            file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 # t = cold_test()
         # s = t.sched()
         # dog = dog_mode(mode=1)
@@ -423,6 +423,6 @@ if __name__ == "__main__":
         #     m.run_pending()
         #     dog.run_pending()
         #     s.run_pending()
-        #     with open('/media/mmcblk0p1/codes/python/logs/sched.log', 'w+') as sched_log:
+        #     with open('/media/mmcblk0p1/logs/sched.log', 'w+') as sched_log:
         #         sched_log.write(str(m.jobs)+',' + str(s.jobs))
         #     sleep(1)

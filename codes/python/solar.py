@@ -10,11 +10,11 @@ from execp import printf
 def readsolar():
     solar_on()
     sleep(5)
-    solar1 = open("/media/mmcblk0p1/codes/python/logs/solar_temp1.log", "w+")
+    solar1 = open("/media/mmcblk0p1/logs/solar_temp1.log", "w+")
     solar1.close()
     # To read the battery voltage analog input:
 
-    solar2 = open("/media/mmcblk0p1/codes/python/logs/solar_temp2.log", "w+")
+    solar2 = open("/media/mmcblk0p1/logs/solar_temp2.log", "w+")
     solar2.close()
     t = 0
     data = 0
@@ -24,18 +24,18 @@ def readsolar():
             subprocess.call("echo 0 > /sys/class/gpio/mcp3208-gpio/index", shell=True)
             sleep(1)
             subprocess.call(
-                'cat /sys/class/gpio/mcp3208-gpio/data > /media/mmcblk0p1/codes/python/logs/solar_temp1.log', shell=True)
+                'cat /sys/class/gpio/mcp3208-gpio/data > /media/mmcblk0p1/logs/solar_temp1.log', shell=True)
 
             subprocess.call("echo 1 > /sys/class/gpio/mcp3208-gpio/index", shell=True)
             sleep(1)
             subprocess.call(
-                'cat /sys/class/gpio/mcp3208-gpio/data > /media/mmcblk0p1/codes/python/logs/solar_temp2.log', shell=True)
+                'cat /sys/class/gpio/mcp3208-gpio/data > /media/mmcblk0p1/logs/solar_temp2.log', shell=True)
 
-            with open('/media/mmcblk0p1/codes/python/logs/solar_temp1.log', "r") as solar_temp1:
+            with open('/media/mmcblk0p1/logs/solar_temp1.log', "r") as solar_temp1:
                 data1 = solar_temp1.read()
                 data1 = int(data1, 16)
                 # print(data1)
-            with open("/media/mmcblk0p1/codes/python/logs/solar_temp2.log", "r") as solar_temp2:
+            with open("/media/mmcblk0p1/logs/solar_temp2.log", "r") as solar_temp2:
                 data2 = solar_temp2.read()
                 data2 = int(data2, 16)
                 # print(data2)
@@ -43,21 +43,21 @@ def readsolar():
                 data = date + ",  " + str(data1) + ",  " + str(data2) + "\n"
             data = str(data)
             # print(data)
-            with open("/media/mmcblk0p1/codes/python/logs/solar_data.log", "a+") as solar:
+            with open("/media/mmcblk0p1/logs/solar_data.log", "a+") as solar:
                 solar.write(data + '\n')
                 sleep(8)  # set rate of readings in seconds
             t = t + 10  # keep time
     except:
         printf("Unable to read solar sensor")
         traceback.print_exc(
-            file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         # print(t)
     finally:
         solar_off()
         subprocess.call(
-            'rm /media/mmcblk0p1/codes/python/logs/solar_temp1.log', shell=True)
+            'rm /media/mmcblk0p1/logs/solar_temp1.log', shell=True)
         subprocess.call(
-            'rm /media/mmcblk0p1/codes/python/logs/solar_temp2.log', shell=True)
+            'rm /media/mmcblk0p1/logs/solar_temp2.log', shell=True)
 
 
 class solar_live():
@@ -71,25 +71,25 @@ class solar_live():
         except:
             print("Problem with turning on solar sensor")
         else:
-            solar1 = open("/media/mmcblk0p1/codes/python/logs/solar_temp1.log", "w+")
+            solar1 = open("/media/mmcblk0p1/logs/solar_temp1.log", "w+")
             solar1.close()
-            solar2 = open("/media/mmcblk0p1/codes/python/logs/solar_temp2.log", "w+")
+            solar2 = open("/media/mmcblk0p1/logs/solar_temp2.log", "w+")
             solar2.close()
 
             subprocess.call("echo 0 > /sys/class/gpio/mcp3208-gpio/index", shell=True)
             sleep(1)
             subprocess.call(
-                'cat /sys/class/gpio/mcp3208-gpio/data > /media/mmcblk0p1/codes/python/logs/solar_temp1.log', shell=True)
+                'cat /sys/class/gpio/mcp3208-gpio/data > /media/mmcblk0p1/logs/solar_temp1.log', shell=True)
 
             subprocess.call("echo 1 > /sys/class/gpio/mcp3208-gpio/index", shell=True)
             sleep(1)
             subprocess.call(
-                'cat /sys/class/gpio/mcp3208-gpio/data > /media/mmcblk0p1/codes/python/logs/solar_temp2.log', shell=True)
+                'cat /sys/class/gpio/mcp3208-gpio/data > /media/mmcblk0p1/logs/solar_temp2.log', shell=True)
 
-            with open('/media/mmcblk0p1/codes/python/logs/solar_temp1.log', "r") as solar_temp1:
+            with open('/media/mmcblk0p1/logs/solar_temp1.log', "r") as solar_temp1:
                 data1 = solar_temp1.read()
                 data1 = int(data1, 16)
-            with open("/media/mmcblk0p1/codes/python/logs/solar_temp2.log", "r") as solar_temp2:
+            with open("/media/mmcblk0p1/logs/solar_temp2.log", "r") as solar_temp2:
                 data2 = solar_temp2.read()
                 data2 = int(data2, 16)
         finally:

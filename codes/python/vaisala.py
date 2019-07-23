@@ -34,13 +34,13 @@ class Average_Reading():
         except:
             print("Problem with port 5 or problem with power to the vaisala")
             traceback.print_exc(
-                file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
             t = 0
             data = None
             # Read composite data message (all readings) every 10 seconds for 2 minutes and write to temporary ascii text file
             while t <= 120:
-                with open("/media/mmcblk0p1/codes/python/logs/weather_data_ASCII_schedule.log", "a+") as raw_data:
+                with open("/media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", "a+") as raw_data:
                     port.flushInput()
                     data = port.readline()
                     if data is None or data == "":
@@ -59,7 +59,7 @@ class Average_Reading():
             # put all the mesaurements into a matrix (array of arrays)
             float_array_final = []
             string_array_final = []
-            with open("/media/mmcblk0p1/codes/python/logs/weather_data_ASCII_schedule.log", "r") as f:
+            with open("/media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", "r") as f:
                 for line in f:
                     if "0R0" in line:
                         string_array_raw = re.findall(
@@ -71,12 +71,12 @@ class Average_Reading():
         except:
             printf('Failed to acquire Wather station data or got empty array')
             traceback.print_exc(
-                file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
         finally:
             # Erase the tempoerary ascii data file
             subprocess.call(
-                "rm /media/mmcblk0p1/codes/python/logs/weather_data_ASCII_schedule.log", shell=True)
+                "rm /media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", shell=True)
         return string_array_final, float_array_final
 
     def average_data(self):
@@ -95,7 +95,7 @@ class Average_Reading():
                 data_array_final.append(round(numbers_divide, 3))
             # Write the averaged array elements to a final log file - append
             now = datetime.datetime.now()
-            with open("/media/mmcblk0p1/codes/python/logs/weather_data.log", "a+") as hourly:
+            with open("/media/mmcblk0p1/logs/weather_data.log", "a+") as hourly:
                 hourly.write("Current Date and Time: " +
                              now.strftime("%Y-%m-%d %H:%M:%S\n"))
                 hourly.write("Wind Direction Average (Degrees): " +
@@ -133,7 +133,7 @@ class Average_Reading():
         except:
             printf('Fail to parser vaisala data, maybe got an empty array')
             traceback.print_exc(
-                file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 # Class that will allow the user to access specific weather data points whenever needed
@@ -154,7 +154,7 @@ class Live_Data():
             t = 0
             # Take data for 5 seconds to make sure that a composite data message has time to send from the Vaisala
             while t <= 5:
-                with open("/media/mmcblk0p1/codes/python/logs/weather_data_ASCII_live.log", "a+") as raw_data:
+                with open("/media/mmcblk0p1/logs/weather_data_ASCII_live.log", "a+") as raw_data:
                     port.flushInput()
                     data = port.readline()
                     raw_data.write(data)
@@ -170,7 +170,7 @@ class Live_Data():
         try:
             self.read_data()
             string_array_final = []
-            with open("/media/mmcblk0p1/codes/python/logs/weather_data_ASCII_live.log", "r") as f:
+            with open("/media/mmcblk0p1/logs/weather_data_ASCII_live.log", "r") as f:
                 # only take the last 0R0 line of the 5 - second data collection interval for translation
                 for line in f:
                     if "0R0" in line:
@@ -182,7 +182,7 @@ class Live_Data():
         finally:
             # Erase the temporary ascii text file
             subprocess.call(
-                "rm /media/mmcblk0p1/codes/python/logs/weather_data_ASCII_live.log", shell=True)
+                "rm /media/mmcblk0p1/logs/weather_data_ASCII_live.log", shell=True)
         return string_array_final
 
     def weather_all(self):

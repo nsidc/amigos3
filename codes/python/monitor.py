@@ -28,7 +28,7 @@ def free_space():
 
 def has_slept():
     data = None
-    with open("/media/mmcblk0p1/codes/python/logs/slept.log", "r") as slept:
+    with open("/media/mmcblk0p1/logs/slept.log", "r") as slept:
         data = slept.read()
     if data:
         return True
@@ -83,7 +83,7 @@ def kill():
     except:
         printf("Schedule health: Failed to check schedule health")
         traceback.print_exc(
-            file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 def no_task():
@@ -91,7 +91,7 @@ def no_task():
     Check if the amigos is busy executing a task
     """
     data = None
-    with open("/media/mmcblk0p1/codes/python/logs/power_log.log", "r") as power:
+    with open("/media/mmcblk0p1/logs/power_log.log", "r") as power:
         data = power.read()
     data = data.split(",")
     print(data)
@@ -106,7 +106,7 @@ def put_to_inactive_sleep():
     Send the system to sleep if no task is schedule in the nest 3 minute
     """
     data = None
-    with open("/media/mmcblk0p1/codes/python/logs/schedule.log", "r") as schedule:
+    with open("/media/mmcblk0p1/logs/schedule.log", "r") as schedule:
         data = schedule.read()
     data = data.split(",")[1]
     next_run = None
@@ -127,7 +127,7 @@ def put_to_inactive_sleep():
         # if interval> 52:
         printf(
             "No task in the next {0} minutes. Going on StandBy".format(time_interval))
-        with open("/media/mmcblk0p1/codes/python/logs/slept.log", "w+") as slept:
+        with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
             slept.write("1")
         all_off(1)
         call(
@@ -145,7 +145,7 @@ def put_to_power_sleep():
         if voltage < 11.0:
             had_slept = None
             try:
-                with open('/media/mmcblk0p1/codes/python/logs/sleep.log', 'r') as sched_log:
+                with open('/media/mmcblk0p1/logs/sleep.log', 'r') as sched_log:
                     had_slept = sched_log.read()
             except:
                 pass
@@ -153,11 +153,11 @@ def put_to_power_sleep():
                 all_off(1)
                 printf('Voltage still too low, going back to a long sleep (1 hour). Reading {0} volt and {1} amps'.format(
                     voltage, current))
-                call('rm /media/mmcblk0p1/codes/python/logs/sleep.log', shell=True)
+                call('rm /media/mmcblk0p1/logs/sleep.log', shell=True)
                 call(
                     "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(59), shell=True)
             else:
-                with open('/media/mmcblk0p1/codes/python/logs/sleep.log', 'w+') as sched_log:
+                with open('/media/mmcblk0p1/logs/sleep.log', 'w+') as sched_log:
                     sched_log.write('1')
                 printf('Voltage too low, going back to 3 minutes sleep. Reading {0} volt and {1} amps'.format(
                     voltage, current))
@@ -172,7 +172,7 @@ def put_to_power_sleep():
     except:
         printf('failed to excute put_to_sleep')
         traceback.print_exc(
-            file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 def get_schedule_health():
@@ -187,7 +187,7 @@ def get_schedule_health():
     except:
         printf("Schedule health: Failed to check schedule health")
         traceback.print_exc(
-            file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
     else:
         if out > 30000:
             printf(

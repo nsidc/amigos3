@@ -11,19 +11,19 @@ def get_humidity():
     try:
         date = str(datetime.datetime.now())
         call(
-            'cat /sys/class/hwmon/hwmon0/device/humidity1_input > /media/mmcblk0p1/codes/python/logs/onboard_humid_temp.log', shell=True)
+            'cat /sys/class/hwmon/hwmon0/device/humidity1_input > /media/mmcblk0p1/logs/onboard_humid_temp.log', shell=True)
         sleep(1)
-        with open('/media/mmcblk0p1/codes/python/logs/onboard_humid_temp.log', 'r') as temp:
+        with open('/media/mmcblk0p1/logs/onboard_humid_temp.log', 'r') as temp:
             data = float(temp.read())/1000
-        with open('/media/mmcblk0p1/codes/python/logs/onboard_humid.log', 'a+') as humid:
+        with open('/media/mmcblk0p1/logs/onboard_humid.log', 'a+') as humid:
             humid.write(date + ' ,' + str(data)+'\n')
         sleep(2)
         call(
-            'rm /media/mmcblk0p1/codes/python/logs/onboard_humid_temp.log', shell=True)
+            'rm /media/mmcblk0p1/logs/onboard_humid_temp.log', shell=True)
     except:
         printf('Failed to acquire on board humidity')
         traceback.print_exc(
-            file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 def get_temperature():
@@ -31,19 +31,19 @@ def get_temperature():
     try:
         date = str(datetime.datetime.now())
         subprocess.call(
-            'cat /sys/class/hwmon/hwmon0/device/temp1_input> /media/mmcblk0p1/codes/python/logs/onboard_temperature_temp.log', shell=True)
+            'cat /sys/class/hwmon/hwmon0/device/temp1_input> /media/mmcblk0p1/logs/onboard_temperature_temp.log', shell=True)
         sleep(1)
-        with open('/media/mmcblk0p1/codes/python/logs/onboard_temperature_temp.log', 'r') as temp:
+        with open('/media/mmcblk0p1/logs/onboard_temperature_temp.log', 'r') as temp:
             data = float(temp.read())/1000
-        with open('/media/mmcblk0p1/codes/python/logs/onboard_temperature.log', 'a+') as temp:
+        with open('/media/mmcblk0p1/logs/onboard_temperature.log', 'a+') as temp:
             temp.write(date + ' ,' + str(data)+'\n')
         sleep(2)
         call(
-            'rm /media/mmcblk0p1/codes/python/logs/onboard_temperature_temp.log', shell=True)
+            'rm /media/mmcblk0p1/logs/onboard_temperature_temp.log', shell=True)
     except Exception as err:
         printf('Failed to acquire on board temperature')
         traceback.print_exc(
-            file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 def get_battery_voltage():
@@ -63,7 +63,7 @@ def get_battery_voltage():
     except:
         printf('Failed to acquire board input voltage')
         traceback.print_exc(
-            file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 def get_battery_current():
@@ -82,7 +82,7 @@ def get_battery_current():
     except:
         printf('Failed to acquire board input current')
         traceback.print_exc(
-            file=open("/media/mmcblk0p1/codes/python/logs/system.log", "a+"))
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 if __name__ == "__main__":
