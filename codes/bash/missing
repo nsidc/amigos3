@@ -1,11 +1,16 @@
 #!/bin/bash
 DIR=/media/mmcblk0p1/
-cd  $DIR && mkdir logs picture backups
+BLACK_HOLE= /dev/null
+cd  $DIR && mkdir logs pictures backups >  $BLACK_HOLE
 sleep 1
-cd "{$DIR}/backups" && mkdir gps dts weather solar cr1000x
+
+cd "{$DIR}/backups" && mkdir gps dts weather solar cr1000x >  $BLACK_HOLE
 sleep 1
-touch "{$DIR}logs/power_log.log"
+
+touch "{$DIR}logs/power_log.log" >  $BLACK_HOLE
 sleep 1
+
 echo "0b00000000,0b00000000,0b00000000" > "{$DIR}logs/power_log.log"
 
-echo "Done!"
+time_now="$(date)"
+echo "${time_now:0:19} ${time_now:24}: Files system initialisation finished"
