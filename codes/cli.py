@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
+import sys
+sys.path.append('/media/mmcblk0p1/codes/ext/urllib3/src')
+sys.path.append('/media/mmcblk0p1/codes/ext/chardet')
+sys.path.append('/media/mmcblk0p1/codes/ext/idna')
+sys.path.append('/media/mmcblk0p1/codes/ext/requests')
+sys.path.append('/media/mmcblk0p1/codes/ext/scheduling')
+sys.path.append('/media/mmcblk0p1/codes/ext/pycampbellcr1000')
+sys.path.append('/media/mmcblk0p1/codes/ext/pyLink')
 import math
 import python.argparse as argparse
 import python.gpio as gpio
-import python.watchdog as watchdog
 from python.onvif import ptz_client as client
 from python.vaisala import Average_Reading as Average_Reading
 from python.vaisala import Live_Data as Live_Data
@@ -10,7 +17,12 @@ from python.device import is_on, is_off
 from python.iridium import read as read_sbd, send as send_sbd
 from python.cr1000x import cr1000x_live as cr1000x_live
 from python.solar import solar_live as solar_live
+import python.watchdog as watchdog
+from python.execp import printf
+import python.scheduler as scheduler
+import traceback
 ptz = client()
+
 
 # Create instances of script classes
 Avg_Reading = Average_Reading()
@@ -35,6 +47,8 @@ def args_parser():
             '-s', '--summer', help='View summer schedule', action='store_true')
         schedule.add_argument(
             '-w', '--winter', help='View winter schedule', action='store_true')
+        schedule.add_argument(
+            '-r', '--run', help='run schedule', action='store_true')
 
         # group of command for weather viewing
         weather = parser.add_argument_group('Read weather', 'show live weather data')
@@ -415,6 +429,19 @@ def weather(args):
         Live_Readings.weather_all()
 
 
+def schedule(args):
+    if args.run:
+        try:
+            scheduler.signals()
+            gpio.modem_on(1)
+            scheduler.run_schedule()
+        except Exception as err:
+            printf('Scheduler failed with error message :' +
+                   str(err) + str(sys.exc_info()[0]) + '\n' + 'Trying to restart scheduler')
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+
+
 def main():
     """
     Commands group
@@ -425,6 +452,8 @@ def main():
     args = parser.parse_args()
     if args.help:
         parser.print_help()
+    elif args.schedule == "schedule":
+        schedule(args)
     elif args.schedule == 'power':
         power(args)
     # logic for watchdog configuration

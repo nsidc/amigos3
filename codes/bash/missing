@@ -8,7 +8,7 @@ SOLAR="${DIR}/backups/solar"
 CR1000X="${DIR}/backups/cr1000x"
 PICTURES="${DIR}/pictures"
 LOGS="${DIR}/logs"
-POWER="${DIR}/logs"
+POWER="${DIR}/logs/power_log.log"
 SYSTEM="${DIR}/logs/system.log"
 #BLACK_HOLE= /dev/null
 
@@ -25,19 +25,19 @@ if [ ! -d $DIR ]; then
     echo "      Email: coovi.meha@colorado.edu"
     echo "      Phone: 720-468-9447"
     echo "  Sid A"
-    echo "      Email: coovi.meha@colorado.edu"
-    echo "      Phone: 720-468-9447"
-    exit
+    echo "      Email: siar7178@colorado.edu"
+    echo "      Phone: 720-839-2887"
+    exit 0
 fi
 
 if [ ! -d $LOGS ]; then
-    cd $DIR && mkdir logs && cd $LOGS && touch power_log.log && echo "0b00000000,0b00000000,0b00000000" >logs/power_log.log
+    mkcoovi.meha@colorado.edudir $LOGS && touch $POWER && echo "0b00000000,0b00000000,0b00000000" >$POWER
 
 else
-    if [ ! test power_log.log ]; then
-        cd $DIR && cd $LOGS && touch power_log.log && echo "0b00000000,0b00000000,0b00000000" >logs/power_log.log
+    if [ ! -f $POWER ]; thencoovi.meha@colorado.edu
+        touch $POWER && echo "0b00000000,0b0000000coovi.meha@coloradocoovi.meha@colorado.edu.edu0,0b00000000" >$POWER
     else
-        cd $DIR && cd $LOGS && echo "0b00000000,0b00000000,0b00000000" >logs/power_log.log
+        echo "0b00000000,0b00000000,0b00000000" >$POWER
     fi
 fi
 
@@ -52,23 +52,23 @@ if [ ! -d $BACKUPS ]; then
     cd $DIR && mkdir backups
 else
     if [ ! -d $GPS ]; then
-        cd $BACKUPS && mkdir gps
+        mkdir "${BACKUPS}/gps"
     fi
 
     if [ ! -d $DTS ]; then
-        cd $BACKUPS && mkdir dts
+        mkdir "${BACKUPS}/dts"
     fi
 
     if [ ! -d $WEATHER ]; then
-        cd $BACKUPS && mkdir weather
+        mkdir "${BACKUPS}/weather"
     fi
 
     if [ ! -d $SOLAR ]; then
-        cd $BACKUPS && mkdir solar
+        mkdir "${BACKUPS}/solar"
     fi
 
     if [ ! -d $CR1000X ]; then
-        cd $BACKUPS && mkdir CR1000x
+        mkdir "${BACKUPS}/CR1000x"
     fi
 
 fi

@@ -2,25 +2,46 @@ from serial import Serial as ser
 from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
 from time import sleep
 from execp import printf
+import ftplib as ftp
 
 
-def dialin():
-    router_off(1)
-    modem_on(1)
-    sleep(1)
-    iridium_on(1)
-    sleep(60*20)
-    iridium_off(1)
-    router_off(1)
+class dial_in():
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def find_files(self):
+        pass
+
+    def send(self):
+        pass
+
+    def dialin(self):
+        router_off(1)
+        modem_on(1)
+        sleep(1)
+        iridium_on(1)
+        sleep(60*20)
+        iridium_off(1)
+        router_off(1)
 
 
-def dialout():
-    router_on(1)
-    sleep(1)
-    iridium_on(1)
-    sleep(60)
-    iridium_off(1)
-    router_off(1)
+class dial_out():
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def find_files(self):
+        pass
+
+    def send(self):
+        pass
+
+    def dialout(self):
+        router_on(1)
+        sleep(1)
+        iridium_on(1)
+        sleep(60)
+        iridium_off(1)
+        router_off(1)
 
 
 def send(message="Testing"):
