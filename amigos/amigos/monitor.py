@@ -26,6 +26,15 @@ def free_space():
     pass
 
 
+def has_slept():
+    data = None
+    with open("/media/mmcblk0p1/amigos/amigos/logs/slept.log", "r") as slept:
+        data = slept.read()
+    if data:
+        return True
+    return False
+
+
 def clear_cached():
     """
     clear the cache memory
@@ -118,6 +127,8 @@ def put_to_inactive_sleep():
         # if interval> 52:
         printf(
             "No task in the next {0} minutes. Going on StandBy".format(time_interval))
+        with open("/media/mmcblk0p1/amigos/amigos/logs/slept.log", "w+") as slept:
+            slept.write("1")
         all_off(1)
         call(
             "bash /media/mmcblk0p1/amigos/sleep {0}".format(time_interval), shell=True)

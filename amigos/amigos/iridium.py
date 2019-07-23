@@ -1,20 +1,21 @@
 from serial import Serial as ser
-from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on, router_off, router_on
+from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
 from time import sleep
 from execp import printf
 
 
 def dialin():
     router_off(1)
+    modem_on(1)
     sleep(1)
-    iridium_off(1)
+    iridium_on(1)
     sleep(60*20)
     iridium_off(1)
     router_off(1)
 
 
 def dialout():
-    router_off(1)
+    router_on(1)
     sleep(1)
     iridium_on(1)
     sleep(60)
