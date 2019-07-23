@@ -40,23 +40,23 @@ if [ ! -d $BACKUPS ]; then
     cd $DIR && mkdir backups
 else
     if [ ! -d $GPS ]; then
-        cd "{$DIR}/backups" && mkdir gps
+        cd $BACKUPS && mkdir gps
     fi
 
     if [ ! -d $DTS ]; then
-        cd "{$DIR}/backups" && mkdir dts
+        cd $BACKUPS && mkdir dts
     fi
 
     if [ ! -d $WEATHER ]; then
-        cd "{$DIR}/backups" && mkdir weather
+        cd $BACKUPS && mkdir weather
     fi
 
     if [ ! -d $SOLAR ]; then
-        cd "{$DIR}/backups" && mkdir solar
+        cd $BACKUPS && mkdir solar
     fi
 
     if [ ! -d $CR1000X ]; then
-        cd "{$DIR}/backups" && mkdir CR1000x
+        cd $BACKUPS && mkdir CR1000x
     fi
 
 fi
