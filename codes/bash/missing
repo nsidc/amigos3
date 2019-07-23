@@ -16,7 +16,16 @@ if [ ! -d $DIR ]; then
     echo "This code can not run on this computer. Are  sure you are on a Tritron board?"
     echo "If so, check If SD_CARD directory In /media is named mmcblk0p1."
     echo "In case the name is different, let the sotware enginieurs know. Thanks"
-    echo "Bruce: Coovi: coovi.meha@colorado.edu/720-468-9447"
+    echo "Contact:"
+    echo "  Coovi M"
+    echo "      Email: coovi.meha@colorado.edu"
+    echo "      Phone: 720-468-9447"
+    echo "  Bruce W: "
+    echo "      Email: coovi.meha@colorado.edu"
+    echo "      Phone: 720-468-9447"
+    echo "  Sid A"
+    echo "      Email: coovi.meha@colorado.edu"
+    echo "      Phone: 720-468-9447"
     exit
 fi
 
