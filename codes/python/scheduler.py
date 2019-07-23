@@ -307,7 +307,7 @@ def run_schedule():
             printf("System performance before: {0}K used ram, {1}K free ram, {2}K cached , and {3}K buffer".format(
                 mem[0], mem[1], mem[2], mem[3]))
             if mem[1] < 10000:
-                printf("clearing memory and speeding up system")
+                printf("clearing memory and cached too big")
                 clear_cached()
             sleep(1)
             mem = get_system_performance()

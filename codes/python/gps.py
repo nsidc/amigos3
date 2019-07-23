@@ -145,7 +145,9 @@ class gps_data():
             self.port.flusInput()
         except:
             self.port = None
-            print('Unable to open port')
+            printf('Unable to open port')
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
             self.port.write(self.cmd['GPGGA'])
             sleep(1)
