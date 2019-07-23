@@ -309,10 +309,10 @@ def run_schedule():
             if mem[1] < 10000:
                 printf("clearing memory and cached too big")
                 clear_cached()
-            sleep(1)
-            mem = get_system_performance()
-            printf("System performance after : {0}K used ram, {1}K free ram, {2}K cached and {3}k buffer".format(
-                mem[0], mem[1], mem[2], mem[3]))
+                sleep(1)
+                mem = get_system_performance()
+                printf("System performance after : {0}K used ram, {1}K free ram, {2}K cached and {3}k buffer".format(
+                    mem[0], mem[1], mem[2], mem[3]))
             printf("Checking for voltage level.")
             put_to_power_sleep()
             printf("All ready for task(s) execution!")
