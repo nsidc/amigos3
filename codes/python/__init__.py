@@ -1,6 +1,12 @@
 import os
 import sys
+from subprocess import call
 
+# create missing folder and files
+try:
+    call("bash /media/mmcblk0p1/bash/missing", shell=True)
+except:
+    pass
 # Put the submodules on the python import path
 this_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(this_dir, '../ext/urllib3/src'))
