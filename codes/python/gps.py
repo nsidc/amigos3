@@ -7,6 +7,7 @@ from gpio import gps_off, gps_on, enable_serial, disable_serial
 from onboard_device import get_battery_current
 import subprocess
 from execp import printf
+import traceback
 
 
 def writeFile(file_name, strings, form):
@@ -51,7 +52,6 @@ class gps_data():
         Return None
         """
         printf('GPS data acquisition started')
-        s_curr = get_battery_current()
         try:
             # try opening the port
             self.port.open()
@@ -60,12 +60,12 @@ class gps_data():
             sleep(60)
         except:
             self.port = None
-            print('Unable to open port')
+            print('An error occurred')
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
             self.port.flushInput()
             self.sequence = 1
-            e_curr = get_battery_current()
-            printf("GPS consumed about {0} amps".format(e_curr-s_curr))
             while self.sequence <= self.timeout*60/self.interval:
                 self.port.write(self.cmd['binex']+'\r')
                 sleep(2)
@@ -77,20 +77,22 @@ class gps_data():
                         "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
                 except:
                     writeFile(
-                        '/media/mmcblk0p1/logs/gps_binex_data.log', '', 'a+')
+                        '/media/mmcblk0p1/logs/gps_binex.log', '', 'a+')
                     subprocess.call(
                         "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
+                    printf("An error occurred during file dumping!")
+                    traceback.print_exc(
+                        file=open("/media/mmcblk0p1/logs/system.log", "a+"))
                 sleep(2)
                 if self.port.inWaiting() != 0:
-                    data = data+self.port.read(self.port.inWaiting())
+                    data = self.port.read(self.port.inWaiting())
                     writeFile(
                         '/media/mmcblk0p1/logs/gps_binex_data_temp.log', data, 'w+')
                     sleep(1)
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
+                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
                 sleep(self.interval-5)
                 self.sequence = self.sequence+1
-                print(self.sequence)
         finally:
             # At every exit close the port, and turn off the GPS
             if self.port:
@@ -104,27 +106,28 @@ class gps_data():
         """
         Initiate the reading of the binex language from GPS module to Titron
         Take no argument
-        Return Nonem
+        Return None
         """
         try:
             # try opening the port
             self.port.open()
             enable_serial()
             gps_on(bit=1)
-            sleep(60)
+            sleep(90)
             self.port.flusInput()
         except:
             self.port = None
-            print('Unable to open port')
+            printf('An error occurred')
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
-            while self.sequence <= self.timeout*60/self.interval:
-                self.port.write(self.cmd['nmea'])
-                sleep(2)
-                data = self.port.read(self.port.inWaiting())
-                writeFile(
-                    '/media/mmcblk0p1/logs/gps_nmea_data.log', data, 'a+')
-                sleep(self.interval)
-                self.sequence = self.sequence+1
+            self.port.write(self.cmd['nmea'] + "\r")
+            sleep(2)
+            data = self.port.read(self.port.inWaiting())
+            writeFile(
+                '/media/mmcblk0p1/logs/gps_nmea.log', data, 'a+')
+            sleep(2)
+            return data.split("\n")
         finally:
             # At every exit close the port, and turn off the GPS
             if self.port:
