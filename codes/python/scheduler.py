@@ -228,7 +228,7 @@ class monitor():
         self.sched_monitor.every().minute.at(":33").do(get_temperature)
 
     def inactive(self):
-        self.sched_monitor.every().minute.at(":04").do(put_to_inactive_sleep)
+        self.sched_monitor.every().minute.at(":59").do(put_to_inactive_sleep)
 
     def sched(self):
         self.health()
