@@ -1,15 +1,18 @@
-[submodule "amigos/amigos/pylink"]
-	path = amigos/amigos/pylink
-	url = https://github.com/CooviM/pylink
-[submodule "amigos/amigos/pycampbellcr1000"]
-	path = amigos/amigos/pycampbellcr1000
-	url = https://github.com/CooviM/pycampbellcr1000
-[submodule "amigos/amigos/pynmea2"]
-	path = amigos/amigos/pynmea2
-	url = https://github.com/CooviM/pynmea2
-[submodule "amigos/amigos/requests"]
-	path = amigos/amigos/requests
-	url = https://github.com/CooviM/requests
-[submodule "amigos/amigos/schedule"]
-	path = amigos/amigos/schedule
-	url = https://github.com/CooviM/schedule
+[submodule "codes/ext/pylink"]
+path = codes/ext/pylink
+url = https://github.com/CooviM/pylink
+[submodule "codes/ext/pycampbellcr1000"]
+path = codes/ext/pycampbellcr1000
+url = https://github.com/CooviM/pycampbellcr1000
+[submodule "codes/ext/pynmea2"]
+path = codes/ext/pynmea2
+url = https://github.com/CooviM/pynmea2
+[submodule "codes/ext/requests"]
+path = codes/ext/requests
+url = https://github.com/CooviM/requests
+[submodule "codes/ext/schedule"]
+path = codes/ext/schedule
+url = https://github.com/CooviM/schedule
+[submodule "codes/ext/pexpects"]
+path = codes/ext/pexpects
+url = https://github.com/CooviM/pexpects
