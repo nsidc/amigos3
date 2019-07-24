@@ -3,14 +3,14 @@
 """
 Contains classes for  transport implementations.
 """
-import requests
+from requests import get, post
 import os
-import subprocess as subprocess
+import subprocess
 from time import sleep
 from requests.auth import HTTPDigestAuth
 import datetime
-import time
-import random
+import traceback
+from gpio import modem_off, modem_on
 # from xml.etree import ElementTree as et
 
 # class urls():
@@ -39,6 +39,11 @@ class ptz_client():
         self.path = os.getcwd()
         self.snapShop_url = "http://192.168.0.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
 
+    def printf(self, message):
+        with open('/media/mmcblk0p1/logs/system.log', 'a+') as log:
+            date = str(datetime.datetime.now()) + ': '
+            log.write(date + message + '\n')
+
     def __get_service(self, service):
         """[summary]
 
@@ -64,7 +69,7 @@ snapSho
 
         if service != None and service != 'getstatus':
 
-            with open("/media/mmcblk0p1/amigos/amigos/onvif/soap_{0}.xml".format(service), 'r') as soap:
+            with open("/media/mmcblk0p1/codes/onvif/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()  # open the file
             # calculate the value of the pan  [-1 to 1]
             pan = pan*self.unit_degreePan
@@ -88,7 +93,7 @@ snapSho
         # for the function get status
         else:
             # print(self.path)
-            with open("/media/mmcblk0p1/amigos/amigos/onvif/soap_{0}.xml".format(service), 'r') as soap:
+            with open("/media/mmcblk0p1/codes/onvif/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()
 
     def send(self, typeof, pan=None, tilt=None, zoom=None):
@@ -116,19 +121,23 @@ snapSho
             if zoom == None:
                 zoom = float(self.getStatus()[2])*10
             # get the message body to be sent and apply all the value specified
-
+            self.printf(
+                'To tilt {0},  pan {1} and zoom {2}'.format(tilt, pan, zoom))
             self.__get_soap(service=typeof.capitalize()+"Move",
                             pan=pan, tilt=tilt, zoom=zoom)
 
-            # get apply the service the the header message
+            # get apply the service to the header message
             self.__get_service(typeof)
             # print(self.msg)
             # print('-'*50)
-            reply = requests.post(self.url, data=self.msg, headers=self.header)
+            reply = post(self.url, data=self.msg, headers=self.header)
             # print(reply.text)
 
             return reply  # return the reply.
         except:
+            self.printf("Unable to communicate with camera")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return None
 
     def getStatus(self, output=False):
@@ -138,11 +147,11 @@ snapSho
             [floats] -- the current pan, tilt and the zoom
         """
         self.__get_soap('getstatus')  # get the message for status
-
+        self.printf('Getting camera status')
         self.header = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/GetStatus",
                        'Content-Type': 'application/soap+xml'}  # The header of the status
-        reply = requests.post(self.url, data=self.msg,
-                              headers=self.header)  # reply is  an xml file
+        reply = post(self.url, data=self.msg,
+                     headers=self.header)  # reply is  an xml file
         # get the value of the pan, tilt and zoom from the text
         # print(reply.text)
         zoom = float(reply.text.split('><')[8].split('"')[3])
@@ -151,6 +160,8 @@ snapSho
         tilt = float(reply.text.split('><')[7].split(
             '"')[5])
         if output == False:
+            self.printf("camera sttatus: PAN_Position: {0}, TITL_Position: {1}, ZOOM_Position: {2}".format(
+                pan, tilt, zoom))
             return pan, tilt, zoom
         zoom = zoom*100
         pan = pan/self.unit_degreePan
@@ -163,6 +174,7 @@ snapSho
             """
             get a snapshot
             """
+            self.printf("Camera Getting snapShot")
             dt = str(datetime.datetime.now()).split(" ")
             da = dt[0].split('-')
             da = "".join(da)
@@ -173,44 +185,59 @@ snapSho
             password = '10iLtxyh'  # the cameras password
 
             # send the username and password authentication
-            response = requests.get(
+            response = get(
                 self.snapShop_url, auth=HTTPDigestAuth(username, password))
-            f = open('/media/mmcblk0p1/amigos/amigos/pic.jpg', 'wb')  # opening
+            f = open('/media/mmcblk0p1/pic.jpg', 'wb')  # opening
 
             # Write the file to the time stamp
-            newname = '/media/mmcblk0p1/amigos/amigos/'+'photo'+dt[0:-7]+'.jpg'
+            newname = '/media/mmcblk0p1/'+'photo'+dt[0:-7]+'.jpg'
             # print(dt[0:-7])
             subprocess.call("mv {0} {1}".format(
-                '/media/mmcblk0p1/amigos/amigos/pic.jpg', newname), shell=True)
-            # os.rename('/media/mmcblk0p1/amigos/amigos/pic.jpg', newname)
+                '/media/mmcblk0p1/pic.jpg', newname), shell=True)
+            # os.rename('/media/mmcblk0p1/pic.jpg', newname)
             sleep(2)
             f.write(response.content)
             f.close()
             subprocess.call("mv {0} {1}".format(
-                newname, "/media/mmcblk0p1/amigos/amigos/picture/"), shell=True)
+                newname, "/media/mmcblk0p1/pictures/"), shell=True)
+            self.printf("Camera snapShot taken")
+        except:
+            self.printf('Unable to take snapshot')
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+
+    def move(self):
+        try:
+            modem_on(1)
+            sleep(2)
+            self.printf("Camera moving north")
+            self.send('absolute', pan=0, tilt=0, zoom=0)
+            sleep(2)
+            self.snapShot()
+            sleep(1)
+            self.printf("Camera moving east")
+            self.send('absolute', pan=90, tilt=0, zoom=0)
+            sleep(2)
+            self.snapShot()
+            sleep(1)
+            self.printf("Camera moving west")
+            self.send('absolute', pan=-90, tilt=0, zoom=0)
+            sleep(2)
+            self.snapShot()
+            sleep(1)
+            self.printf("Camera moving down")
+            self.send('absolute', pan=0, tilt=-45, zoom=0)
+            sleep(2)
+            self.snapShot()
+            self.printf("Camera moving to mirror, demo only")
+            # add later
+            self.printf("Done! Sending camera lens to Home")
+            sleep(1)
+            self.send('absolute', pan=0, tilt=45, zoom=0)
         except:
             pass
-
-    def cam_test(self):
-        self.send(typeof='absolute', pan=random.randint(-180, 180),
-                  tilt=random.randint(-45, 45), zoom=random.randint(0, 100))
-        sleep(2)
-        self.snapShot()
-        self.send(typeof='absolute', pan=-100,
-                  tilt=0, zoom=random.randint(0, 100))
-        sleep(2)
-        self.snapShot()
-        sleep(1)
-
-        self.send(typeof='absolute', pan=180,
-                  tilt=0, zoom=1)
-        sleep(2)
-
-        self.snapShot()
-        sleep(1)
-        self.send(typeof='absolute', pan=random.randint(-180, 180),
-                  tilt=random.randint(-45, 45), zoom=1)
-        self.snapShot()
+        finally:
+            modem_off(1)
 
 
 # Test the code here

@@ -1,0 +1,77 @@
+#!/bin/bash
+DIR=/media/mmcblk0p1
+BACKUPS="${DIR}/backups"
+DTS="${DIR}/backups/dts"
+GPS="${DIR}/backups/gps"
+WEATHER="${DIR}/backups/weather"
+SOLAR="${DIR}/backups/solar"
+CR1000X="${DIR}/backups/cr1000x"
+PICTURES="${DIR}/pictures"
+LOGS="${DIR}/logs"
+POWER="${DIR}/logs/power_log.log"
+SYSTEM="${DIR}/logs/system.log"
+#BLACK_HOLE= /dev/null
+
+if [ ! -d $DIR ]; then
+    echo "This code can not run on this computer. Are  sure you are on a Tritron board?"
+    echo "If so, check If SD_CARD directory In /media is named mmcblk0p1 by typing 'cd /media && ls'"
+    echo "In case the name is different, let the software engineers know. Thanks"
+    echo " "
+    echo "Contact:"
+    echo "  Coovi M"
+    echo "      Email: coovi.meha@colorado.edu"
+    echo "      Phone: 720-468-9447"
+    echo "  Bruce W: "
+    echo "      Email: coovi.meha@colorado.edu"
+    echo "      Phone: 720-468-9447"
+    echo "  Sid A"
+    echo "      Email: siar7178@colorado.edu"
+    echo "      Phone: 720-839-2887"
+    exit 0
+fi
+
+if [ ! -d $LOGS ]; then
+    mkcoovi.meha@colorado.edudir $LOGS && touch $POWER && echo "0b00000000,0b00000000,0b00000000" >$POWER
+
+else
+    if [ ! -f $POWER ]; then
+        touch $POWER && echo "0b00000000,0b0000000coovi.meha@coloradocoovi.meha@colorado.edu.edu0,0b00000000" >$POWER
+    else
+        echo "0b00000000,0b00000000,0b00000000" >$POWER
+    fi
+fi
+
+time_now="$(date)"
+echo "${time_now:0:19} ${time_now:24}: Checking For missing folder and creating them!" >$SYSTEM
+
+if [ ! -d $PICTURES ]; then
+    cd $DIR && mkdir pictures
+fi
+
+if [ ! -d $BACKUPS ]; then
+    cd $DIR && mkdir backups
+else
+    if [ ! -d $GPS ]; then
+        mkdir "${BACKUPS}/gps"
+    fi
+
+    if [ ! -d $DTS ]; then
+        mkdir "${BACKUPS}/dts"
+    fi
+
+    if [ ! -d $WEATHER ]; then
+        mkdir "${BACKUPS}/weather"
+    fi
+
+    if [ ! -d $SOLAR ]; then
+        mkdir "${BACKUPS}/solar"
+    fi
+
+    if [ ! -d $CR1000X ]; then
+        mkdir "${BACKUPS}/CR1000x"
+    fi
+
+fi
+
+time_now="$(date)"
+echo "${time_now:0:19} ${time_now:24}: All required folders and files created!" >$SYSTEM
