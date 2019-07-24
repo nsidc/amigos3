@@ -1,17 +1,16 @@
 from pycampbellcr1000 import CR1000
-from gpio import cr1000_off, cr1000_on
+# from gpio import cr1000_off, cr1000_on
 from time import sleep
 
 
 class cr1000x:
     def finddata(self):
-        cr1000_on(1)
-        sleep(90)
+        # cr1000_on(1)
+        # sleep(90)
         device = CR1000.from_url('tcp:192.168.0.30:6785')
         data = device.get_data('Public')
         # print(data[0])
         # finds strings inbetween parenthesis
-
         Timestamp = str(data[0]['Datetime'])
         RecNbr = str(data[0]['RecNbr'])
         Batt_volt = str(data[0]['Batt_volt'])
@@ -49,12 +48,13 @@ class cr1000x:
             pass
         else:
             therms = open(
-                "/media/mmcblk0p1/amigos/amigos/logs/thermdata.log", "a+")
+                "/media/mmcblk0p1/logs/thermdata_test.log", "a+")
             for i in range(len(labels)):
                 therms.write(labels[i] + ': ' + values[i] + "\n")
             therms.close()
         finally:
-            cr1000_off(1)
+            # cr1000_off(1)
+            pass
 
 
 if __name__ == "__main__":
