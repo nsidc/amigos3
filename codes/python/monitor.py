@@ -116,7 +116,6 @@ def no_task():
     with open("/media/mmcblk0p1/logs/power_log.log", "r") as power:
         data = power.read()
     data = data.split(",")
-    print(data)
     if int(data[0], 2) == 0 and int(data[2], 2) == 0:
         if int(data[1], 2) == 8 or int(data[1], 2) == 0:
             return True
@@ -228,4 +227,4 @@ def get_schedule_health():
 
 
 if __name__ == "__main__":
-    get_system_performance()
+    put_to_inactive_sleep()

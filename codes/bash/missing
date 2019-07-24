@@ -34,7 +34,7 @@ if [ ! -d $LOGS ]; then
     mkcoovi.meha@colorado.edudir $LOGS && touch $POWER && echo "0b00000000,0b00000000,0b00000000" >$POWER
 
 else
-    if [ ! -f $POWER ]; thencoovi.meha@colorado.edu
+    if [ ! -f $POWER ]; then
         touch $POWER && echo "0b00000000,0b0000000coovi.meha@coloradocoovi.meha@colorado.edu.edu0,0b00000000" >$POWER
     else
         echo "0b00000000,0b00000000,0b00000000" >$POWER
