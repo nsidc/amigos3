@@ -95,7 +95,7 @@ class Average_Reading():
                 data_array_final.append(round(numbers_divide, 3))
             # Write the averaged array elements to a final log file - append
             now = datetime.datetime.now()
-            with open("/media/mmcblk0p1/logs/weather_data.log", "a+") as hourly:
+            with open("/media/mmcblk0p1/logs/weather.log", "a+") as hourly:
                 hourly.write("Current Date and Time: " +
                              now.strftime("%Y-%m-%d %H:%M:%S\n"))
                 hourly.write("Wind Direction Average (Degrees): " +
@@ -135,6 +135,29 @@ class Average_Reading():
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
+        return data_array_final
+
+    def vaisala_iridium(self):
+        data_array_final = self.average_data()
+        weather_dict = {
+            'WD':data_array_final[0],
+            'WS':data_array_final[1],
+            'AT':data_array_final[2],
+            'RH':data_array_final[3],
+            'AP':data_array_final[4],
+            'RA':data_array_final[5],
+            'RD':data_array_final[6],
+            'RI':data_array_final[7],
+            'RPI':data_array_final[11],
+            'HA':data_array_final[8],
+            'HD':data_array_final[9],
+            'HI':data_array_final[10],
+            'HPI':data_array_final[12],
+            'UT':data_array_final[13],
+            'UV':data_array_final[14],
+            'USV':data_array_final[15]
+        }
+        return str(weather_dict)
 
 # Class that will allow the user to access specific weather data points whenever needed
 class Live_Data():

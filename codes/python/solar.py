@@ -43,7 +43,7 @@ def readsolar():
                 data = date + ",  " + str(data1) + ",  " + str(data2) + "\n"
             data = str(data)
             # print(data)
-            with open("/media/mmcblk0p1/logs/solar_data.log", "a+") as solar:
+            with open("/media/mmcblk0p1/logs/solar.log", "a+") as solar:
                 solar.write(data + '\n')
                 sleep(8)  # set rate of readings in seconds
             t = t + 10  # keep time
@@ -58,6 +58,7 @@ def readsolar():
             'rm /media/mmcblk0p1/logs/solar_temp1.log', shell=True)
         subprocess.call(
             'rm /media/mmcblk0p1/logs/solar_temp2.log', shell=True)
+    
 
 
 class solar_live():
@@ -97,6 +98,16 @@ class solar_live():
                 solar_off()
 
         return data1, data2
+
+    def solar_iridium(self):
+        data1, data2 = self.read_solar()
+        array = [data1,data2]
+        solar_dict = {
+            'S1':array[0],
+            'S2':array[1]
+        }
+        return str(solar_dict)
+
 
     def solar_1(self):
         data1, data2 = self.read_solar()

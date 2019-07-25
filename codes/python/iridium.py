@@ -4,6 +4,12 @@ from time import sleep
 from execp import printf
 import ftplib as ftp
 
+from solar import solar_live 
+from vaisala import Average_Reading
+from cr1000x import cr1000x
+
+
+
 
 class dial_in():
     def __init__(self, *args, **kwargs):
@@ -52,19 +58,21 @@ def send(message="Testing"):
         iridium_on(1)
         sbd_on(1)
         sleep(1)
-        iridium_off(1)
         enable_serial()
         sleep(1)
+        message_sent = False
     except:
         printf('Unable to open port')
     else:
         port.write(message + '\r')
         printf('sent SBD message: {0} {1}'.format(message, '\r'))
         sleep(60)
+        message_sent = True
     finally:
         disable_serial()
         sbd_off(1)
         iridium_off(1)
+    return message_sent
 
 
 def read():
@@ -78,3 +86,39 @@ def read():
         return None
     rev = port.read(port.inWaiting())
     return rev
+
+def device_data_sbd():
+    #instances of classes
+    solarclass = solar_live()
+    vaisalaclass = Average_Reading()
+    crclass = cr1000x()
+
+    #variables to store dictionary strings 
+    #solar = solarclass.solar_iridium() # Returns dictionary of live data 1 and data 2, the readings from each of the light sensors 
+    #vaisala = vaisalaclass.vaisala_iridium() # Returns array of 2-minute averaged weather data dictionary 
+    #cr = crclass.cr_iridium() # Returns array of all live CR data in dictionary string 
+
+    solar = "sample solar"
+    vaisala = "sample vaisala"
+    cr = "sample cr"
+
+    #call send function with new message
+    message_sent = send(message=solar)
+    if message_sent == True:
+        print('Solar message successfully sent')
+        message_sent = send(message=vaisala)
+        if message_sent == True:
+            print('Vaiala message successfully sent')
+            message_sent = send(message=cr)
+            if message_sent == True:
+                print('CR message successfully sent')
+            else:
+                print('CR message did not sent over iridium')
+        else:
+            print('Vaisala message did not send over iridium')
+    else:
+        print('Solar message did not send over iridium')
+
+
+if __name__ == "__main__":
+    device_data_sbd()
