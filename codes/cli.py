@@ -130,6 +130,10 @@ def args_parser():
                            help='cr1000 on', action='store_true')
         power.add_argument('-cr_off', '--cr1000_off',
                            help='cr1000 off', action='store_true')
+        power.add_argument('-im_on', '--imm_on',
+                           help='imm on', action='store_true')
+        power.add_argument('-im_off', '--imm_off',
+                           help='imm off', action='store_true')
         power.add_argument('-r_on', '--router_on',
                            help='Router on', action='store_true')
         power.add_argument('-r_off', '--router_off',
@@ -221,6 +225,10 @@ def power(args):
         gpio.iridium_on(1)
     elif args.iridium_off:
         gpio.iridium_off(1)
+    elif args.imm_on:
+        gpio.imm_on(1)
+    elif args.imm_off:
+        gpio.imm_off(1)
     elif args.dts_on:
         gpio.dts_on(1)
     elif args.dts_off:

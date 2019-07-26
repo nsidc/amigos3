@@ -94,13 +94,9 @@ def device_data_sbd():
     crclass = cr1000x()
 
     #variables to store dictionary strings 
-    #solar = solarclass.solar_iridium() # Returns dictionary of live data 1 and data 2, the readings from each of the light sensors 
-    #vaisala = vaisalaclass.vaisala_iridium() # Returns array of 2-minute averaged weather data dictionary 
-    #cr = crclass.cr_iridium() # Returns array of all live CR data in dictionary string 
-
-    solar = "sample solar"
-    vaisala = "sample vaisala"
-    cr = "sample cr"
+    solar = solarclass.solar_iridium() # Returns dictionary of live data 1 and data 2, the readings from each of the light sensors 
+    vaisala = vaisalaclass.vaisala_iridium() # Returns array of 2-minute averaged weather data dictionary 
+    cr = crclass.cr_iridium() # Returns array of all live CR data in dictionary string 
 
     #call send function with new message
     message_sent = send(message=solar)

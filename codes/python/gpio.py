@@ -146,6 +146,37 @@ def weather_off(bit):
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
+def imm_on(bit):
+    """
+    Turn IMM module power on after toggling the bit
+    """
+
+    if bit:
+        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
+            bit_string = power_log.read().split(",")
+            bit_str = bit_string[0][0:7]+"1"+bit_string[0][8:]
+        __toggle(bit-1)
+        subprocess.call(
+            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+        printf("Weather station turned on")
+        __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
+
+
+def imm_off(bit):
+    """
+    Turn IMM module power off after toggling the bit
+    """
+    if bit:
+        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
+            bit_string = power_log.read().split(",")
+            bit_str = bit_string[0][0:7]+"0"+bit_string[0][8:]
+        __toggle(bit-1)
+        subprocess.call(
+            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
+        printf("weather station turned off")
+        __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
+
+
 def power_down(bit):
     if bit:
         bit_string = "0b00000000,0b00000000,0b00000000"
