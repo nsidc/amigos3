@@ -16,7 +16,7 @@ import signal
 import sys
 import traceback
 from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sleep, clear_cached, get_system_performance, has_slept
-from iridium import send as sbd_send, read as sbd_read, dial_in, dial_out
+from iridium import send as sbd_send, read as sbd_read, dial
 from dts import test as dts_test
 # import monitor as monitor
 
@@ -101,7 +101,7 @@ class summer():
         self.sched_summer.every().hour.at(":56").do(readsolar)
 
     def dial_out(self):
-        d = dial_out()
+        d = dial()
         # # box a
         # self.sched_summer.every().day.at("06:10").do(dial_out)
         # self.sched_summer.every().day.at("12:10").do(dial_out)
@@ -113,14 +113,14 @@ class summer():
         # self.sched_summer.every().day.at("18:20").do(dial_out)
         # self.sched_summer.every().day.at("00:20").do(dial_out)
         # # box c
-        self.sched_summer.every().day.at("06:30").do(d.dialout)
-        self.sched_summer.every().day.at("12:30").do(d.dialout)
-        self.sched_summer.every().day.at("18:30").do(d.dialout)
-        self.sched_summer.every().day.at("00:30").do(d.dialout)
+        self.sched_summer.every().day.at("06:30").do(d.Out)
+        self.sched_summer.every().day.at("12:30").do(d.Out)
+        self.sched_summer.every().day.at("18:30").do(d.Out)
+        self.sched_summer.every().day.at("00:30").do(d.Out)
 
     def dial_in(self):
-        d = dial_in()
-        self.sched_summer.every().day.at("19:20").do(d.dialin)
+        d = dial()
+        self.sched_summer.every().day.at("19:20").do(d.In)
 
     def dts(self):
         self.sched_summer.every().day.at("03:05").do(dts_test)
@@ -177,18 +177,18 @@ class winter():
         self.sched_winter.every().hour.at(":56").do(readsolar)
 
     def dial_out(self):
-        d = dial_out()
+        d = dial()
         # # box a
         # self.sched_winter.every().day.at("00:10").do(dial_out)
         # # box b
         # self.sched_winter.every().day.at("00:20").do(dial_out)
         # # box c
-        self.sched_winter.every().day.at("00:30").do(d.dialout)
+        self.sched_winter.every().day.at("00:30").do(d.Out)
 
     def dial_in(self):
 
-        d = dial_in()
-        self.sched_winter.every().day.at("19:20").do(d.dialin)
+        d = dial()
+        self.sched_winter.every().day.at("19:20").do(d.In)
 
     def dts(self):
         self.sched_winter.every().day.at("21:05").do(dts_test)
@@ -307,7 +307,7 @@ def run_schedule():
     monitor_task = m.sched()
     # run forever
     while True:
-        if not has_slept:
+        if has_slept():
             printf("Amigos! Wakes up! Job(s) awaiting.")
             mem = get_system_performance()
             printf("System performance before: {0}K used ram, {1}K free ram, {2}K cached , and {3}K buffer".format(

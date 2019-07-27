@@ -1,7 +1,7 @@
 # from watchdog import set_mode
 # from scheduler import run_schedule
 import shutil
-#import os
+import os
 from subprocess import Popen, PIPE, call
 from execp import printf
 from onboard_device import get_battery_current, get_battery_voltage
@@ -18,29 +18,47 @@ def get_disk_space():
     pass
 
 
-def backup(sub_files):
+def backup(sub_files, own=False):
     # files = ["gps_binex.log", "weather_data.log", "thermostat.log", "solar.log", ]
-    source = "/media/mmcblk0p1/logs"
+    time_now = datetime.datetime.now()
+    time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
+        str(time_now.day) + "_" + str(time_now.hour) + str(time_now.minute)
+    if own:
+        new_name = sub_files.split("/")
+        new_name.insert(-1, "trashes")
+        # print(new_name[:-1])
+        trash = "/".join(new_name[:-1])
+        if os.path.isdir(trash) == False:
+            print(os.path.isdir("-".join(new_name[:-1])))
+            print(trash)
+            os.mkdir(trash)
+        # print(new_name)
+        new_name = "/".join(new_name)
+        shutil.move(sub_files, new_name)
+        return
+    # source = "/media/mmcblk0p1/logs"
     gps = "/media/mmcblk0p1/backups/gps"
     cr1000 = "/media/mmcblk0p1/backups/cr1000x"
     weather = "/media/mmcblk0p1/backups/weather"
     dts = "/media/mmcblk0p1/backups/dts"
     solar = "/media/mmcblk0p1/backups/solar"
+    photo = "/media/mmcblk0p1/backups/pictures"
     time_now = datetime.datetime.now()
     time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
         str(time_now.day) + "_" + str(time_now.hour) + str(time_now.minute)
     # for sub_files in files:
     if sub_files.find("gps"):
-        new_name = gps + sub_files + time_now
+        new_name = gps + "/" + time_now + sub_files.split("/")[-1]
     elif sub_files.find("weather"):
-        new_name = weather + sub_files + time_now
+        new_name = weather + "/" + time_now + sub_files.split("/")[-1]
     elif sub_files.find("therm"):
-        new_name = cr1000 + sub_files + time_now
+        new_name = cr1000 + "/" + time_now + sub_files.split("/")[-1]
     elif sub_files.find("solar"):
-        new_name = solar + sub_files + time_now
+        new_name = solar + "/" + time_now + sub_files.split("/")[-1]
     elif sub_files.find("dts"):
-        new_name = dts + sub_files + time_now
-    sub_files = source + sub_files
+        new_name = dts + "/" + time_now + sub_files.split("/")[-1]
+    elif sub_files.find("picture"):
+        new_name = photo + "/" + time_now + sub_files.split("/")[-1]
     shutil.move(sub_files, new_name)
 
 
@@ -53,6 +71,8 @@ def has_slept():
     with open("/media/mmcblk0p1/logs/slept.log", "r") as slept:
         data = slept.read()
     if data:
+        with open("/media/mmcblk0p1/logs/slept.log", "w") as slept:
+            data = slept.write("")
         return True
     return False
 
