@@ -144,7 +144,7 @@ def args_parser():
                            help='dts off', action='store_true')
         power.add_argument('-off', '--power_off',
                            help='power down all peripherals', action='store_true')
-        power.add_argument('-on', '--power_on',
+        power.add_argument('-all_on', '--all_on',
                            help='power up all peripherals', action='store_true')
         power.add_argument('-r', '--reboot',
                            help='reboot system', action='store_true')
@@ -227,7 +227,7 @@ def power(args):
         gpio.dts_off(1)
     elif args.power_off:
         gpio.power_down(1)
-    elif args.power_on:
+    elif args.all_on:
         gpio.power_up(1)
     elif args.modem_off:
         gpio.modem_off(1)

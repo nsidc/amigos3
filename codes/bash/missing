@@ -10,6 +10,7 @@ PICTURES="${DIR}/pictures"
 LOGS="${DIR}/logs"
 POWER="${DIR}/logs/power_log.log"
 SYSTEM="${DIR}/logs/system.log"
+BACK_PHOTO="${DIR}/backups/pictures"
 #BLACK_HOLE= /dev/null
 
 if [ ! -d $DIR ]; then
@@ -42,7 +43,7 @@ else
 fi
 
 time_now="$(date)"
-echo "${time_now:0:19} ${time_now:24}: Checking For missing folder and creating them!" >$SYSTEM
+echo "${time_now:0:19} ${time_now:24}: Checking For missing folder and creating them!" >>$SYSTEM
 
 if [ ! -d $PICTURES ]; then
     cd $DIR && mkdir pictures
@@ -71,7 +72,11 @@ else
         mkdir "${BACKUPS}/CR1000x"
     fi
 
+    if [ ! -d $BACK_PHOTO ]; then
+        mkdir "${BACKUPS}/pictures"
+    fi
+
 fi
 
 time_now="$(date)"
-echo "${time_now:0:19} ${time_now:24}: All required folders and files created!" >$SYSTEM
+echo "${time_now:0:19} ${time_now:24}: All required folders and files created!" >>$SYSTEM
