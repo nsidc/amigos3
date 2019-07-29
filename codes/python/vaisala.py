@@ -137,7 +137,7 @@ class Average_Reading():
 
         return data_array_final
 
-    def vaisala_iridium(self):
+    def vaisala_sbd(self):
         data_array_final = self.average_data()
         weather_dict = {
             'WD':data_array_final[0],

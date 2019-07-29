@@ -1,12 +1,12 @@
 from serial import Serial as ser
-from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
+#from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
 from time import sleep
 from execp import printf
-import ftplib as ftp
+#import ftplib as ftp
 
-from solar import solar_live 
-from vaisala import Average_Reading
-from cr1000x import cr1000x
+#from solar import solar_live 
+#from vaisala import Average_Reading
+#from cr1000x import cr1000x
 
 
 
@@ -87,34 +87,173 @@ def read():
     rev = port.read(port.inWaiting())
     return rev
 
-def device_data_sbd():
+def sbd():
     #instances of classes
-    solarclass = solar_live()
-    vaisalaclass = Average_Reading()
-    crclass = cr1000x()
+    #solarclass = solar_live()
+    #vaisalaclass = Average_Reading()
+    #crclass = cr1000x()
 
     #variables to store dictionary strings 
-    solar = solarclass.solar_iridium() # Returns dictionary of live data 1 and data 2, the readings from each of the light sensors 
-    vaisala = vaisalaclass.vaisala_iridium() # Returns array of 2-minute averaged weather data dictionary 
-    cr = crclass.cr_iridium() # Returns array of all live CR data in dictionary string 
+    #solar = solarclass.solar_sbd() # Returns dictionary of live data 1 and data 2, the readings from each of the light sensors 
+    #vaisala = vaisalaclass.vaisala_sbd() # Returns array of 2-minute averaged weather data dictionary 
+    #cr = crclass.cr_sbd() # Returns array of all live CR data in dictionary string 
 
-    #call send function with new message
-    message_sent = send(message=solar)
-    if message_sent == True:
-        print('Solar message successfully sent')
-        message_sent = send(message=vaisala)
-        if message_sent == True:
-            print('Vaiala message successfully sent')
-            message_sent = send(message=cr)
-            if message_sent == True:
-                print('CR message successfully sent')
+    solar = "Iridium Test YEEEET"
+    vaisala = "Still testing... lol"
+    cr = "...sigh..."
+
+    #Commands send to iridium solar data
+    message_sent = False
+    sbd_port = ser("/dev/ttyUSB0")
+    sbd_port.flushInput()
+    sbd_port.write("AT\r\n")
+    sleep(2)
+    check = sbd_port.read(sbd_port.inWaiting())
+    if check.find("OK") != -1:
+        sbd_port.write("AT&K0\r\n")
+        sleep(2)
+        check = sbd_port.read(sbd_port.inWaiting())
+        if check.find("OK") != -1:
+            sbd_port.write("AT+SBDWT={0}\r\n".format(solar))
+            sleep(2)
+            check = sbd_port.read(sbd_port.inWaiting())
+            if check.find("OK") != -1:
+                sbd_port.write("AT+SBDIX\r\n")
+                sleep(15)
+                array = sbd_port.read(sbd_port.inWaiting())
+                array1 = array.split(":")[1].split(",")
+                if array1[0] == " 0":
+                    message_sent = True
+                    printf("solar message sent successfully, moving to vaisala")
             else:
-                print('CR message did not sent over iridium')
+                printf("AT+SBDWT message command did not work to the iridium (Solar)")
         else:
-            print('Vaisala message did not send over iridium')
+            printf("AT&K0 command did not work to the iridium (Solar)")
     else:
-        print('Solar message did not send over iridium')
+        printf("AT command did not work to the iridium (Solar)")
+
+    #Commands send to iridium vaisala data
+    if message_sent == True:
+        message_sent = False
+        sbd_port = ser("/dev/ttyUSB0")
+        sbd_port.flushInput()
+        sbd_port.write("AT\r\n")
+        sleep(2)
+        check = sbd_port.read(sbd_port.inWaiting())
+        if check.find("OK") != -1:
+            sbd_port.write("AT&K0\r\n")
+            sleep(2)
+            check = sbd_port.read(sbd_port.inWaiting())
+            if check.find("OK") != -1:
+                sbd_port.write("AT+SBDWT={0}\r\n".format(vaisala))
+                sleep(2)
+                check = sbd_port.read(sbd_port.inWaiting())
+                if check.find("OK") != -1:
+                    sbd_port.write("AT+SBDIX\r\n")
+                    sleep(15)
+                    array = sbd_port.read(sbd_port.inWaiting())
+                    array1 = array.split(":")[1].split(",")
+                    if array1[0] == " 0":
+                        message_sent = True
+                        printf("vaisala message sent successfully, moving to cr")
+                else:
+                    printf("AT+SBDWT message command did not work to the iridium (Vaisala)")
+            else:
+                printf("AT&K0 command did not work to the iridium (Vaisala)")
+        else:
+            printf("AT command did not work to the iridium (Vaisala)")
+    else:
+        printf("solar data did not send, still moving on to vaisala ")
+        message_sent = False
+        sbd_port = ser("/dev/ttyUSB0")
+        sbd_port.flushInput()
+        sbd_port.write("AT\r\n")
+        sleep(2)
+        check = sbd_port.read(sbd_port.inWaiting())
+        if check.find("OK") != -1:
+            sbd_port.write("AT&K0\r\n")
+            sleep(2)
+            check = sbd_port.read(sbd_port.inWaiting())
+            if check.find("OK") != -1:
+                sbd_port.write("AT+SBDWT={0}\r\n".format(vaisala))
+                sleep(2)
+                check = sbd_port.read(sbd_port.inWaiting())
+                if check.find("OK") != -1:
+                    sbd_port.write("AT+SBDIX\r\n")
+                    sleep(15)
+                    array = sbd_port.read(sbd_port.inWaiting())
+                    array1 = array.split(":")[1].split(",")
+                    if array1[0] == " 0":
+                        message_sent = True
+                        printf("vaisala message sent successfully, moving to cr")
+                else:
+                    printf("AT+SBDWT message command did not work to the iridium (Vaisala)")
+            else:
+                printf("AT&K0 command did not work to the iridium (Vaisala)")
+        else:
+            printf("AT command did not work to the iridium (Vaisala)")
+
+    #Commands send to iridium cr data
+    if message_sent == True:
+        message_sent = False
+        sbd_port = ser("/dev/ttyUSB0")
+        sbd_port.flushInput()
+        sbd_port.write("AT\r\n")
+        sleep(2)
+        check = sbd_port.read(sbd_port.inWaiting())
+        if check.find("OK") != -1:
+            sbd_port.write("AT&K0\r\n")
+            sleep(2)
+            check = sbd_port.read(sbd_port.inWaiting())
+            if check.find("OK") != -1:
+                sbd_port.write("AT+SBDWT={0}\r\n".format(cr))
+                sleep(2)
+                check = sbd_port.read(sbd_port.inWaiting())
+                if check.find("OK") != -1:
+                    sbd_port.write("AT+SBDIX\r\n")
+                    sleep(15)
+                    array = sbd_port.read(sbd_port.inWaiting())
+                    array1 = array.split(":")[1].split(",")
+                    if array1[0] == " 0":
+                        message_sent = True
+                        printf("cr message sent successfully, moving to (insert next device)")
+                else:
+                    printf("AT+SBDWT message command did not work to the iridium (CR)")
+            else:
+                printf("AT&K0 command did not work to the iridium (CR)")
+        else:
+            printf("AT command did not work to the iridium (CR)")
+    else:
+        printf("vaisala data did not send, still moving to cr")
+        message_sent = False
+        sbd_port = ser("/dev/ttyUSB0")
+        sbd_port.flushInput()
+        sbd_port.write("AT\r\n")
+        sleep(2)
+        check = sbd_port.read(sbd_port.inWaiting())
+        if check.find("OK") != -1:
+            sbd_port.write("AT&K0\r\n")
+            sleep(2)
+            check = sbd_port.read(sbd_port.inWaiting())
+            if check.find("OK") != -1:
+                sbd_port.write("AT+SBDWT={0}\r\n".format(cr))
+                sleep(2)
+                check = sbd_port.read(sbd_port.inWaiting())
+                if check.find("OK") != -1:
+                    sbd_port.write("AT+SBDIX\r\n")
+                    sleep(15)
+                    array = sbd_port.read(sbd_port.inWaiting())
+                    array1 = array.split(":")[1].split(",")
+                    if array1[0] == " 0":
+                        message_sent = True
+                        printf("cr message sent successfully, moving to (insert next device)")
+                else:
+                    printf("AT+SBDWT message command did not work to the iridium (CR)")
+            else:
+                printf("AT&K0 command did not work to the iridium (CR)")
+        else:
+            printf("AT command did not work to the iridium (CR)")
 
 
 if __name__ == "__main__":
-    device_data_sbd()
+    sbd()

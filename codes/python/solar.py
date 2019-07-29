@@ -99,7 +99,7 @@ class solar_live():
 
         return data1, data2
 
-    def solar_iridium(self):
+    def solar_sbd(self):
         data1, data2 = self.read_solar()
         array = [data1,data2]
         solar_dict = {

@@ -44,7 +44,7 @@ class cr1000x:
                   R4_5, R6_5, R8_5, R40, T6, T6_5, T10, T20, T40, T2_5, T4_5, T8_5, dt, Q, tcdt]
         return labels, values
 
-    def cr_iridium(self):
+    def cr_sbd(self):
         labels, values = self.finddata()
         cr_dict = {
             'BV':values[2],
