@@ -16,3 +16,6 @@ url = https://github.com/CooviM/schedule
 [submodule "codes/ext/pexpects"]
 path = codes/ext/pexpects
 url = https://github.com/CooviM/pexpects
+[submodule "codes/ext/pyserial"]
+	path = codes/ext/pyserial
+	url = https://github.com/pyserial/pyserial.git
