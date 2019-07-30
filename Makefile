@@ -29,3 +29,12 @@ test: lint  # run unit tests
 
 install: env submodules # install the environment and local source
 	python setup.py develop
+
+deploy: # sync the code to the amigos box
+	scp -prCB amigos root@amigos:/media/mmcblk0
+
+sercom: # sync the code to the amigos box
+	picocom -b 115200 /dev/ttyUSB0
+
+sercom-modem: # sync the code to the amigos box
+	picocom -b 9600 /dev/ttyUSB0
