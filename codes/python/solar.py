@@ -48,6 +48,8 @@ def readsolar():
                 sleep(8)  # set rate of readings in seconds
             t = t + 10  # keep time
     except:
+        with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
+            res.write("readsolar")
         printf("Unable to read solar sensor")
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))

@@ -1,0 +1,8 @@
+
+export LD_LIBRARY_PATH=/mnt/jpeg_tools:$LD_LIBRARY_PATH
+
+Then the following commands shrink the image 1:4:
+
+./djpeg -scale 1/2 ../gphoto2/bin/capt0000.jpg >img.pnm
+./cjpeg -scale 1/2 img.pnm >capt0000_small.jpg
+rm img.pnm 

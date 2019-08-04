@@ -12,8 +12,8 @@ from python.device import is_on, is_off
 from python.iridium import read as read_sbd, send as send_sbd
 from python.cr1000x import cr1000x_live as cr1000x_live
 from python.solar import solar_live as solar_live
-my_path = os.path.abspath(os.path.dirname(__file__))
-path = os.path.join(my_path, "text.txt")
+from python.execp import printf
+from python.iridium import dial
 ptz = client()
 
 # Create instances of script classes
@@ -177,6 +177,15 @@ def args_parser():
         sbd.add_argument('-read', '--read',
                          help='read sbd', action='store_true')
 
+        dial = parser.add_argument_group(
+            'dial out/in ', 'controlfor dial')
+        dial.add_argument(
+            'dial', help='Required secondary argument', nargs='?')
+        dial.add_argument(
+            '-out', '--out', help='dial out files through', action='store_true')
+        dial.add_argument('-In', '--In',
+                          help='dial in', action='store_true')
+
         camera = parser.add_argument_group(
             'Camera Control', 'Control camera position, take pictures and more')
         camera.add_argument(
@@ -272,6 +281,8 @@ def camera(args, val):
         ptz.send(typeof='absolute', pan=float(
             val[0]), tilt=float(val[1]), zoom=float(val[2]))
     elif args.snapshot:
+        print("Warning: Dialout the pictures or it will affect the next scheduled dialout session time")
+        print('To do so, type: amigos dial -out "/media/mmcblk0p1/pictures"')
         ptz.snapShot()
     elif args.get_status:
         ptz.getStatus(output=True)
@@ -376,6 +387,22 @@ def device(args):
         is_off()
 
 
+def dials(args, value):
+    d = dial()
+    if args.out:
+        if value == None:
+            d.Out()
+            # print("Required path to files. Support array of path files")
+            return
+        d.Out(value)
+    elif args.In:
+        print(
+            "Dial in is likely not needed here. Are you sure you want to continue [yes/no]")
+        inp = raw_input()
+        if inp in ["yes", "Yes", "YES", "y"]:
+            d.In()
+
+
 def weather(args):
     # call averaging function from vaisala script in avg class - to start long-term data collection
     if args.collect:
@@ -420,10 +447,13 @@ def main():
     Allow easy access to functionalities of the amigos
     """
     # print (args)
+    printf("Humain activity detected here!" + "*"*30)
     parser, val = args_parser()
     args = parser.parse_args()
     if args.help:
         parser.print_help()
+    elif args.schedule == 'dial':
+        dials(args, val)
     elif args.schedule == 'power':
         power(args)
     # logic for watchdog configuration
@@ -446,8 +476,9 @@ def main():
     else:
         print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")
-        if inp in ['y', 'yes']:
+        if inp in ['y', 'yes', "Yes","YES"]:
             parser.print_help()
+    printf("Human has left the channel ``\\_(^/)_/``" + "*"*30)
 
 
 if __name__ == "__main__":

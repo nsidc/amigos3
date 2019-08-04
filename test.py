@@ -1,0 +1,23 @@
+import schedule
+import time
+import datetime
+
+
+def job():
+    print("I'm working...")
+
+
+schedule.every(10).minutes.do(job)
+schedule.every().hour.do(job)
+schedule.every().day.at("10:30").do(job)
+schedule.every(5).to(10).minutes.do(job)
+schedule.every().monday.do(job)
+schedule.every().wednesday.at("13:15").do(job)
+schedule.every().minute.at(":17").do(job)
+
+while True:
+    schedule.run_pending()
+    jobs = schedule.jobs
+    time_interval = str(sorted(jobs)[0].next_run - datetime.datetime.now()).split(":")
+    print(time_interval)
+    time.sleep(1)

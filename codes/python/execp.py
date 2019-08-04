@@ -18,7 +18,14 @@ import sys
 #     return catch_exceptions_decorator
 
 
-def printf(message):
+def printf(message, date=False):
+    """
+        Print to the log file
+    """
+    if date == True:
+        with open('/media/mmcblk0p1/logs/system.log', 'a+') as log:
+            log.write(message + '\n')
+            return
     with open('/media/mmcblk0p1/logs/system.log', 'a+') as log:
         date = str(datetime.datetime.now()) + ': '
         log.write(date + message + '\n')

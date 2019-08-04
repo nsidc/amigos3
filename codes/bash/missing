@@ -1,17 +1,23 @@
 #!/bin/bash
 DIR=/media/mmcblk0p1
 BACKUPS="${DIR}/backups"
-DTS="${DIR}/backups/dts"
+BACKDTS="${DIR}/backups/dts"
+BACKSYS="${DIR}/backups/system"
+DTS="${DIR}/dts"
 GPS="${DIR}/backups/gps"
 WEATHER="${DIR}/backups/weather"
 SOLAR="${DIR}/backups/solar"
 CR1000X="${DIR}/backups/cr1000x"
 PICTURES="${DIR}/pictures"
+UPICTURES="${DIR}/unscaled_pictures"
 LOGS="${DIR}/logs"
 POWER="${DIR}/logs/power_log.log"
+SLEPT="${DIR}/logs/slept.log"
 SYSTEM="${DIR}/logs/system.log"
 BACK_PHOTO="${DIR}/backups/pictures"
 #BLACK_HOLE= /dev/null
+
+time_now="$(date)"
 
 if [ ! -d $DIR ]; then
     echo "This code can not run on this computer. Are  sure you are on a Tritron board?"
@@ -32,51 +38,64 @@ if [ ! -d $DIR ]; then
 fi
 
 if [ ! -d $LOGS ]; then
-    mkcoovi.meha@colorado.edudir $LOGS && touch $POWER && echo "0b00000000,0b00000000,0b00000000" >$POWER
-
+    mkdir $LOGS && touch $POWER && echo "0b00000000,0b00000000,0b00000000" >$POWER
+    echo "${time_now:0:19} ${time_now:24}: Logs folder missing! Created" >>$SYSTEM
 else
     if [ ! -f $POWER ]; then
-        touch $POWER && echo "0b00000000,0b0000000coovi.meha@coloradocoovi.meha@colorado.edu.edu0,0b00000000" >$POWER
+        touch $POWER && echo "0b00000000,0b0000000,0b00000000" >$POWER
+        echo "${time_now:0:19} ${time_now:24}: Power track file missing! Created" >>$SYSTEM
     else
-        echo "0b00000000,0b00000000,0b00000000" >$POWER
+        if [ -s $POWER ]; then
+            echo "not empty" >/dev/null
+        else
+            echo "0b00000000,0b00000000,0b00000000" >$POWER
+            echo "${time_now:0:19} ${time_now:24}: Power track file empty! Filled" >>$SYSTEM
+        fi
     fi
 fi
 
-time_now="$(date)"
-echo "${time_now:0:19} ${time_now:24}: Checking For missing folder and creating them!" >>$SYSTEM
+if [ ! -f $SLEPT ]; then
+    touch $SLEPT
+fi
 
 if [ ! -d $PICTURES ]; then
-    cd $DIR && mkdir pictures
+    mkdir $PICTURES
+    echo "${time_now:0:19} ${time_now:24}: Pictures folder missing! Created" >>$SYSTEM
 fi
-
+if [ ! -d $UPICTURES ]; then
+    mkdir $UPICTURES
+    echo "${time_now:0:19} ${time_now:24}: Unscaled pictures folder missing! Created" >>$SYSTEM
+fi
 if [ ! -d $BACKUPS ]; then
-    cd $DIR && mkdir backups
-else
-    if [ ! -d $GPS ]; then
-        mkdir "${BACKUPS}/gps"
-    fi
-
-    if [ ! -d $DTS ]; then
-        mkdir "${BACKUPS}/dts"
-    fi
-
-    if [ ! -d $WEATHER ]; then
-        mkdir "${BACKUPS}/weather"
-    fi
-
-    if [ ! -d $SOLAR ]; then
-        mkdir "${BACKUPS}/solar"
-    fi
-
-    if [ ! -d $CR1000X ]; then
-        mkdir "${BACKUPS}/CR1000x"
-    fi
-
-    if [ ! -d $BACK_PHOTO ]; then
-        mkdir "${BACKUPS}/pictures"
-    fi
-
+    mkdir $BACKUPS
+    echo "${time_now:0:19} ${time_now:24}: Backups folder missing! Creating all ..." >>$SYSTEM
+fi
+if [ ! -d $GPS ]; then
+    mkdir $GPS
+fi
+if [ ! -d $BACKSYS ]; then
+    mkdir $BACKSYS
+fi
+if [ ! -d $DTS ]; then
+    mkdir $DTS
 fi
 
-time_now="$(date)"
-echo "${time_now:0:19} ${time_now:24}: All required folders and files created!" >>$SYSTEM
+if [ ! -d $BACKDTS ]; then
+    mkdir $BACKDTS
+fi
+
+if [ ! -d $WEATHER ]; then
+    mkdir $WEATHER
+fi
+
+if [ ! -d $SOLAR ]; then
+    mkdir $SOLAR
+fi
+
+if [ ! -d $CR1000X ]; then
+    mkdir $CR1000X
+fi
+
+if [ ! -d $BACK_PHOTO ]; then
+    mkdir $BACK_PHOTO
+fi

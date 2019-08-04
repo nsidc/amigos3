@@ -7,6 +7,7 @@ import traceback
 
 class cr1000x:
     def finddata(self):
+        printf("Cr1000 data acquisition started")
         modem_on(1)
         cr1000_on(1)
         sleep(90)
@@ -45,11 +46,14 @@ class cr1000x:
         return labels, values
 # write to txt file
 
-    def write_file(self):
+    def cr1000(self):
         try:
             labels, values = self.finddata()
         except Exception as err:
-            printf('Unable to acquire cr1000x data with exception {0}'.format(err))
+            with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
+                res.write("cr1000")
+            printf(
+                'Unable to acquire cr1000x data with exception {0}``\\_(^/)_/``'.format(err))
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
@@ -60,10 +64,13 @@ class cr1000x:
                     therms.write(labels[i] + ': ' + values[i] + "\n")
                 therms.close()
             except Exception as err:
+                with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
+                    res.write("cr1000")
                 printf(
-                    'failed to format cr1000x data with exception {1}. raw data {0}'.format(values, err))
+                    'failed to format cr1000x data with exception {1}``\\_(^/)_/``'.format(values))
                 traceback.print_exc(
                     file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            printf("Cr1000 data acquisition done :)")
         finally:
             cr1000_off(1)
             modem_off(1)

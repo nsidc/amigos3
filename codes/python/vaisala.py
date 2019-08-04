@@ -32,6 +32,8 @@ class Average_Reading():
             port.baudrate = 115200
             port.timeout = 60
         except:
+            with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
+                res.write("cr1000")
             print("Problem with port 5 or problem with power to the vaisala")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
@@ -79,7 +81,7 @@ class Average_Reading():
                 "rm /media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", shell=True)
         return string_array_final, float_array_final
 
-    def average_data(self):
+    def vaisala(self):
         # Call first two functions in correct order
         try:
             self.read_data()
@@ -131,6 +133,8 @@ class Average_Reading():
                 hourly.write("Vaisala Supply Voltage (V): " +
                              str(data_array_final[15]) + ".\n\n\n")
         except:
+            with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
+                res.write("vaisala")
             printf('Fail to parser vaisala data, maybe got an empty array')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))

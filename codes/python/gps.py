@@ -42,7 +42,7 @@ class gps_data():
             self.port.timeOut = None  # set port time out
         except:
             self.port = None
-            print('Unable to setup port')
+            printf('Unable to setup port ``\\_(^/)_/``')
 
     # @catch_exceptions(cancel_on_failure=True)
     def get_binex(self):
@@ -59,8 +59,10 @@ class gps_data():
             gps_on(bit=1)
             sleep(60)
         except:
+            with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
+                res.write("get_binex")
             self.port = None
-            print('An error occurred')
+            printf('An error occurred ``\\_(^/)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
@@ -71,26 +73,26 @@ class gps_data():
                 sleep(2)
                 data = self.port.read(self.port.inWaiting())
                 writeFile(
-                    '/media/mmcblk0p1/logs/gps_binex_data_temp.log', data, 'w+')
+                    '/media/mmcblk0p1/logs/gps_binex_temp.log', data, 'w+')
                 try:
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
+                        "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
                 except:
                     writeFile(
                         '/media/mmcblk0p1/logs/gps_binex.log', '', 'a+')
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
-                    printf("An error occurred during file dumping!")
+                        "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
+                    printf("An error occurred during file dumping ``\\_(^/)_/``")
                     traceback.print_exc(
                         file=open("/media/mmcblk0p1/logs/system.log", "a+"))
                 sleep(2)
                 if self.port.inWaiting() != 0:
                     data = self.port.read(self.port.inWaiting())
                     writeFile(
-                        '/media/mmcblk0p1/logs/gps_binex_data_temp.log', data, 'w+')
+                        '/media/mmcblk0p1/logs/gps_binex_temp.log', data, 'w+')
                     sleep(1)
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
+                        "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
                 sleep(self.interval-5)
                 self.sequence = self.sequence+1
         finally:
@@ -98,7 +100,7 @@ class gps_data():
             if self.port:
                 self.port.close()
             subprocess.call(
-                "rm /media/mmcblk0p1/logs/gps_binex_data_temp.log", shell=True)
+                "rm /media/mmcblk0p1/logs/gps_binex_temp.log", shell=True)
             gps_off(bit=1)
             disable_serial()
 
@@ -117,7 +119,7 @@ class gps_data():
             self.port.flusInput()
         except:
             self.port = None
-            printf('An error occurred')
+            printf('An error occurred ``\\_(^/)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
@@ -145,7 +147,7 @@ class gps_data():
             self.port.flusInput()
         except:
             self.port = None
-            printf('Unable to open port')
+            printf('Unable to open port ``\\_(^/)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
