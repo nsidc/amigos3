@@ -1,0 +1,11 @@
+#!/bin/bash
+SIZE=$1
+SRC=$2
+DEST=$3
+if [ "$#" -ne 3 ]; then
+    echo "Resize take 3 argument: Scale (example 1/2), Source (include path), destination (include finale name with .jpeg)"
+    exit 0
+fi
+djpeg -scale $SIZE $SRC >img.pnm
+cjpeg -scale $SIZE img.pnm >$DEST
+rm img.pnm

@@ -1,0 +1,60 @@
+#!/bin/bash
+i="0"
+#Watchdog set
+echo 3 >/sys/class/gpio/wdt_ctl/data
+sleep 1
+echo 0 >/sys/class/gpio/wdt_ctl/data
+sleep 1
+echo 3 >/sys/class/gpio/wdt_ctl/data
+
+while [ $i -le 3 ]; do
+    if ps | grep amigos.py | grep -v -q grep; then
+
+        echo "none" >/dev/null
+
+    else
+        export LD_LIBRARY_PATH=/media/mmcblk0p1/codes/thumb/
+        sleep 1
+        time_now="$(date)"
+        echo "${time_now:0:19} ${time_now:24}: Restarting Scheduler" >>/media/mmcblk0p1/logs/system.log
+        python /media/mmcblk0p1/codes/amigos.py &
+        sleep 1
+        power up the router
+        # amigos power -m_on &
+        echo 1 >/sys/class/gpio/pwr_ctl/index
+        sleep 1
+        echo 0x08 >/sys/class/gpio/pwr_ctl/data
+        sleep 15
+    fi
+    i=$(($i + 1))
+done
+
+#cp -r /var/volatile/log/ /media/mmcblk0p1/logs/
+#dmesg > /media/mmcblk0p1/logs/dmesg.log
+
+last_run="$(date -r /media/mmcblk0p1/logs/system.log +%Y%m%d%H%M%S)"
+time_now="$(date +%Y%m%d%H%M%S)"
+
+diff=$((time_now - last_run))
+slept="$(cat /media/mmcblk0p1/logs/slept.log)"
+task="$(cat /media/mmcblk0p1/logs/power_log.log)"
+index0="${task:2:8}"
+index1="${task:13:8}"
+index2="${task:24:8}"
+task_val=$((index0 + index1 + index2))
+sleep 1
+if (($diff > 10500)); then
+    if [ $slept -eq 1 ]; then
+        exit
+    fi
+    sleep 1
+    if (($taskval > 0)); then
+        exit
+    fi
+    sleep 1
+    pidd="$(pgrep python)"
+    time_now="$(date)"
+    echo "${time_now:0:19} ${time_now:24}: Scheduler freezed $task_val" >>/media/mmcblk0p1/logs/system.log
+    kill -2 $pidd
+
+fi
