@@ -1,12 +1,12 @@
 from serial import Serial as ser
-#from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
+from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
 from time import sleep
 from execp import printf
-#import ftplib as ftp
+import ftplib as ftp
 
-#from solar import solar_live 
-#from vaisala import Average_Reading
-#from cr1000x import cr1000x
+from solar import solar_live 
+from vaisala import Average_Reading
+from cr1000x import cr1000x
 
 
 
@@ -89,18 +89,14 @@ def read():
 
 def sbd():
     #instances of classes
-    #solarclass = solar_live()
-    #vaisalaclass = Average_Reading()
-    #crclass = cr1000x()
+    solarclass = solar_live()
+    vaisalaclass = Average_Reading()
+    crclass = cr1000x()
 
     #variables to store dictionary strings 
-    #solar = solarclass.solar_sbd() # Returns dictionary of live data 1 and data 2, the readings from each of the light sensors 
-    #vaisala = vaisalaclass.vaisala_sbd() # Returns array of 2-minute averaged weather data dictionary 
-    #cr = crclass.cr_sbd() # Returns array of all live CR data in dictionary string 
-
-    solar = "Iridium Test YEEEET"
-    vaisala = "Still testing... lol"
-    cr = "...sigh..."
+    solar = solarclass.solar_sbd() # Returns dictionary of live data 1 and data 2, the readings from each of the light sensors 
+    vaisala = vaisalaclass.vaisala_sbd() # Returns array of 2-minute averaged weather data dictionary 
+    cr = crclass.cr_sbd() # Returns array of all live CR data in dictionary string 
 
     #Commands send to iridium solar data
     message_sent = False

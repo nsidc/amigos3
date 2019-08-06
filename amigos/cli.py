@@ -130,6 +130,10 @@ def args_parser():
                            help='Iridium on', action='store_true')
         power.add_argument('-i_off', '--iridium_off',
                            help='Iridium off', action='store_true')
+        power.add_argument('-im_on', '--imm_on',
+                           help='Imm modem on', action='store_true')
+        power.add_argument('-im_off', '--imm_off',
+                           help='Imm modem off', action='store_true')
         power.add_argument('-d_on', '--dts_on',
                            help='dts on', action='store_true')
         power.add_argument('-d_off', '--dts_off',
@@ -235,6 +239,10 @@ def power(args):
         gpio.sbd_on(1)
     elif args.sbd_off:
         gpio.sbd_off(1)
+    elif args.imm_on:
+        gpio.imm_on(1)
+    elif args.imm_off:
+        gpio.imm_off(1)
     elif args.solar_on:
         gpio.solar_on()
     elif args.solar_off:
