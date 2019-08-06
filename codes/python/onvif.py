@@ -11,6 +11,7 @@ from requests.auth import HTTPDigestAuth
 import datetime
 import traceback
 from gpio import modem_off, modem_on
+from execp import printf, set_reschedule
 # from xml.etree import ElementTree as et
 
 # class urls():
@@ -57,8 +58,7 @@ class ptz_client():
         """get the soap (xml) file for the request. This the message to be sent
 
         Arguments:
-            move {string} -- the move tosnapSho perform
-snapSho
+            move {string} -- the move tosnapSho perform snapShot
         Keyword Arguments:snapSho
             service {string} -- the typesnapSho of move (default: {None})
             pan {float} -- the angle of snapShopan [-180 to 180 ].  (default: {None})
@@ -121,7 +121,7 @@ snapSho
             if zoom == None:
                 zoom = float(self.getStatus()[2])*10
             # get the message body to be sent and apply all the value specified
-            self.printf(
+            printf(
                 'To tilt {0},  pan {1} and zoom {2}'.format(tilt, pan, zoom))
             self.__get_soap(service=typeof.capitalize()+"Move",
                             pan=pan, tilt=tilt, zoom=zoom)
@@ -135,7 +135,7 @@ snapSho
 
             return reply  # return the reply.
         except:
-            self.printf("Unable to communicate with camera")
+            printf("Unable to communicate with camera``\\_(^/)_/``")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return None
@@ -147,7 +147,7 @@ snapSho
             [floats] -- the current pan, tilt and the zoom
         """
         self.__get_soap('getstatus')  # get the message for status
-        self.printf('Getting camera status')
+        printf('Getting camera status')
         self.header = {'SOAPAction': "http://www.onvif.org/ver20/ptz/wsdl/GetStatus",
                        'Content-Type': 'application/soap+xml'}  # The header of the status
         reply = post(self.url, data=self.msg,
@@ -160,7 +160,7 @@ snapSho
         tilt = float(reply.text.split('><')[7].split(
             '"')[5])
         if output == False:
-            self.printf("camera sttatus: PAN_Position: {0}, TITL_Position: {1}, ZOOM_Position: {2}".format(
+            printf("camera status: PAN_Position: {0}, TITL_Position: {1}, ZOOM_Position: {2}".format(
                 pan, tilt, zoom))
             return pan, tilt, zoom
         zoom = zoom*100
@@ -169,12 +169,12 @@ snapSho
         print("PAN_Position: {0}\nTITL_Position: {1}\nZOOM_Position: {2}\n".format(
             pan, tilt, zoom))
 
-    def snapShot(self):
+    def snapShot(self, size="1/2"):
         try:
             """
             get a snapshot
             """
-            self.printf("Camera Getting snapShot")
+            printf("Camera Getting snapShot")
             dt = str(datetime.datetime.now()).split(" ")
             da = dt[0].split('-')
             da = "".join(da)
@@ -198,44 +198,51 @@ snapSho
             sleep(2)
             f.write(response.content)
             f.close()
+            printf("Camera SnapShot taken :)")
             subprocess.call("mv {0} {1}".format(
-                newname, "/media/mmcblk0p1/pictures/"), shell=True)
-            self.printf("Camera snapShot taken")
+                newname, "/media/mmcblk0p1/unscaled_pictures/"), shell=True)
+            sleep(1)
+            printf("Resizing  SnapShot")
+            sleep(1)
+            subprocess.call("resize_jpeg {0} {1} {2}".format(
+                size, "/media/mmcblk0p1/unscaled_pictures/"+'photo'+dt[0:-7]+'.jpg', "/media/mmcblk0p1/pictures/"+'photo'+dt[0:-7]+'.jpg'), shell=True)
+            printf("Resizing done!")
         except:
-            self.printf('Unable to take snapshot')
+            set_reschedule("move")
+            printf('Unable to take snapshot``\\_(^/)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
     def move(self):
         try:
             modem_on(1)
-            sleep(2)
-            self.printf("Camera moving north")
+            sleep(5)
+            printf("Camera moving north")
             self.send('absolute', pan=0, tilt=0, zoom=0)
             sleep(2)
             self.snapShot()
             sleep(1)
-            self.printf("Camera moving east")
+            printf("Camera moving east")
             self.send('absolute', pan=90, tilt=0, zoom=0)
             sleep(2)
             self.snapShot()
             sleep(1)
-            self.printf("Camera moving west")
+            printf("Camera moving west")
             self.send('absolute', pan=-90, tilt=0, zoom=0)
             sleep(2)
             self.snapShot()
             sleep(1)
-            self.printf("Camera moving down")
+            printf("Camera moving down")
             self.send('absolute', pan=0, tilt=-45, zoom=0)
             sleep(2)
             self.snapShot()
-            self.printf("Camera moving to mirror, demo only")
+            printf("Camera moving to mirror, demo only")
             # add later
-            self.printf("Done! Sending camera lens to Home")
+            printf("Done! Sending camera lens to Home")
             sleep(1)
             self.send('absolute', pan=0, tilt=45, zoom=0)
         except:
-            pass
+            set_reschedule("move")
         finally:
             modem_off(1)
 

@@ -15,7 +15,7 @@ from gpio import weather_on
 from gpio import weather_off
 from gpio import is_on_checker
 import subprocess
-from execp import printf
+from execp import printf, set_reschedule
 import traceback
 from onboard_device import get_battery_current
 # Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
@@ -32,6 +32,7 @@ class Average_Reading():
             port.baudrate = 115200
             port.timeout = 60
         except:
+            set_reschedule("cr1000")
             print("Problem with port 5 or problem with power to the vaisala")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
@@ -79,7 +80,7 @@ class Average_Reading():
                 "rm /media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", shell=True)
         return string_array_final, float_array_final
 
-    def average_data(self):
+    def vaisala(self):
         # Call first two functions in correct order
         try:
             self.read_data()
@@ -131,6 +132,7 @@ class Average_Reading():
                 hourly.write("Vaisala Supply Voltage (V): " +
                              str(data_array_final[15]) + ".\n\n\n")
         except:
+            set_reschedule("vaisala")
             printf('Fail to parser vaisala data, maybe got an empty array')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))

@@ -4,10 +4,11 @@ from serial import Serial as ser
 from time import sleep
 # import binascii as bina
 from gpio import gps_off, gps_on, enable_serial, disable_serial
-from onboard_device import get_battery_current
 import subprocess
-from execp import printf
+from execp import printf, set_reschedule
 import traceback
+import datetime
+import os
 
 
 def writeFile(file_name, strings, form):
@@ -42,9 +43,54 @@ class gps_data():
             self.port.timeOut = None  # set port time out
         except:
             self.port = None
-            print('Unable to setup port')
+            printf('Unable to setup port ``\\_(^/)_/``')
 
     # @catch_exceptions(cancel_on_failure=True)
+    def get_gpstime(self):
+        self.port.flushInput()
+        self.port.write("print,/par/time/utc/date\r\n")
+        sleep(2)
+        raw_date = self.port.read(self.port.inWaiting()).split(" ")[1].split("\r")[0]
+        self.port.write("print,/par/time/utc/clock\r\n")
+        sleep(2)
+        raw_clock = self.port.read(self.port.inWaiting()).split(" ")[1].split(".")[0]
+        gps_time = raw_date + " " + raw_clock
+        return gps_time
+
+    def update(self, str_time, date_now):
+        # subprocess.call(
+        #     'bash /media/mmcblk0p1/codes/bash/set_time "{0}"'.format(str_time), shell=True)
+        os.system('date -s "{0}" > /dev/null'.format(str_time))
+        sleep(2)
+        date_af = datetime.datetime.now()
+        printf("Time updated. Before: {0}; After: {1}".format(date_now, date_af))
+        print ("Before: {0}; After: {1}".format(date_now, date_af))
+
+    def update_time(self):
+        str_time = self.get_gpstime()
+        date_now = datetime.datetime.now()
+        date_time_obj = datetime.datetime.strptime(
+            str_time, '%Y-%m-%d %H:%M:%S')
+        diff = str(date_time_obj-date_now)
+        diff_split = diff.split(":")
+        if diff.find("-") != -1:
+            diff = str(date_now-date_time_obj)
+            diff_split = diff.split(":")
+            if diff.find("day") != -1:
+                self.update(str_time, date_now)
+        elif int(diff_split[-2]) > 2 or int(diff_split[-3]) > 0:
+            self.update(str_time, date_now)
+        else:
+            print("Time difference is less than 2 minutes. No time update need it")
+            printf("Time difference is less than 2 minutes. No time update need it")
+        # subprocess.call(
+        #     'bash /media/mmcblk0p1/codes/bash/set_time "{0}"'.format(str_time), shell=True)
+        # os.system('date -s "{0}" >/dev/null'.format(str_time))
+        # sleep(2)
+        # date_af = datetime.datetime.now()
+        # printf("Time updated. Before: {0}; After: {1}".format(date_now, date_af))
+        # print ("Before: {0}; After: {1}".format(date_now, date_af))
+
     def get_binex(self):
         """
         Initiate the reading of the binex language from GPS module to Titron
@@ -59,8 +105,9 @@ class gps_data():
             gps_on(bit=1)
             sleep(60)
         except:
+            set_reschedule("get_binex")
             self.port = None
-            print('An error occurred')
+            printf('An error occurred ``\\_(^/)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
@@ -71,34 +118,37 @@ class gps_data():
                 sleep(2)
                 data = self.port.read(self.port.inWaiting())
                 writeFile(
-                    '/media/mmcblk0p1/logs/gps_binex_data_temp.log', data, 'w+')
+                    '/media/mmcblk0p1/logs/gps_binex_temp.log', data, 'w+')
                 try:
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
+                        "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
                 except:
                     writeFile(
                         '/media/mmcblk0p1/logs/gps_binex.log', '', 'a+')
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex_data.log", shell=True)
-                    printf("An error occurred during file dumping!")
+                        "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
+                    printf("An error occurred during file dumping ``\\_(^/)_/``")
                     traceback.print_exc(
                         file=open("/media/mmcblk0p1/logs/system.log", "a+"))
                 sleep(2)
                 if self.port.inWaiting() != 0:
                     data = self.port.read(self.port.inWaiting())
                     writeFile(
-                        '/media/mmcblk0p1/logs/gps_binex_data_temp.log', data, 'w+')
+                        '/media/mmcblk0p1/logs/gps_binex_temp.log', data, 'w+')
                     sleep(1)
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_data_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
+                        "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
                 sleep(self.interval-5)
                 self.sequence = self.sequence+1
+                printf("Updating Tritron time")
+                self.update_time()
+                printf("All done with gps")
         finally:
             # At every exit close the port, and turn off the GPS
             if self.port:
                 self.port.close()
             subprocess.call(
-                "rm /media/mmcblk0p1/logs/gps_binex_data_temp.log", shell=True)
+                "rm /media/mmcblk0p1/logs/gps_binex_temp.log", shell=True)
             gps_off(bit=1)
             disable_serial()
 
@@ -117,7 +167,7 @@ class gps_data():
             self.port.flusInput()
         except:
             self.port = None
-            printf('An error occurred')
+            printf('An error occurred ``\\_(^/)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
@@ -145,7 +195,7 @@ class gps_data():
             self.port.flusInput()
         except:
             self.port = None
-            printf('Unable to open port')
+            printf('Unable to open port ``\\_(^/)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:

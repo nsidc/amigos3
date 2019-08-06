@@ -9,11 +9,13 @@ import sys
 from python.vaisala import Average_Reading as Average_Reading
 from python.vaisala import Live_Data as Live_Data
 from python.device import is_on, is_off
-from python.iridium import read as read_sbd, send as send_sbd
+from python.iridium import sbd as sb
 from python.cr1000x import cr1000x_live as cr1000x_live
 from python.solar import solar_live as solar_live
-my_path = os.path.abspath(os.path.dirname(__file__))
-path = os.path.join(my_path, "text.txt")
+from python.execp import printf
+from python.iridium import dial
+from python.gps import gps_data
+from time import sleep
 ptz = client()
 
 # Create instances of script classes
@@ -148,7 +150,7 @@ def args_parser():
                            help='dts off', action='store_true')
         power.add_argument('-off', '--power_off',
                            help='power down all peripherals', action='store_true')
-        power.add_argument('-on', '--power_on',
+        power.add_argument('-all_on', '--all_on',
                            help='power up all peripherals', action='store_true')
         power.add_argument('-r', '--reboot',
                            help='reboot system', action='store_true')
@@ -180,6 +182,24 @@ def args_parser():
                          help='send sbd', action='store_true')
         sbd.add_argument('-read', '--read',
                          help='read sbd', action='store_true')
+
+        dial = parser.add_argument_group(
+            'dial out/in ', 'controlfor dial')
+        dial.add_argument(
+            'dial', help='Required secondary argument', nargs='?')
+        dial.add_argument(
+            '-out', '--out', help='dial out files through', action='store_true')
+        dial.add_argument('-In', '--In',
+                          help='dial in', action='store_true')
+
+        gps = parser.add_argument_group(
+            'gps get time/ set time ', 'controlfor dial')
+        gps.add_argument(
+            'gps', help='Required secondary argument', nargs='?')
+        gps.add_argument(
+            '-set', '--set_time', help='dial out files through', action='store_true')
+        gps.add_argument('-time', '--get_time',
+                         help='dial in', action='store_true')
 
         camera = parser.add_argument_group(
             'Camera Control', 'Control camera position, take pictures and more')
@@ -235,7 +255,7 @@ def power(args):
         gpio.dts_off(1)
     elif args.power_off:
         gpio.power_down(1)
-    elif args.power_on:
+    elif args.all_on:
         gpio.power_up(1)
     elif args.modem_off:
         gpio.modem_off(1)
@@ -280,6 +300,8 @@ def camera(args, val):
         ptz.send(typeof='absolute', pan=float(
             val[0]), tilt=float(val[1]), zoom=float(val[2]))
     elif args.snapshot:
+        print("Warning: Dialout the pictures or it will affect the next scheduled dialout session time")
+        print('To do so, type: amigos dial -out "/media/mmcblk0p1/pictures"')
         ptz.snapShot()
     elif args.get_status:
         ptz.getStatus(output=True)
@@ -362,16 +384,27 @@ def dts(args):
 
 
 def iridium(args):
+    s = sb()
     if args.read:
-        print(read_sbd())
+        print(s.read_sbd())
     if args.send:
         message = raw_input()
         message = message + '\r\n'
-        send_sbd(message)
+        s.send_sbd(message)
 
 
 def gps(args):
-    pass
+    gps = gps_data()
+    gpio.gps_on(1)
+    gpio.enable_serial()
+    print("This will take 30 seconds from here on")
+    sleep(30)
+    if args.set_time:
+        gps.update_time()
+    elif args.get_time:
+        print(gps.get_gpstime())
+    gpio.gps_off(1)
+    gpio.disable_serial()
 
 
 def device(args):
@@ -382,6 +415,22 @@ def device(args):
     else:
         is_on()
         is_off()
+
+
+def dials(args, value):
+    d = dial()
+    if args.out:
+        if value == None:
+            d.Out()
+            # print("Required path to files. Support array of path files")
+            return
+        d.Out(value)
+    elif args.In:
+        print(
+            "Dial in is likely not needed here. Are you sure you want to continue [yes/no]")
+        inp = raw_input()
+        if inp in ["yes", "Yes", "YES", "y"]:
+            d.In()
 
 
 def weather(args):
@@ -428,12 +477,17 @@ def main():
     Allow easy access to functionalities of the amigos
     """
     # print (args)
+    printf("Humain activity detected here!" + "*"*30)
     parser, val = args_parser()
     args = parser.parse_args()
     if args.help:
         parser.print_help()
+    elif args.schedule == 'dial':
+        dials(args, val)
     elif args.schedule == 'power':
         power(args)
+    elif args.schedule == 'gps':
+        gps(args)
     # logic for watchdog configuration
     elif args.schedule == 'watchdog':
         watch_dog(args, val)
@@ -454,8 +508,9 @@ def main():
     else:
         print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")
-        if inp in ['y', 'yes']:
+        if inp in ['y', 'yes', "Yes", "YES"]:
             parser.print_help()
+    printf("Human has left the channel ``\\_(^/)_/``" + "*"*30)
 
 
 if __name__ == "__main__":

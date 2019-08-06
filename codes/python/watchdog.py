@@ -1,40 +1,34 @@
 # Battery, CPU and other ressources monitoring
 from time import sleep
-from schedule import schedule
 import subprocess
 from execp import printf
 
 
-def __toggle_1hour():
-    # set the power mode
+def toggle_1hour():
+    """
+    set the watchdog to 1hour
+    """
     subprocess.call('echo 3 > /sys/class/gpio/wdt_ctl/data', shell=True)
     sleep(2)
     subprocess.call('echo 0 > /sys/class/gpio/wdt_ctl/data', shell=True)
     sleep(2)
     subprocess.call('echo 3 > /sys/class/gpio/wdt_ctl/data', shell=True)
-    printf("Auto watchdog is set to  1 hour")
+    printf("Auto watchdog is set to  1 hour. Keeping Tritron up")
 
 
 def __toggle_3min():
+    """
+    set the watchdog to 3min
+    """
     # set the power mode
     subprocess.call('echo 1 > /sys/class/gpio/wdt_ctl/data', shell=True)
     sleep(2)
     subprocess.call('echo 0 > /sys/class/gpio/wdt_ctl/data', shell=True)
     sleep(2)
     subprocess.call('echo 1 > /sys/class/gpio/wdt_ctl/data', shell=True)
+    printf("Auto watchdog is set to  3 min.")
 
 
-def __go_sleep_3min():
-    # put the board to sleep for 3 min
-    subprocess.call('bash /root/sleep_3min', shell=True)
-
-
-def __go_sleep_1hour():
-    # put the board to sleep for 3 min
-    subprocess.call('bash /root/sleep_long', shell=True)
-
-
-# def set_mode(mode=None, Sleep_time=3):
 #     wdog = schedule.Scheduler()
 #     if mode is 0 or mode is None:  # reset the power to the boar every hour. This keep the board on continuously
 #         wdog.every(45).minutes.do(__toggle_1hour).tag('hourly-dog')
