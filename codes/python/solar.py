@@ -60,7 +60,6 @@ def readsolar():
             'rm /media/mmcblk0p1/logs/solar_temp1.log', shell=True)
         subprocess.call(
             'rm /media/mmcblk0p1/logs/solar_temp2.log', shell=True)
-    
 
 
 class solar_live():

@@ -40,6 +40,11 @@ class ptz_client():
         self.path = os.getcwd()
         self.snapShop_url = "http://192.168.0.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
 
+    def printf(self, message):
+        with open('/media/mmcblk0p1/logs/system.log', 'a+') as log:
+            date = str(datetime.datetime.now()) + ': '
+            log.write(date + message + '\n')
+
     def __get_service(self, service):
         """[summary]
 
