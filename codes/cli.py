@@ -191,6 +191,8 @@ def args_parser():
             '-out', '--out', help='dial out files through', action='store_true')
         dial.add_argument('-In', '--In',
                           help='dial in', action='store_true')
+        dial.add_argument('-add', '--add',
+                          help='dial in', action='store_true')
 
         gps = parser.add_argument_group(
             'gps get time/ set time ', 'controlfor dial')
@@ -431,6 +433,14 @@ def dials(args, value):
         inp = raw_input()
         if inp in ["yes", "Yes", "YES", "y"]:
             d.In()
+    elif args.add:
+        try:
+            val = int(value)
+        except:
+            print("Values must be interger")
+            exit(0)
+        with open("/media/mmcblk0p1/logs/dialin", "w+") as d:
+            d.write(value)
 
 
 def weather(args):

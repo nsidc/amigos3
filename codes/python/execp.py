@@ -21,10 +21,6 @@ def print_err():
     pass
 
 
-def set_reschedule(device):
-    with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
-        res.write(device)
-
 
 def printf(message, date=False):
     """
@@ -45,14 +41,15 @@ def amigos_Unit():
     """
     try:
         ifconfig = None
-        with open("/root/ifconfig.txt", 'r') as f:
+        with open("/root/ifconfig", 'r') as f:
             ifconfig = f.read()
         if ifconfig.find("70:B3:D5:65:46:03") != -1:
             return "C"
-        elif ifconfig == "":
-            pass
-        elif ifconfig == "":
-            pass
+        elif ifconfig.find("70:B3:D5:65:46:00") != -1:
+            return "B"
+        elif ifconfig == ifconfig.find(" ") != -1:
+            return "A"
+        return "unknown"
     except:
         printf("Failled to get the unit  ``\\_(^/)_/``")
 

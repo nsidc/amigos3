@@ -11,7 +11,8 @@ from requests.auth import HTTPDigestAuth
 import datetime
 import traceback
 from gpio import modem_off, modem_on
-from execp import printf, set_reschedule
+from monitor import reschedule
+from execp import printf
 # from xml.etree import ElementTree as et
 
 # class urls():
@@ -205,10 +206,10 @@ class ptz_client():
             printf("Resizing  SnapShot")
             sleep(1)
             subprocess.call("resize_jpeg {0} {1} {2}".format(
-                size, "/media/mmcblk0p1/unscaled_pictures/"+'photo'+dt[0:-7]+'.jpg', "/media/mmcblk0p1/pictures/"+'photo'+dt[0:-7]+'.jpg'), shell=True)
+                size, "/media/mmcblk0p1/unscaled_pictures/"+"photo"+dt[0:-7]+".jpg", "/media/mmcblk0p1/pictures/"+"photo"+dt[0:-7]+".jpg"), shell=True)
             printf("Resizing done!")
         except:
-            set_reschedule("move")
+            reschedule(re="move")
             printf('Unable to take snapshot``\\_(^/)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
@@ -241,8 +242,9 @@ class ptz_client():
             printf("Done! Sending camera lens to Home")
             sleep(1)
             self.send('absolute', pan=0, tilt=45, zoom=0)
+            reschedule(run="move")
         except:
-            set_reschedule("move")
+            re = reschedule(re="move")
         finally:
             modem_off(1)
 

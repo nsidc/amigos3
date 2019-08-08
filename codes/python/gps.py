@@ -5,7 +5,8 @@ from time import sleep
 # import binascii as bina
 from gpio import gps_off, gps_on, enable_serial, disable_serial
 import subprocess
-from execp import printf, set_reschedule
+from execp import printf
+from monitor import reschedule
 import traceback
 import datetime
 import os
@@ -28,7 +29,9 @@ def writeFile(file_name, strings, form):
 class gps_data():
     def __init__(self, *args, **kwargs):
         self.cmd = {
+            # Binex command accepted by GPS
             'binex': 'out,,binex/{00_00,01_01,01_02,01_05,01_06,7E_00,7D_00,7F_02,7F_03,7F_04,7F_05}',
+            # Nmea Command accepted by GPS
             'nmea': 'out,,nmea/{GGA,GLL,GMP,GNS,GRS,GSA,GST,GSV,HDT,RMC,ROT,VTG,ZDA,UID,P_ATT}',
             'GPGGA': 'out,,nmea/GGA',
             'GPVTG': 'out,,nmea/VTG'
@@ -47,6 +50,11 @@ class gps_data():
 
     # @catch_exceptions(cancel_on_failure=True)
     def get_gpstime(self):
+        """Get time from GPS Unit
+
+        Returns:
+            String -- Time from gps in YYYY-MM-DD HH:MM:SS format
+        """
         self.port.flushInput()
         self.port.write("print,/par/time/utc/date\r\n")
         sleep(2)
@@ -58,6 +66,12 @@ class gps_data():
         return gps_time
 
     def update(self, str_time, date_now):
+        """Update the time on tritron
+
+        Arguments:
+            str_time {string} -- New time
+            date_now {String} -- Old time
+        """
         # subprocess.call(
         #     'bash /media/mmcblk0p1/codes/bash/set_time "{0}"'.format(str_time), shell=True)
         os.system('date -s "{0}" > /dev/null'.format(str_time))
@@ -66,23 +80,35 @@ class gps_data():
         printf("Time updated. Before: {0}; After: {1}".format(date_now, date_af))
         print ("Before: {0}; After: {1}".format(date_now, date_af))
 
-    def update_time(self):
-        str_time = self.get_gpstime()
-        date_now = datetime.datetime.now()
-        date_time_obj = datetime.datetime.strptime(
-            str_time, '%Y-%m-%d %H:%M:%S')
-        diff = str(date_time_obj-date_now)
-        diff_split = diff.split(":")
-        if diff.find("-") != -1:
-            diff = str(date_now-date_time_obj)
+    def update_time(self, out=False):
+        """Check for time update
+        """
+        if out:
+            enable_serial()
+            gps_on(1)
+            sleep(30)
+        try:
+            str_time = self.get_gpstime()
+            date_now = datetime.datetime.now()
+            date_time_obj = datetime.datetime.strptime(
+                str_time, '%Y-%m-%d %H:%M:%S')
+            diff = str(date_time_obj-date_now)
             diff_split = diff.split(":")
-            if diff.find("day") != -1:
+            if diff.find("-") != -1:
+                diff = str(date_now-date_time_obj)
+                diff_split = diff.split(":")
+                if diff.find("day") != -1:
+                    self.update(str_time, date_now)
+            elif int(diff_split[-2]) > 2 or int(diff_split[-3]) > 0:
                 self.update(str_time, date_now)
-        elif int(diff_split[-2]) > 2 or int(diff_split[-3]) > 0:
-            self.update(str_time, date_now)
-        else:
-            print("Time difference is less than 2 minutes. No time update need it")
-            printf("Time difference is less than 2 minutes. No time update need it")
+            else:
+                print("Time difference is less than 2 minutes. No time update need it")
+                printf("Time difference is less than 2 minutes. No time update need it")
+                return
+        finally:
+            if out:
+                gps_off(1)
+                disable_serial()
         # subprocess.call(
         #     'bash /media/mmcblk0p1/codes/bash/set_time "{0}"'.format(str_time), shell=True)
         # os.system('date -s "{0}" >/dev/null'.format(str_time))
@@ -105,7 +131,7 @@ class gps_data():
             gps_on(bit=1)
             sleep(60)
         except:
-            set_reschedule("get_binex")
+            reschedule(re="get_binex")
             self.port = None
             printf('An error occurred ``\\_(^/)_/``')
             traceback.print_exc(
@@ -140,9 +166,10 @@ class gps_data():
                         "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
                 sleep(self.interval-5)
                 self.sequence = self.sequence+1
-                printf("Updating Tritron time")
-                self.update_time()
-                printf("All done with gps")
+            printf("Updating Tritron time")
+            self.update_time()
+            printf("All done with gps")
+            reschedule(run="get_binex")
         finally:
             # At every exit close the port, and turn off the GPS
             if self.port:
@@ -153,10 +180,10 @@ class gps_data():
             disable_serial()
 
     def get_nmea(self):
-        """
-        Initiate the reading of the binex language from GPS module to Titron
-        Take no argument
-        Return None
+        """Initiate the reading of the binex language from GPS module to Titron
+
+        Returns:
+            None -- [description]
         """
         try:
             # try opening the port

@@ -16,6 +16,3 @@ url = https://github.com/CooviM/schedule
 [submodule "codes/ext/pexpects"]
 path = codes/ext/pexpects
 url = https://github.com/CooviM/pexpects
-[submodule "codes/ext/pyssh"]
-	path = codes/ext/pyssh
-	url = https://github.com/CooviM/pyssh

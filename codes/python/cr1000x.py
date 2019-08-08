@@ -1,12 +1,13 @@
 from pycampbellcr1000 import CR1000
 from gpio import cr1000_off, cr1000_on, is_on_checker, modem_on, modem_off
 from time import sleep
-from execp import printf, set_reschedule
+from execp import printf
 import traceback
 from datetime import datetime, timedelta
+from monitor import reschedule
 
 
-class cr1000x:
+class cr1000x():
     def finddata(self):
         printf("Cr1000 data acquisition started")
         modem_on(1)
@@ -18,12 +19,12 @@ class cr1000x:
             device = CR1000.from_url('tcp:192.168.0.30:6785')
         except:
             print("Device is not on or not route to device (check the ethernet cable)")
-            set_reschedule("cr1000")
+            reschedule(re="cr1000")
             return labels, values
         printf("Connecting to CR1000x ...")
         if not device.ping_node():
             printf("No connection to CR1000x device")
-            set_reschedule("cr1000")
+            reschedule(re="cr1000")
             return
         printf("Connected ...")
         # printf("Updating device time ...")
@@ -61,34 +62,34 @@ class cr1000x:
             tcdt = str(data['TCDT'])
             labels = ['Batt_volt', 'Ptemp_C', 'R40', 'R6', 'R10', 'R20', 'R2_5', 'R4_5',
                       'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T6_5', 'T8_5', 'DT', 'Q', 'TCDT']
-            values = [Batt_volt, Ptemp_C, R6, R10, R20, R2_5,
-                      R4_5, R6_5, R8_5, R40, T6, T6_5, T10, T20, T40, T2_5, T4_5, T8_5, dt, Q, tcdt]
+            values = [Batt_volt, Ptemp_C, R40, R6, R10, R20, R2_5,
+                      R4_5, R6_5, R8_5,  T6,  T10, T20, T40, T2_5, T4_5, T6_5, T8_5, dt, Q, tcdt]
         return labels, values
 
     def cr_sbd(self):
         labels, values = self.finddata()
         cr_dict = {
-            'BV':values[2],
-            'CRT':values[3],
-            'R6':values[4],
-            'R10':values[5],
-            'R20':values[6],
-            'R40':values[11],
-            'R2_5':values[7],
-            'R4_5':values[8],
-            'R6_5':values[9],
-            'R8_5':values[10],
-            'T6':values[12],
-            'T10':values[14],
-            'T20':values[15],
-            'T40':values[16],
-            'T2_5':values[17],
-            'T4_5':values[18],
-            'T6_5':values[13],
-            'T8_5':values[19],
-            'SN':values[20],
-            'SNQ':values[21],
-            'SNC':values[22]
+            'BV': values[2],
+            'CRT': values[3],
+            'R6': values[4],
+            'R10': values[5],
+            'R20': values[6],
+            'R40': values[11],
+            'R2_5': values[7],
+            'R4_5': values[8],
+            'R6_5': values[9],
+            'R8_5': values[10],
+            'T6': values[12],
+            'T10': values[14],
+            'T20': values[15],
+            'T40': values[16],
+            'T2_5': values[17],
+            'T4_5': values[18],
+            'T6_5': values[13],
+            'T8_5': values[19],
+            'SN': values[20],
+            'SNQ': values[21],
+            'SNC': values[22]
         }
         return str(cr_dict)
 
@@ -100,9 +101,9 @@ class cr1000x:
             labels, values = self.finddata()
             if not values:
                 printf("Got a empty data clock might have shift on device. Will try again")
-                set_reschedule("cr1000")
+                reschedule(re="cr1000")
         except Exception as err:
-            set_reschedule("cr1000")
+            reschedule(re="cr1000")
             printf(
                 'Unable to acquire cr1000x data with exception {0}``\\_(^/)_/``'.format(err))
             traceback.print_exc(
@@ -115,11 +116,12 @@ class cr1000x:
                     therms.write(labels[i] + ': ' + values[i] + "\n")
                 therms.close()
             except Exception as err:
-                set_reschedule("cr1000")
+                reschedule(re="cr1000")
                 printf(
                     'failed to format cr1000x data with exception {1}``\\_(^/)_/``'.format(values))
                 traceback.print_exc(
                     file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            reschedule(run="cr1000")
             printf("Cr1000 data acquisition done :)")
         finally:
             cr1000_off(1)

@@ -13,7 +13,6 @@ def toggle_1hour():
     subprocess.call('echo 0 > /sys/class/gpio/wdt_ctl/data', shell=True)
     sleep(2)
     subprocess.call('echo 3 > /sys/class/gpio/wdt_ctl/data', shell=True)
-    printf("Auto watchdog is set to  1 hour. Keeping Tritron up")
 
 
 def __toggle_3min():
@@ -26,7 +25,6 @@ def __toggle_3min():
     subprocess.call('echo 0 > /sys/class/gpio/wdt_ctl/data', shell=True)
     sleep(2)
     subprocess.call('echo 1 > /sys/class/gpio/wdt_ctl/data', shell=True)
-    printf("Auto watchdog is set to  3 min.")
 
 
 #     wdog = schedule.Scheduler()

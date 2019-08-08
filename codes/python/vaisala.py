@@ -5,19 +5,17 @@
 # It can read data over long periods of time and perform averages or can output live data
 
 # Import Modules
-import time
 from time import sleep
 import serial
 import re
 import datetime
-import math
 from gpio import weather_on
 from gpio import weather_off
 from gpio import is_on_checker
 import subprocess
-from execp import printf, set_reschedule
+from execp import printf
 import traceback
-from onboard_device import get_battery_current
+from monitor import reschedule
 # Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
 
 
@@ -32,7 +30,7 @@ class Average_Reading():
             port.baudrate = 115200
             port.timeout = 60
         except:
-            set_reschedule("cr1000")
+            reschedule(re="cr1000")
             print("Problem with port 5 or problem with power to the vaisala")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
@@ -131,37 +129,39 @@ class Average_Reading():
                              str(data_array_final[14]) + ".\n")
                 hourly.write("Vaisala Supply Voltage (V): " +
                              str(data_array_final[15]) + ".\n\n\n")
+            reschedule(run="vaisala")
         except:
-            set_reschedule("vaisala")
+            reschedule(re="vaisala")
             printf('Fail to parser vaisala data, maybe got an empty array')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
-
         return data_array_final
 
     def vaisala_sbd(self):
         data_array_final = self.average_data()
         weather_dict = {
-            'WD':data_array_final[0],
-            'WS':data_array_final[1],
-            'AT':data_array_final[2],
-            'RH':data_array_final[3],
-            'AP':data_array_final[4],
-            'RA':data_array_final[5],
-            'RD':data_array_final[6],
-            'RI':data_array_final[7],
-            'RPI':data_array_final[11],
-            'HA':data_array_final[8],
-            'HD':data_array_final[9],
-            'HI':data_array_final[10],
-            'HPI':data_array_final[12],
-            'UT':data_array_final[13],
-            'UV':data_array_final[14],
-            'USV':data_array_final[15]
+            'WD': data_array_final[0],
+            'WS': data_array_final[1],
+            'AT': data_array_final[2],
+            'RH': data_array_final[3],
+            'AP': data_array_final[4],
+            'RA': data_array_final[5],
+            'RD': data_array_final[6],
+            'RI': data_array_final[7],
+            'RPI': data_array_final[11],
+            'HA': data_array_final[8],
+            'HD': data_array_final[9],
+            'HI': data_array_final[10],
+            'HPI': data_array_final[12],
+            'UT': data_array_final[13],
+            'UV': data_array_final[14],
+            'USV': data_array_final[15]
         }
         return str(weather_dict)
 
 # Class that will allow the user to access specific weather data points whenever needed
+
+
 class Live_Data():
     def read_data(self):
         try:

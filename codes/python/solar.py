@@ -2,12 +2,16 @@
 from time import sleep
 import subprocess
 import datetime
-from gpio import solar_off, solar_on, is_on_checker
+from gpio import solar_off, solar_on, is_on_checker, V5_ENA_OFF, V5_ENA_ON
 import traceback
 from execp import printf
+from monitor import reschedule
 
 
 def readsolar():
+    """Read solar sensor values and save to a file."""
+    printf("Started Solar Sensor data acquisition ")
+    V5_ENA_ON()
     solar_on()
     sleep(5)
     solar1 = open("/media/mmcblk0p1/logs/solar_temp1.log", "w+")
@@ -47,14 +51,16 @@ def readsolar():
                 solar.write(data + '\n')
                 sleep(8)  # set rate of readings in seconds
             t = t + 10  # keep time
+        printf("All done with Solar Sensor")
+        reschedule(run="readsolar")
     except:
-        with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
-            res.write("readsolar")
+        reschedule(re="readsolar")
         printf("Unable to read solar sensor")
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         # print(t)
     finally:
+        V5_ENA_OFF()
         solar_off()
         subprocess.call(
             'rm /media/mmcblk0p1/logs/solar_temp1.log', shell=True)
@@ -102,13 +108,12 @@ class solar_live():
 
     def solar_sbd(self):
         data1, data2 = self.read_solar()
-        array = [data1,data2]
+        array = [data1, data2]
         solar_dict = {
-            'S1':array[0],
-            'S2':array[1]
+            'S1': array[0],
+            'S2': array[1]
         }
         return str(solar_dict)
-
 
     def solar_1(self):
         data1, data2 = self.read_solar()

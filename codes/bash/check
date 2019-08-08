@@ -42,14 +42,19 @@ index0="${task:2:8}"
 index1="${task:13:8}"
 index2="${task:24:8}"
 task_val=$((index0 + index1 + index2))
+mid_nght="$(date +%H)"
 sleep 1
+
 if (($diff > 10500)); then
+    if [ $mid_nght -eq 0 ]; then
+        exit 0
+    fi
     if [ $slept -eq 1 ]; then
-        exit
+        exit 0
     fi
     sleep 1
     if (($taskval > 0)); then
-        exit
+        exit 0
     fi
     sleep 1
     pidd="$(pgrep python)"
