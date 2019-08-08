@@ -160,19 +160,7 @@ class winter():
         self.sched_winter.every().day.at("21:05").do(dts_test)
 
     def sbd(self):
-<<<<<<< HEAD
-        s = sb()
-        if amigos_Unit() == "A":
-            self.sched_winter.every().day.at("00:02").do(s.send)
-        # # box B
-        elif amigos_Unit() == "B":
-            self.sched_winter.every().day.at("00:04").do(s.send)
-        # # box C
-        elif amigos_Unit() == "C":
-            self.sched_winter.every().day.at("00:06").do(s.send)
-=======
         self.sched_winter.every().day.at("00:02").do(sbd_send)
->>>>>>> master
 
     def sched(self):
         self.vaisala_schedule()
@@ -259,11 +247,7 @@ class monitor():
         # self.voltage()
         self.execute()
         self.onboard_device()
-<<<<<<< HEAD
-        # self.inactive()
-=======
         self.inactive()
->>>>>>> master
         return self.sched_monitor
 
 
@@ -345,11 +329,7 @@ def run_schedule():
                 clear_cached()
                 sleep(1)
                 mem = get_system_performance()
-<<<<<<< HEAD
-                printf("System memory after cleanup : {0}Kb used ram, {1}Kb free ram, {2}Kb cached and {3}kb buffer".format(
-=======
                 printf("System performance after : {0}K used ram, {1}K free ram, {2}K cached and {3}k buffer".format(
->>>>>>> master
                     mem[0], mem[1], mem[2], mem[3]))
             printf("Checking for voltage level.")
             put_to_power_sleep()

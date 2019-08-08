@@ -17,8 +17,6 @@ def test():
 # Program will read in data from DTS xml files, average the data over 2 meter lengths, and save to a csv file
 
 
-# Import modules
-
 # Function that will ssh from the windows computer into the triton board
 
 

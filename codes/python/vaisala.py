@@ -80,7 +80,7 @@ class Average_Reading():
                 "rm /media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", shell=True)
         return string_array_final, float_array_final
 
-    def vaisala(self):
+    def average_data(self):
         # Call first two functions in correct order
         try:
             self.read_data()
