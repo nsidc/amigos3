@@ -2,7 +2,6 @@ from gpio import dts_on, dts_off, modem_on, modem_off  # FIX IMPORTING THESE FUN
 import csv
 from execp import printf
 from copy import deepcopy
-import xml.etree.ElementTree as ET
 from time import sleep
 from monitor import reschedule
 
@@ -65,6 +64,7 @@ class dts():
     # Function that creates tree roots of xml file and preps a csv file to be written to
 
     def read_xml(self, filename):
+        import xml.etree.ElementTree as ET
         tree = ET.parse(filename)
         root = tree.getroot()
         with open('test_csv_file.csv', "a+") as csvfil:

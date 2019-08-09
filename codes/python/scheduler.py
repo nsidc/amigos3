@@ -206,6 +206,7 @@ class winter():
         self.sbd()
         self.seabird_schedule()
         self.aquadopp_schedule()
+        return self.sched_winter
 
 
 class monitor():
@@ -276,14 +277,24 @@ def signals():
 def season(update=None):
     if update:
         pass
+    # winter_time = {'start': {'day': 1,
+    #                          'month': 5},
+    #                'end': {'day': 31,
+    #                        'month': 8}
+    #                }
     winter_time = {'start': {'day': 1,
                              'month': 5},
-                   'end': {'day': 31,
+                   'end': {'day': 1,
                            'month': 8}
                    }
     # summer time frame
-    summer_time = {'start': {'day': 1,
-                             'month': 9},
+    # summer_time = {'start': {'day': 1,
+    #                          'month': 9},
+    #                'end': {'day': 30,
+    #                        'month': 4}
+    #                }
+    summer_time = {'start': {'day': 2,
+                             'month': 8},
                    'end': {'day': 30,
                            'month': 4}
                    }
@@ -326,20 +337,38 @@ def run_schedule():
             summer_time = new_sched[0]
         # get the today date (tritron time must update to uptc time)
         today = datetime.now()
-        minutes = today.minute
-        hours = today.hour
+        # minutes = today.minute
+        # hours = today.hour
         # create datetime instance of winter and summer bracket
         winter_start = today.replace(
             month=winter_time['start']['month'], day=winter_time['start']['day'], hour=0, minute=0, second=0, microsecond=0)
         winter_end = today.replace(
-            month=winter_time['end']['month'], day=winter_time['start']['day'], hour=23, minute=59, second=59, microsecond=0)
-        summer_start = today.replace(
-            month=summer_time['start']['month'], day=summer_time['start']['day'], hour=0, minute=0, second=0, microsecond=0)
-        summer_end = today.replace(
-            month=summer_time['end']['month'], day=summer_time['start']['day'], hour=23, minute=59, second=59, microsecond=0)
+            month=winter_time['end']['month'], day=winter_time['end']['day'], hour=23, minute=59, second=59, microsecond=0)
+        # summer_start = today.replace(
+        #     month=summer_time['start']['month'], day=summer_time['start']['day'], hour=0, minute=0, second=0, microsecond=0)
+        # summer_end = today.replace(
+        #     month=summer_time['end']['month'], day=summer_time['end']['day'], hour=23, minute=59, second=59, microsecond=0)
         monitor_task.run_pending()
         # check if today falls into summer
-        if summer_start < today <= summer_end:
+        # print(winter_start, winter_end, summer_start, summer_end)
+        if winter_start <= today < winter_end:
+            if not winter_running:
+                winter_running = True
+                printf('Loading winter schedule')
+                w = winter()
+                winter_task = w.sched()
+                sleep(10)
+                printf("clearing summer tasks")
+                summer_task.clear()
+                # winter_task.run_pending()
+                summer_running = False
+                printf('Started winter schedule')
+            winter_task.run_pending()
+            if not is_on_checker(1, 6):
+                modem_on(1)
+            reschedule(jobs=winter_task.jobs)
+            put_to_inactive_sleep(winter_task.jobs)
+        else:
             # do nothing if schedule is already running. This to avoid reloading the schedule arasing saved schedule
             if not summer_running:
                 summer_running = True  # set flag
@@ -353,27 +382,12 @@ def run_schedule():
                 winter_running = False
                 printf('Started summer schedule')
             summer_task.run_pending()
+            if not is_on_checker(1, 6):
+                modem_on(1)
             reschedule(jobs=summer_task.jobs)
             put_to_inactive_sleep(summer_task.jobs)
 
         # check if today falls into winter
-        elif winter_start <= today < winter_end:
-            if not winter_running:
-                winter_running = True
-                printf('Loading winter schedule')
-                w = winter()
-                winter_task = w.sched()
-                sleep(10)
-                printf("clearing summer tasks")
-                summer_task.clear()
-                # winter_task.run_pending()
-                summer_running = False
-                printf('Started winter schedule')
-            winter_task.run_pending()
-            reschedule(jobs=winter_task.jobs)
-            put_to_inactive_sleep(winter_task.jobs)
-        else:
-            pass
         sleep(1)
 
  # if winter_running:

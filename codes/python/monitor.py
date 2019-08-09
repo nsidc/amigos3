@@ -6,8 +6,7 @@ import traceback
 from gpio import all_off
 import datetime
 from time import sleep
-import shutil
-
+from execp import printf
 # Dictionary obeject to track schedule execution. index 0: task failure conter, Index 1: total task failure counter, index 2 Device name with description index 3: total successful run index 4: Number of run per hour
 track = {"cr1000": [0, 0, "CR1000x", 0, 6],
          "readsolar": [0, 0, "Solar sensor", 0, 6],
@@ -47,47 +46,46 @@ def reschedule(jobs=None, start=False, re=None, run=None):
     Returns:
         None/Dict -- Return none or Track as dictionary is stat set to True
     """
-    if re != None:
+    if re is not None:
         with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
             res.write(re)
         re = None
         return
-    elif run != None:
+    elif run is not None:
         track[run][3] = track[run][3]+1
         run = None
         return
-    elif start == True:
-        if parm[1] == True:
+    elif start is True:
+        if parm[1] is True:
             for item, array in track.items():
                 track[item][3] = 0
             parm[1] = False
+            start = False
+        else:
+            parm[0] = parm[0]+1
+            for item, array in track.items():
+                track[item][4] = track[item][4]*parm[0]
+            start = False
             return
-        parm[0] = parm[0]+1
-        for item, array in track.items():
-            track[item][4] = array[4]*parm[0]
-        start = False
-        return
 
     elif jobs:
         try:
             task = None
             with open("/media/mmcblk0p1/logs/reschedule.log", "r") as res:
                 task = res.read()
-            if task in ["", None, " "]:
-                pass
-            else:
+            if task not in ["", None, " "]:
                 for job in jobs:
-                    total_run = track[job.job_func.__name__][1]+1
-                    track[job.job_func.__name__][1] = total_run + \
-                        track[job.job_func.__name__][1]
-                    if track[job.job_func.__name__][0] > 1:
-                        track[job.job_func.__name__][0] = 0
-                        set_reschedule("")
-                        w.printf("Can not rerun {0} task that failed previously again. I must stay on schedule :)".format(
-                            track[job.job_func.__name__][2]))
-                        return
-                    elif job.job_func.__name__ == task:
-                        w.printf("Executing {0} task that failed previously. {1} total rerun :)".format(
+                    if job.job_func.__name__ == task:
+                        total_run = track[job.job_func.__name__][1]+1
+                        track[job.job_func.__name__][1] = total_run + \
+                            track[job.job_func.__name__][1]
+                        if track[job.job_func.__name__][0] > 1:
+                            track[job.job_func.__name__][0] = 0
+                            set_reschedule("")
+                            printf("Can not rerun {0} task that failed previously again. I must stay on schedule :)".format(
+                                track[job.job_func.__name__][2]))
+                            return
+                        printf("Executing {0} task that failed previously. {1} total rerun :)".format(
                             track[job.job_func.__name__][2], track[job.job_func.__name__][1]))
                         next_second = job.next_run.second
                         next_minute = job.next_run.minute
@@ -95,16 +93,16 @@ def reschedule(jobs=None, start=False, re=None, run=None):
                         next_day = job.next_run.day
                         next_month = job.next_run.month
                         next_year = job.next_run.year
-                        w.printf("Schedule integrity will be altered :(")
+                        printf("Schedule integrity will be altered :(")
                         job.run()
                         track[job.job_func.__name__][0] = track[job.job_func.__name__][0]+1
                         job.next_run = job.next_run.replace(
                             minute=next_minute, hour=next_hour, day=next_day, year=next_year, second=next_second, month=next_month)
                         set_reschedule("")
-                        w.printf("Done rerunning {0} task. Schedule integrity was restored :)".format(
+                        printf("Done rerunning {0} task. Schedule integrity was restored :)".format(
                             track[job.job_func.__name__][2]))
         except:
-            w.printf("Rerun failed due to the following error, Might try again :)")
+            printf("Rerun failed due to the following error, Might try again :)")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
@@ -112,21 +110,20 @@ def reschedule(jobs=None, start=False, re=None, run=None):
 def get_stat():
     """Print statistic to log file."""
     stat_dic = track
-    ll = 14
-    w.printf('TF: Total failure', date=True)
-    w.printf("TR: Total successfull run", date=True)
-    w.printf("PE: Percent of execution", date=True)
-    w.printf(" ________________ ____ ____ _____", date=True)
-    w.printf("| Device         | TF | TR | PE  |", date=True)
-    w.printf("|________________|____|____|_____|", date=True)
-    w.printf("|________________|____|____|_____|", date=True)
+    printf('TF: Total failure', date=True)
+    printf("TR: Total successfull run", date=True)
+    printf("PE: Percent of execution", date=True)
+    printf(" ________________ ____ ____ _____", date=True)
+    printf("| Device         | TF | TR | PE  |", date=True)
+    printf("|________________|____|____|_____|", date=True)
+    printf("|________________|____|____|_____|", date=True)
     for array in stat_dic.values():
         ld = len(str(array[2]))
         ldiff = ll-ld
         tota = array[4]
-        w.printf("| " + str(array[2]) + " "*ldiff + " | " +
-                 str(array[1]) + " | " + str(array[3]) + " | " + str((array[3]/tota)*100) + " | ", date=True)
-        w.printf("|________________|____|____|_____|", date=True)
+        printf("| " + str(array[2]) + " "*ldiff + " | " +
+               str(array[1]) + " | " + str(array[3]) + " | " + str((array[3]/tota)*100) + " | ", date=True)
+        printf("|________________|____|____|_____|", date=True)
 
 
 def get_schedule():  # get the running schedule
@@ -148,6 +145,7 @@ def backup(sub_files, own=False):
         own {bool} -- Set if not auto generated by software (default: {False})
     """
     try:
+        import shutil
         # files = ["gps_binex.log", "weather_data.log", "thermostat.log", "solar.log", ]
         time_now = datetime.datetime.now()
         time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
@@ -165,37 +163,40 @@ def backup(sub_files, own=False):
             new_name = "/".join(new_name)
             shutil.move(sub_files, new_name)
             return
-        # source = "/media/mmcblk0p1/logs"
-        gps = "/media/mmcblk0p1/backups/gps"
-        cr1000 = "/media/mmcblk0p1/backups/cr1000x"
-        weather = "/media/mmcblk0p1/backups/weather"
-        dts = "/media/mmcblk0p1/backups/dts"
-        solar = "/media/mmcblk0p1/backups/solar"
-        photo = "/media/mmcblk0p1/backups/pictures"
-        system = "/media/mmcblk0p1/backups/system"
+        source = "/media/mmcblk0p1/backups/"
+        # gps = "/media/mmcblk0p1/backups/gps"
+        # cr1000 = "/media/mmcblk0p1/backups/cr1000x"
+        # weather = "/media/mmcblk0p1/backups/weather"
+        # dts = "/media/mmcblk0p1/backups/dts"
+        # solar = "/media/mmcblk0p1/backups/solar"
+        # pictures = "/media/mmcblk0p1/backups/pictures"
+        # system = "/media/mmcblk0p1/backups/system"
+        folders = ["gps", "weather", "cr1000x", "solar", "dts", "pictures", "system"]
         time_now = datetime.datetime.now()
         time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
-            str(time_now.day) + "_" + str(time_now.hour) + str(time_now.minute)
+            str(time_now.day) + "_" + str(time_now.hour) + "_" + str(time_now.minute)
         # for sub_files in files:
-        if sub_files.find("gps") != -1:
-            new_name = gps + "/" + time_now + sub_files.split("/")[-1]
-        elif sub_files.find("weather") != -1:
-            new_name = weather + "/" + time_now + sub_files.split("/")[-1]
-        elif sub_files.find("therm") != -1:
-            new_name = cr1000 + "/" + time_now + sub_files.split("/")[-1]
-        elif sub_files.find("solar") != -1:
-            new_name = solar + "/" + time_now + sub_files.split("/")[-1]
-        elif sub_files.find("dts") != -1:
-            new_name = dts + "/" + time_now + sub_files.split("/")[-1]
-        elif sub_files.find("picture") != -1:
-            new_name = photo + "/" + time_now + sub_files.split("/")[-1]
-        elif sub_files.find("system") != -1:
-            new_name = system + "/" + time_now + sub_files.split("/")[-1]
-            w.printf("Dial out session complete! File tree is cleaned :)")
+        for index, item in enumerate(folders):
+            if sub_files.find(item):
+                new_name = source + item + "/" + time_now + sub_files.split("/")[-1]
+        # if sub_files.find("gps") != -1:
+        #     new_name = gps + "/" + time_now + sub_files.split("/")[-1]
+        # elif sub_files.find("weather") != -1:
+        #     new_name = weather + "/" + time_now + sub_files.split("/")[-1]
+        # elif sub_files.find("therm") != -1:
+        #     new_name = cr1000 + "/" + time_now + sub_files.split("/")[-1]
+        # elif sub_files.find("solar") != -1:
+        #     new_name = solar + "/" + time_now + sub_files.split("/")[-1]
+        # elif sub_files.find("dts") != -1:
+        #     new_name = dts + "/" + time_now + sub_files.split("/")[-1]
+        # elif sub_files.find("picture") != -1:
+        #     new_name = photo + "/" + time_now + sub_files.split("/")[-1]
+        # elif sub_files.find("system") != -1:
+        #     new_name = system + "/" + time_now + sub_files.split("/")[-1]
         # print(sub_files, new_name)
         shutil.move(sub_files, new_name)
     except:
-        w.printf("Files backup failed ")
+        printf("Files backup failed ")
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
@@ -263,7 +264,7 @@ def kill():
         pid = int(out[0:st-1])
         call("kill -2 {0}".format(pid), shell=True)
     except:
-        w.printf("Schedule health: Failed to check schedule health ``\\_(^/)_/``")
+        printf("Schedule health: Failed to check schedule health ``\\_(^/)_/``")
 
 
 def no_task():
@@ -293,7 +294,7 @@ def put_to_inactive_sleep(jobs):
         sleep(1)
     elif no_task():
         # if interval> 52:
-        w.printf(
+        printf(
             "Next task: {0} job is in {1} minutes. Going on StandBy".format(track[sorted_jobs[0].job_func.__name__][2], time_interval))
         with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
             slept.write("1")
@@ -313,7 +314,7 @@ def put_to_power_sleep():
     try:
         if voltage < 2:
             voltage = voltage*10
-            w.printf("Voltage reading biased: Reading {0} volt and {1} amps ``\\_(^/)_/``".format(
+            printf("Voltage reading biased: Reading {0} volt and {1} amps ``\\_(^/)_/``".format(
                 voltage, current))
         if voltage < 11.0:
             had_slept = None
@@ -324,7 +325,7 @@ def put_to_power_sleep():
                 pass
             if had_slept:
                 all_off(1)
-                w.printf('Voltage still too low, going back to a long sleep (1 hour). Reading {0} volt'.format(
+                printf('Voltage still too low, going back to a long sleep (1 hour). Reading {0} volt'.format(
                     voltage))
                 call('rm /media/mmcblk0p1/logs/sleep.log', shell=True)
                 call(
@@ -332,18 +333,18 @@ def put_to_power_sleep():
             else:
                 with open('/media/mmcblk0p1/logs/sleep.log', 'w+') as sched_log:
                     sched_log.write('1')
-                w.printf('Voltage too low, going back to 10 minutes sleep. Reading {0} volt'.format(
+                printf('Voltage too low, going back to 10 minutes sleep. Reading {0} volt'.format(
                     voltage))
                 call(
                     "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(10), shell=True)
         elif voltage > 14.0:
-            w.printf('Voltage is too high. Reading {0} volt ``\\_(^/)_/``'.format(
+            printf('Voltage is too high. Reading {0} volt ``\\_(^/)_/``'.format(
                 voltage))
         else:
-            w.printf('Voltage in normal operating range. Reading {0} volt :)'.format(
+            printf('Voltage in normal operating range. Reading {0} volt :)'.format(
                 voltage))
     except:
-        w.printf('failed to excute put_to_sleep')
+        printf('failed to excute put_to_sleep')
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
@@ -360,26 +361,26 @@ def get_schedule_health():
         st = out.find('root')
         out = int(out[st+5:st+10])
     except:
-        w.printf("Schedule health: Failed to check schedule health ``\\_(^/)_/``")
+        printf("Schedule health: Failed to check schedule health ``\\_(^/)_/``")
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
     else:
         if out > 25000:
-            w.printf(
+            printf(
                 "Self destrying schedule ram memory consumption above {0} ``\\_(^/)_/``".format(out))
             kill()
         elif out < 17000:
-            w.printf('Schedule health: Normal at {0} kb of ram'.format(out))
+            printf('Schedule health: Normal at {0} kb of ram'.format(out))
         elif out >= 17000 and out < 20000:
-            w.printf('Schedule health: warning at {0} kb of ram'.format(out))
+            printf('Schedule health: warning at {0} kb of ram'.format(out))
         elif out == None:
-            w.printf('Schedule health: Scheduler not running ')
+            printf('Schedule health: Scheduler not running ')
 
         else:
-            w.printf(
+            printf(
                 'Schedule health: critical  at {0} kb of ram. Scheduler would be terminated at over 25000 kb ``\\_(^/)_/``'.format(out))
 
 
 # if __name__ == "__main__":
-#     w.printf("\n" + " "*10 + "*****   *****   *****" + " "*10 + "\n" + " "*10 + "Hi there, I am the Amigos {0} version III." + " "*10 + "\n" +
+#     printf("\n" + " "*10 + "*****   *****   *****" + " "*10 + "\n" + " "*10 + "Hi there, I am the Amigos {0} version III." + " "*10 + "\n" +
 #              "Here, you will find all my actions since I was powered on." + " "*10+"\n" + " "*10 + "*****   *****   *****" + " "*10 + "\n".format(amigos_Unit()), date=True)

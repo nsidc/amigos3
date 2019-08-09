@@ -244,7 +244,7 @@ class ptz_client():
             self.send('absolute', pan=0, tilt=45, zoom=0)
             reschedule(run="move")
         except:
-            re = reschedule(re="move")
+            reschedule(re="move")
         finally:
             modem_off(1)
 

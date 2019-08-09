@@ -15,6 +15,7 @@ class cr1000x():
         sleep(10)
         labels = []
         values = []
+        
         try:
             device = CR1000.from_url('tcp:192.168.0.30:6785')
         except:
@@ -102,6 +103,7 @@ class cr1000x():
             if not values:
                 printf("Got a empty data clock might have shift on device. Will try again")
                 reschedule(re="cr1000")
+                return
         except Exception as err:
             reschedule(re="cr1000")
             printf(

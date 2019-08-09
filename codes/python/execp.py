@@ -21,7 +21,6 @@ def print_err():
     pass
 
 
-
 def printf(message, date=False):
     """
         Print to the log file
@@ -62,7 +61,7 @@ def welcome():
     printf(" "*20 + "Theodore Scambos: tascambos@colorado.edu", date=True)
     printf(" "*20 + "Coovi Meha : coovi.meha@colorado.edu", date=True)
     printf(" "*20 + "Bruce Wallin : bruce.wallin@colorado.edu", date=True)
-    printf(" "*20 + "Sid Aurora : siar7178@colorado.edu", date=True)
+    printf(" "*20 + "Sid Arora : siar7178@colorado.edu", date=True)
     printf(" "*20 + "Ryan Weatherbee : Ryan.Weatherbee@colorado.edu", date=True)
     printf(" "*20 + "Skylar Edwards : sked2869@colorado.edu", date=True)
     printf(" "*20 + "Ema Lyman : barrera@colorado.edu", date=True)

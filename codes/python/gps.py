@@ -99,7 +99,7 @@ class gps_data():
                 diff_split = diff.split(":")
                 if diff.find("day") != -1:
                     self.update(str_time, date_now)
-            elif int(diff_split[-2]) > 2 or int(diff_split[-3]) > 0:
+            elif int(diff_split[-2]) > 1 or int(diff_split[-3]) > 0:
                 self.update(str_time, date_now)
             else:
                 print("Time difference is less than 2 minutes. No time update need it")

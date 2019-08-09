@@ -34,11 +34,11 @@ class dial():
         """
         ftp = None
         try:
-            ftp = FTP(self.hostname, timeout=120)
+            ftp = FTP(self.hostname, timeout=5*60)
         except:
             print("FTP connection failed. Trying once more :(")
             try:
-                ftp = FTP(self.hostname, timeout=120)
+                ftp = FTP(self.hostname, timeout=5*60)
             except:
                 pass
         try:
@@ -152,12 +152,12 @@ class dial():
         Keyword Arguments:     filename {[type]} -- Path + file to dial
         out. Support list  (default: {None})
         """
+        printf("Starting dial out session")
         iridium_on(1)
         router_on(1)
         modem_on(1)
         sleep(60)
         try:
-            printf("Starting dial out session")
             files_to_send = ["logs/gps_binex.log", "pictures", "dts", "logs/system.log"]
             if filename != None:
                 if isinstance(filename, basestring):
@@ -199,6 +199,7 @@ class dial():
                     "The state of the schedule so far is presented in the table below.", date=True)
                 reschedule(run="Out")
                 get_stat()
+                printf("All Done with dial out session")
                 reschedule(start=True)
 
         except:
