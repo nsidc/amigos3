@@ -109,6 +109,7 @@ class gps_data():
             if out:
                 gps_off(1)
                 disable_serial()
+                out=False
         # subprocess.call(
         #     'bash /media/mmcblk0p1/codes/bash/set_time "{0}"'.format(str_time), shell=True)
         # os.system('date -s "{0}" >/dev/null'.format(str_time))
