@@ -13,6 +13,3 @@ url = https://github.com/CooviM/requests
 [submodule "codes/ext/schedule"]
 path = codes/ext/schedule
 url = https://github.com/CooviM/schedule
-[submodule "codes/ext/pexpects"]
-path = codes/ext/pexpects
-url = https://github.com/CooviM/pexpects
