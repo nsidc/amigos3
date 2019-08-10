@@ -3,15 +3,11 @@
 """
 Contains classes for  transport implementations.
 """
-from requests import get, post
 import os
 import subprocess
 from time import sleep
-from requests.auth import HTTPDigestAuth
 import datetime
 import traceback
-from gpio import modem_off, modem_on
-from monitor import reschedule
 from execp import printf
 # from xml.etree import ElementTree as et
 
@@ -40,11 +36,6 @@ class ptz_client():
         self.unit_degreeTilt = 0.0055555556*4
         self.path = os.getcwd()
         self.snapShop_url = "http://192.168.0.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
-
-    def printf(self, message):
-        with open('/media/mmcblk0p1/logs/system.log', 'a+') as log:
-            date = str(datetime.datetime.now()) + ': '
-            log.write(date + message + '\n')
 
     def __get_service(self, service):
         """[summary]
@@ -114,7 +105,7 @@ class ptz_client():
         """
         # check if the input is not specified used the current value from the camera.
         try:
-
+            from requests import post
             if pan == None:
                 pan = float(self.getStatus()[0])/self.unit_degreePan
             if tilt == None:
@@ -175,6 +166,9 @@ class ptz_client():
             """
             get a snapshot
             """
+            from monitor import reschedule
+            from requests.auth import HTTPDigestAuth
+            from requests import get
             printf("Camera Getting snapShot")
             dt = str(datetime.datetime.now()).split(" ")
             da = dt[0].split('-')
@@ -209,13 +203,13 @@ class ptz_client():
                 size, "/media/mmcblk0p1/unscaled_pictures/"+"photo"+dt[0:-7]+".jpg", "/media/mmcblk0p1/pictures/"+"photo"+dt[0:-7]+".jpg"), shell=True)
             printf("Resizing done!")
         except:
-            reschedule(re="move")
             printf('Unable to take snapshot``\\_(^/)_/``')
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            reschedule(re="move")
 
     def move(self):
         try:
+            from monitor import reschedule
+            from gpio import modem_off, modem_on
             modem_on(1)
             sleep(5)
             printf("Camera moving north")
@@ -244,7 +238,10 @@ class ptz_client():
             self.send('absolute', pan=0, tilt=45, zoom=0)
             reschedule(run="move")
         except:
+            printf("Camera failed to take picture")
             reschedule(re="move")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         finally:
             modem_off(1)
 

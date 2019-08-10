@@ -9,18 +9,16 @@ from time import sleep
 import serial
 import re
 import datetime
-from gpio import weather_on
-from gpio import weather_off
-from gpio import is_on_checker
 import subprocess
 from execp import printf
 import traceback
-from monitor import reschedule
 # Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
 
 
 class Average_Reading():
     def read_data(self):
+        from monitor import reschedule
+        from gpio import weather_on, weather_off
         try:
             # Turn on Weather Station
             weather_on(1)
@@ -30,10 +28,10 @@ class Average_Reading():
             port.baudrate = 115200
             port.timeout = 60
         except:
-            reschedule(re="cr1000")
             print("Problem with port 5 or problem with power to the vaisala")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            reschedule(re="cr1000")
         else:
             t = 0
             data = None
@@ -163,7 +161,9 @@ class Average_Reading():
 
 
 class Live_Data():
+
     def read_data(self):
+        from gpio import weather_on, weather_off, is_on_checker
         try:
             is_on = is_on_checker(0, 6)
             if not is_on:

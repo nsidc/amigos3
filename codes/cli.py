@@ -1,28 +1,8 @@
 # -*- coding: utf-8 -*-
-import os.path
 import math
-import python.argparse as argparse
-import python.watchdog as watchdog
-import python.gpio as gpio
-from python.onvif import ptz_client as client
 import sys
-from python.vaisala import Average_Reading as Average_Reading
-from python.vaisala import Live_Data as Live_Data
-from python.device import is_on, is_off
-from python.iridium import sbd as sb
-from python.cr1000x import cr1000x_live as cr1000x_live
-from python.solar import solar_live as solar_live
 from python.execp import printf
-from python.iridium import dial
-from python.gps import gps_data
 from time import sleep
-ptz = client()
-
-# Create instances of script classes
-Avg_Reading = Average_Reading()
-Live_Readings = Live_Data()
-CR = cr1000x_live()
-sol = solar_live()
 
 
 def args_parser():
@@ -31,6 +11,7 @@ def args_parser():
         if len(sys.argv) > 3:
             val = sys.argv[-1]
             sys.argv.pop(-1)
+        import python.argparse as argparse
         parser = argparse.ArgumentParser(prog='Amigos', add_help=False)
         # Group or command for schedule viewing
         schedule = parser.add_argument_group(
@@ -231,6 +212,7 @@ def args_parser():
 
 
 def power(args):
+    import python.gpio as gpio
     if args.weather_on:
         gpio.weather_on(1)
     elif args.weather_off:
@@ -284,15 +266,18 @@ def power(args):
 
 
 def enabler(args):
+    from python.gpio import enable_serial, disable_serial
     if args.enable:
-        gpio.enable_serial()
+        enable_serial()
     elif args.disable:
-        gpio.disable_serial()
+        disable_serial()
     else:
         print("No such option! Try '-e', '-dis'")
 
 
 def camera(args, val):
+    from python.onvif import ptz_client as client
+    ptz = client()
     cmd = [args.pan, args.tilt, args.zoom]
     if args.combine_move:
         val = val.split(',')
@@ -330,6 +315,7 @@ def camera(args, val):
 
 
 def watch_dog(args, val):
+    import python.watchdog as watchdog
     if args.update:
         print("Enter 1 for an hour and 0 for 3 minutes watchdog reset:\n")
         watchdog.run_dog(
@@ -345,6 +331,8 @@ def watch_dog(args, val):
 
 
 def cr1000x(args, val):
+    from python.cr1000x import cr1000x_live as cr1000x_live
+    CR = cr1000x_live()
     if args.snow:
         # Show all snow height data
         CR.snow_height()
@@ -373,6 +361,8 @@ def cr1000x(args, val):
 
 
 def solar(args):
+    from python.solar import solar_live as solar_live
+    sol = solar_live()
     if args.solar_data_1:
         sol.solar_1()
     elif args.solar_data_2:
@@ -386,6 +376,7 @@ def dts(args):
 
 
 def iridium(args):
+    from python.iridium import sbd as sb
     s = sb()
     if args.read:
         print(s.read_sbd())
@@ -396,20 +387,23 @@ def iridium(args):
 
 
 def gps(args):
+    from python.gps import gps_data
+    from python.gpio import gps_off, gps_on, enable_serial, disable_serial
     gps = gps_data()
-    gpio.gps_on(1)
-    gpio.enable_serial()
+    gps_on(1)
+    enable_serial()
     print("This will take 30 seconds from here on")
     sleep(30)
     if args.set_time:
         gps.update_time()
     elif args.get_time:
         print(gps.get_gpstime())
-    gpio.gps_off(1)
-    gpio.disable_serial()
+    gps_off(1)
+    disable_serial()
 
 
 def device(args):
+    from python.device import is_on, is_off
     if args.running:
         is_on()
     elif args.not_running:
@@ -420,9 +414,10 @@ def device(args):
 
 
 def dials(args, value):
+    from python.iridium import dial
     d = dial()
     if args.out:
-        if value == None:
+        if value is None:
             d.Out()
             # print("Required path to files. Support array of path files")
             return
@@ -444,6 +439,9 @@ def dials(args, value):
 
 
 def weather(args):
+    from python.vaisala import Average_Reading as Average_Reading, Live_Data
+    Avg_Reading = Average_Reading()
+    Live_Readings = Live_Data()
     # call averaging function from vaisala script in avg class - to start long-term data collection
     if args.collect:
         Avg_Reading.average_data()
@@ -520,8 +518,4 @@ def main():
         inp = raw_input("print usage? y/n: ")
         if inp in ['y', 'yes', "Yes", "YES"]:
             parser.print_help()
-    printf("Human has left the channel ``\\_(^/)_/``" + "*"*30)
-
-
-if __name__ == "__main__":
-    main()
+    printf("Human has left the chanel" + "*"*30)

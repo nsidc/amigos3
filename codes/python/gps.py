@@ -131,11 +131,12 @@ class gps_data():
             gps_on(bit=1)
             sleep(60)
         except:
-            reschedule(re="get_binex")
             self.port = None
             printf('An error occurred ``\\_(^/)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            reschedule(re="get_binex")
+
         else:
             self.port.flushInput()
             self.sequence = 1

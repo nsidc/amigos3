@@ -1,10 +1,8 @@
-from pycampbellcr1000 import CR1000
 from gpio import cr1000_off, cr1000_on, is_on_checker, modem_on, modem_off
 from time import sleep
 from execp import printf
 import traceback
 from datetime import datetime, timedelta
-from monitor import reschedule
 
 
 class cr1000x():
@@ -15,8 +13,9 @@ class cr1000x():
         sleep(10)
         labels = []
         values = []
-        
+        from monitor import reschedule
         try:
+            from pycampbellcr1000 import CR1000
             device = CR1000.from_url('tcp:192.168.0.30:6785')
         except:
             print("Device is not on or not route to device (check the ethernet cable)")
@@ -98,6 +97,7 @@ class cr1000x():
 # write to txt file
 
     def cr1000(self):
+        from monitor import reschedule
         try:
             labels, values = self.finddata()
             if not values:
@@ -148,6 +148,7 @@ class cr1000x_live():
         else:
             # Read data
             try:
+                from pycampbellcr1000 import CR1000
                 device = CR1000.from_url('tcp:192.168.0.30:6785')
             except:
                 print("Device is not on or no route to device (maybe check the ethernet cable)")

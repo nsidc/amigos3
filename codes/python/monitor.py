@@ -15,8 +15,8 @@ track = {"cr1000": [0, 0, "CR1000x", 0, 6],
          "Out": [0, 0, "Dial_out", 0, 1],
          "send": [0, 0, "SBD out Tweet", 0, 1],
          "In": [0, 0, "Dial_in", 0, 1],
-         "read_aquadopp": [0, 0, "Aquadopp", 0, 1],
-         "read_seabird": [0, 0, "Sea Bird", 0, 1],
+         "read_aquadopp": [0, 0, "Aquadopp", 0, 6],
+         "read_seabird": [0, 0, "Sea Bird", 0, 6],
          "test": [0, 0, "DTS", 0, 1],
          "move": [0, 0, "Camera", 0, 1],
          }
@@ -59,6 +59,7 @@ def reschedule(jobs=None, start=False, re=None, run=None):
         if parm[1] is True:
             for item, array in track.items():
                 track[item][3] = 0
+                track[item][1] = 0
             parm[1] = False
             start = False
         else:
@@ -76,17 +77,16 @@ def reschedule(jobs=None, start=False, re=None, run=None):
             if task not in ["", None, " "]:
                 for job in jobs:
                     if job.job_func.__name__ == task:
-                        total_run = track[job.job_func.__name__][1]+1
-                        track[job.job_func.__name__][1] = total_run + \
-                            track[job.job_func.__name__][1]
-                        if track[job.job_func.__name__][0] > 1:
-                            track[job.job_func.__name__][0] = 0
+                        track[task][1] = 1 + \
+                            track[task][1]
+                        if track[task][0] > 1:
+                            track[task][0] = 0
                             set_reschedule("")
                             printf("Can not rerun {0} task that failed previously again. I must stay on schedule :)".format(
-                                track[job.job_func.__name__][2]))
+                                track[task][2]))
                             return
                         printf("Executing {0} task that failed previously. {1} total rerun :)".format(
-                            track[job.job_func.__name__][2], track[job.job_func.__name__][1]))
+                            track[task][2], track[task][1]))
                         next_second = job.next_run.second
                         next_minute = job.next_run.minute
                         next_hour = job.next_run.hour
@@ -95,12 +95,13 @@ def reschedule(jobs=None, start=False, re=None, run=None):
                         next_year = job.next_run.year
                         printf("Schedule integrity will be altered :(")
                         job.run()
-                        track[job.job_func.__name__][0] = track[job.job_func.__name__][0]+1
+                        track[task][0] = track[task][0]+1
                         job.next_run = job.next_run.replace(
                             minute=next_minute, hour=next_hour, day=next_day, year=next_year, second=next_second, month=next_month)
                         set_reschedule("")
                         printf("Done rerunning {0} task. Schedule integrity was restored :)".format(
-                            track[job.job_func.__name__][2]))
+                            track[task][2]))
+                        return
         except:
             printf("Rerun failed due to the following error, Might try again :)")
             traceback.print_exc(
@@ -119,6 +120,7 @@ def get_stat():
     printf("|________________|____|____|_____|", date=True)
     for array in stat_dic.values():
         ld = len(str(array[2]))
+        ll = 14
         ldiff = ll-ld
         tota = array[4]
         printf("| " + str(array[2]) + " "*ldiff + " | " +
@@ -177,8 +179,9 @@ def backup(sub_files, own=False):
             str(time_now.day) + "_" + str(time_now.hour) + "_" + str(time_now.minute)
         # for sub_files in files:
         for index, item in enumerate(folders):
-            if sub_files.find(item):
-                new_name = source + item + "/" + time_now + sub_files.split("/")[-1]
+            if sub_files.find(item) != -1:
+                new_name = source + item + "/" + \
+                    time_now + "_" + sub_files.split("/")[-1]
         # if sub_files.find("gps") != -1:
         #     new_name = gps + "/" + time_now + sub_files.split("/")[-1]
         # elif sub_files.find("weather") != -1:

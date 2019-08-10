@@ -36,7 +36,7 @@ class summer():
     def vaisala_schedule(self):
         v = vg()
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_summer.every().hour.at(":58").do(v.vaisala)  # add vaisala schedule
+        self.sched_summer.every().hour.at(":59").do(v.vaisala)  # add vaisala schedule
 
     def gps_schedule(self):
         gps = gps_data()
@@ -135,7 +135,7 @@ class winter():
     def vaisala_schedule(self):
         v = vg()
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_winter.every().hour.at(":58").do(v.vaisala)
+        self.sched_winter.every().hour.at(":59").do(v.vaisala)
 
     def gps_schedule(self):
         gps = gps_data()

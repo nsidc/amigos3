@@ -1,8 +1,6 @@
 from serial import Serial as ser
-from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
 from time import sleep
 from execp import printf, welcome
-from ftplib import FTP
 import os
 from time import sleep
 from monitor import backup, reschedule, get_stat
@@ -33,6 +31,7 @@ class dial():
             FTP Instance -- FTP instance with connection to server
         """
         ftp = None
+        from ftplib import FTP
         try:
             ftp = FTP(self.hostname, timeout=5*60)
         except:
@@ -84,7 +83,6 @@ class dial():
             # print(folder_name, file_name)
             unit = amigos_Unit()
             printf("zipping file ")
-            # call("tar czf {0} {1}".format(folder_name+".tar.gz", file_name), shell=True)
             p = Popen("tar czf {0} {1}".format(folder_name+"{0}.tar.gz".format(unit), file_name),
                       stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
             out = p.communicate()
@@ -153,6 +151,7 @@ class dial():
         out. Support list  (default: {None})
         """
         printf("Starting dial out session")
+        from gpio import iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
         iridium_on(1)
         router_on(1)
         modem_on(1)
@@ -181,7 +180,6 @@ class dial():
                             name, next_in))
                     resp = self.send(self.default_path+name)
                     if resp and name.find(".log") == -1:
-                        # call("rm  -rf {0}".format(self.default_path+name), shell=True)
                         p = Popen("rm  -rf {0}".format(self.default_path+name),
                                   stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
                         out = p.communicate()
@@ -220,6 +218,7 @@ class dial():
         """
         try:
             from requests import post
+            from gpio import iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
             printf("Started dial in section")
             iridium_on(1)
             router_on(1)
@@ -269,6 +268,7 @@ class sbd():
         pass
 
     def send(self, message="Testing"):
+        from gpio import sbd_off, sbd_on, enable_serial, disable_serial, iridium_off, iridium_on
         try:
             port = ser('/dev/ttyS1')
             port.baudrate = 9600
