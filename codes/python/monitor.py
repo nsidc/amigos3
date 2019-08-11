@@ -7,7 +7,9 @@ from gpio import all_off
 import datetime
 from time import sleep
 from execp import printf
-# Dictionary obeject to track schedule execution. index 0: task failure conter, Index 1: total task failure counter, index 2 Device name with description index 3: total successful run index 4: Number of run per hour
+# Dictionary obeject to track schedule execution. index 0: task failure conter, Index 1:
+# total task failure counter, index 2 Device name with description index 3:
+# total successful run index 4: Number of run per hour
 track = {"cr1000": [0, 0, "CR1000x", 0, 6],
          "readsolar": [0, 0, "Solar sensor", 0, 6],
          "vaisala": [0, 0, "Vaisala", 0, 6],
@@ -33,6 +35,74 @@ def set_reschedule(device):
         res.write(device)
 
 
+def first_time():
+    if parm[1] is True:
+        for item, array in track.items():
+            track[item][3] = 0
+            track[item][1] = 0
+        parm[1] = False
+    else:
+        parm[0] = parm[0]+1
+        for item, array in track.items():
+            track[item][4] = track[item][4]*parm[0]
+        return
+
+
+def do_rerun(jobs, task):
+    """Rerun a job that failed
+
+    Arguments:
+        jobs {Class } -- List of all jobs constructed from schedule as class (default: {None})
+        task {string} -- Name of job/Device to rerun
+    """
+    for job in jobs:
+        if job.job_func.__name__ == task:
+            track[task][1] = 1 + \
+                track[task][1]
+            if track[task][0] > 1:
+                track[task][0] = 0
+                set_reschedule("")
+                printf("Can not rerun {0} task that failed previously again. I must stay on schedule :)".format(
+                    track[task][2]))
+                return
+            printf("Executing {0} task that failed previously. {1} total rerun :)".format(
+                track[task][2], track[task][1]))
+            next_second = job.next_run.second
+            next_minute = job.next_run.minute
+            next_hour = job.next_run.hour
+            next_day = job.next_run.day
+            next_month = job.next_run.month
+            next_year = job.next_run.year
+            printf("Schedule integrity will be altered :(")
+            job.run()
+            track[task][0] = track[task][0]+1
+            job.next_run = job.next_run.replace(
+                minute=next_minute, hour=next_hour, day=next_day, year=next_year, second=next_second, month=next_month)
+            set_reschedule("")
+            printf("Done rerunning {0} task. Schedule integrity was restored :)".format(
+                track[task][2]))
+            return
+
+
+def get_rerun(jobs):
+    """check for rerun
+
+    Arguments:
+        jobs {Class } -- List of all jobs constructed from schedule as class (default: {None}))
+    """
+    try:
+        task = None
+        with open("/media/mmcblk0p1/logs/reschedule.log", "r") as res:
+            task = res.read()
+        if task not in ["", None, " "]:
+            do_rerun(jobs, task)
+
+    except:
+        printf("Rerun failed due to the following error, Might try again :)")
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+
+
 def reschedule(jobs=None, start=False, re=None, run=None):
     """Rerun a task that has failed without affecting the integrity of the
     schedule.
@@ -47,65 +117,17 @@ def reschedule(jobs=None, start=False, re=None, run=None):
         None/Dict -- Return none or Track as dictionary is stat set to True
     """
     if re is not None:
-        with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
-            res.write(re)
+        set_reschedule(re)
         re = None
-        return
     elif run is not None:
         track[run][3] = track[run][3]+1
         run = None
-        return
     elif start is True:
-        if parm[1] is True:
-            for item, array in track.items():
-                track[item][3] = 0
-                track[item][1] = 0
-            parm[1] = False
-            start = False
-        else:
-            parm[0] = parm[0]+1
-            for item, array in track.items():
-                track[item][4] = track[item][4]*parm[0]
-            start = False
-            return
+        first_time()
+        start = False
 
     elif jobs:
-        try:
-            task = None
-            with open("/media/mmcblk0p1/logs/reschedule.log", "r") as res:
-                task = res.read()
-            if task not in ["", None, " "]:
-                for job in jobs:
-                    if job.job_func.__name__ == task:
-                        track[task][1] = 1 + \
-                            track[task][1]
-                        if track[task][0] > 1:
-                            track[task][0] = 0
-                            set_reschedule("")
-                            printf("Can not rerun {0} task that failed previously again. I must stay on schedule :)".format(
-                                track[task][2]))
-                            return
-                        printf("Executing {0} task that failed previously. {1} total rerun :)".format(
-                            track[task][2], track[task][1]))
-                        next_second = job.next_run.second
-                        next_minute = job.next_run.minute
-                        next_hour = job.next_run.hour
-                        next_day = job.next_run.day
-                        next_month = job.next_run.month
-                        next_year = job.next_run.year
-                        printf("Schedule integrity will be altered :(")
-                        job.run()
-                        track[task][0] = track[task][0]+1
-                        job.next_run = job.next_run.replace(
-                            minute=next_minute, hour=next_hour, day=next_day, year=next_year, second=next_second, month=next_month)
-                        set_reschedule("")
-                        printf("Done rerunning {0} task. Schedule integrity was restored :)".format(
-                            track[task][2]))
-                        return
-        except:
-            printf("Rerun failed due to the following error, Might try again :)")
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+        get_rerun(jobs)
 
 
 def get_stat():
@@ -148,55 +170,27 @@ def backup(sub_files, own=False):
     """
     try:
         import shutil
-        # files = ["gps_binex.log", "weather_data.log", "thermostat.log", "solar.log", ]
         time_now = datetime.datetime.now()
         time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
             str(time_now.day) + "_" + str(time_now.hour) + str(time_now.minute)
         if own:
             new_name = sub_files.split("/")
             new_name.insert(-1, "trashes")
-            # print(new_name[:-1])
             trash = "/".join(new_name[:-1])
             if os.path.isdir(trash) == False:
-                print(os.path.isdir("-".join(new_name[:-1])))
-                print(trash)
                 os.mkdir(trash)
-            # print(new_name)
             new_name = "/".join(new_name)
             shutil.move(sub_files, new_name)
             return
         source = "/media/mmcblk0p1/backups/"
-        # gps = "/media/mmcblk0p1/backups/gps"
-        # cr1000 = "/media/mmcblk0p1/backups/cr1000x"
-        # weather = "/media/mmcblk0p1/backups/weather"
-        # dts = "/media/mmcblk0p1/backups/dts"
-        # solar = "/media/mmcblk0p1/backups/solar"
-        # pictures = "/media/mmcblk0p1/backups/pictures"
-        # system = "/media/mmcblk0p1/backups/system"
         folders = ["gps", "weather", "cr1000x", "solar", "dts", "pictures", "system"]
         time_now = datetime.datetime.now()
         time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
             str(time_now.day) + "_" + str(time_now.hour) + "_" + str(time_now.minute)
-        # for sub_files in files:
         for index, item in enumerate(folders):
             if sub_files.find(item) != -1:
                 new_name = source + item + "/" + \
                     time_now + "_" + sub_files.split("/")[-1]
-        # if sub_files.find("gps") != -1:
-        #     new_name = gps + "/" + time_now + sub_files.split("/")[-1]
-        # elif sub_files.find("weather") != -1:
-        #     new_name = weather + "/" + time_now + sub_files.split("/")[-1]
-        # elif sub_files.find("therm") != -1:
-        #     new_name = cr1000 + "/" + time_now + sub_files.split("/")[-1]
-        # elif sub_files.find("solar") != -1:
-        #     new_name = solar + "/" + time_now + sub_files.split("/")[-1]
-        # elif sub_files.find("dts") != -1:
-        #     new_name = dts + "/" + time_now + sub_files.split("/")[-1]
-        # elif sub_files.find("picture") != -1:
-        #     new_name = photo + "/" + time_now + sub_files.split("/")[-1]
-        # elif sub_files.find("system") != -1:
-        #     new_name = system + "/" + time_now + sub_files.split("/")[-1]
-        # print(sub_files, new_name)
         shutil.move(sub_files, new_name)
     except:
         printf("Files backup failed ")
@@ -382,8 +376,3 @@ def get_schedule_health():
         else:
             printf(
                 'Schedule health: critical  at {0} kb of ram. Scheduler would be terminated at over 25000 kb ``\\_(^/)_/``'.format(out))
-
-
-# if __name__ == "__main__":
-#     printf("\n" + " "*10 + "*****   *****   *****" + " "*10 + "\n" + " "*10 + "Hi there, I am the Amigos {0} version III." + " "*10 + "\n" +
-#              "Here, you will find all my actions since I was powered on." + " "*10+"\n" + " "*10 + "*****   *****   *****" + " "*10 + "\n".format(amigos_Unit()), date=True)

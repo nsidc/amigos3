@@ -54,7 +54,7 @@ class summer():
         self.sched_summer.every().day.at("22:10").do(cam.move)
 
     def aquadopp_schedule(self):
-        self.sched_summer.every().hour.at(":52").do(read_aquadopp)
+        self.sched_summer.every(2).hours.at(":52").do(read_aquadopp)
 
     def seabird_schedule(self):
         self.sched_summer.every().hour.at(":50").do(read_seabird)
@@ -147,7 +147,7 @@ class winter():
         self.sched_winter.every().day.at("20:10").do(cam.move)
 
     def aquadopp_schedule(self):
-        self.sched_winter.every().hour.at(":52").do(read_aquadopp)
+        self.sched_winter.every(2).hours.at(":52").do(read_aquadopp)
 
     def seabird_schedule(self):
         self.sched_winter.every().hour.at(":50").do(read_seabird)
