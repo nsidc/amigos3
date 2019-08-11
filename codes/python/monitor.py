@@ -245,6 +245,7 @@ def get_system_performance():  # get how much cpu, memory is been used
         cached = int(out[4].split(" ")[1][:-1])
         buff = int(out[3].split(" ")[1][:-1])
         return used_mem-grep, free_mem+grep, cached, buff
+
     except:
         return[0, 0, 0, 0]
 
