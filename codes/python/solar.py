@@ -104,8 +104,10 @@ class solar_live():
 
     def solar_sbd(self):
         with open("/media/mmcblk0p1/logs/solar_raw.log","r") as rawfile:
-            #Take backup and read last line on the bottom and return this function 
-            pass
+            lines = rawfile.readlines()
+            lastline = lines[-1]
+        backup("/media/mmcblk0p1/logs/solar_raw.log",sbd = True)
+        return lastline
 
 
     def solar_1(self):

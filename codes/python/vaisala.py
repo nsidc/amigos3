@@ -146,8 +146,10 @@ class Average_Reading():
 
     def vaisala_sbd(self):
         with open("/media/mmcblk0p1/logs/weather_raw.log","r") as rawfile:
-            #Take backup and read last line on the bottom and return this function 
-            pass
+            lines = rawfile.readlines()
+            lastline = lines[-1]
+        backup("/media/mmcblk0p1/logs/weather_raw.log",sbd = True)
+        return lastline
 
 # Class that will allow the user to access specific weather data points whenever needed
 class Live_Data():

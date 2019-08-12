@@ -2,6 +2,7 @@ from serial import Serial as ser
 from time import sleep
 from gpio import imm_off,imm_on
 from execp import printf
+from monitor import backup
 
 def read_aquadopp():
     try:
@@ -54,8 +55,10 @@ def labeled_data():
 
 def aquadopp_sbd():
     with open("/media/mmcblk0p1/logs/aquadopp_raw.log","r") as rawfile:
-        #Take backup and read last line on the bottom and return this function 
-        pass
+        lines = rawfile.readlines()
+        lastline = lines[-1]
+    backup("/media/mmcblk0p1/logs/aquadopp_raw.log",sbd = True)
+    return lastline
 
 if __name__ == "__main__":
     labeled_data()

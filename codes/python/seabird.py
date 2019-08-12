@@ -52,8 +52,10 @@ def labeled_data():
 
 def seabird_sbd():
     with open("/media/mmcblk0p1/logs/seabird_raw.log","r") as rawfile:
-        #Take backup and read last line on the bottom and return this function 
-        pass
+        lines = rawfile.readlines()
+        lastline = lines[-1]
+    backup("/media/mmcblk0p1/logs/seabird_raw.log",sbd = True)
+    return lastline
 
 if __name__ == "__main__":
     labeled_data()

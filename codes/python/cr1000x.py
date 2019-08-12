@@ -69,8 +69,10 @@ class cr1000x:
 
     def cr_sbd(self):
         with open("/media/mmcblk0p1/logs/cr1000x_raw.log","r") as rawfile:
-            #Take backup and read last line on the bottom and return this function 
-            pass
+            lines = rawfile.readlines()
+            lastline = lines[-1]
+        backup("/media/mmcblk0p1/logs/cr1000x_raw.log",sbd = True)
+        return lastline
 
 
 # write to txt file
