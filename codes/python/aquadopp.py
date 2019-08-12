@@ -4,10 +4,6 @@ from gpio import imm_off,imm_on
 from execp import printf
 from monitor import backup
 
-
-
-
-
 def read_aquadopp():
     try:
         imm_on(1)

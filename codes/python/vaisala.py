@@ -1,10 +1,3 @@
-# Sid Arora
-# UPDATED AS OF 6/25/19
-
-# This Program will read in data from the Vaisala Weather Sensor
-# It can read data over long periods of time and perform averages or can output live data
-
-# Import Modules
 import time
 from time import sleep
 import serial
@@ -18,8 +11,7 @@ import subprocess
 from execp import printf, set_reschedule
 import traceback
 from onboard_device import get_battery_current
-# Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
-
+from monitor import backup
 
 class Average_Reading():
     

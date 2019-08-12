@@ -2,6 +2,8 @@ from serial import Serial as ser
 from time import sleep
 from gpio import imm_off,imm_on
 from execp import printf
+from monitor import backup
+
 
 def read_seabird():
     try:

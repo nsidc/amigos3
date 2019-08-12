@@ -5,6 +5,8 @@ import datetime
 from gpio import solar_off, solar_on, is_on_checker
 import traceback
 from execp import printf
+from monitor import backup
+
 
 
 def readsolar():
