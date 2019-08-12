@@ -1,21 +1,23 @@
 #!/bin/bash
 DIR=/media/mmcblk0p1
 BACKUPS="${DIR}/backups"
-BACKDTS="${DIR}/backups/dts"
-BACKSYS="${DIR}/backups/system"
-DTS="${DIR}/dts"
-GPS="${DIR}/backups/gps"
-WEATHER="${DIR}/backups/weather"
-SOLAR="${DIR}/backups/solar"
-CR1000X="${DIR}/backups/cr1000x"
 PICTURES="${DIR}/pictures"
 UPICTURES="${DIR}/unscaled_pictures"
+DTS="${DIR}/dts"
 LOGS="${DIR}/logs"
-POWER="${DIR}/logs/power_log.log"
-SLEPT="${DIR}/logs/slept.log"
-SYSTEM="${DIR}/logs/system.log"
-BACK_PHOTO="${DIR}/backups/pictures"
-#BLACK_HOLE= /dev/null
+BACKDTS="${BACKUPS}/dts"
+BACKSYS="${BACKUPS}/system"
+GPS="${BACKUPS}/gps"
+WEATHER="${BACKUPS}/weather"
+SOLAR="${BACKUPS}/solar"
+CR1000X="${BACKUPS}/cr1000x"
+SEABIRD="${BACKUPS}/seabird"
+AQUADOPP="${BACKUPS}/aquadopp"
+POWER="${LOGS}/power_log.log"
+SLEPT="${LOGS}/slept.log"
+SYSTEM="${LOGS}/system.log"
+BACK_PHOTO="${BACKUPS}/pictures"
+BLACK_HOLE= /dev/null
 
 time_now="$(date)"
 
@@ -29,7 +31,7 @@ if [ ! -d $DIR ]; then
     echo "      Email: coovi.meha@colorado.edu"
     echo "      Phone: 720-468-9447"
     echo "  Bruce W: "
-    echo "      Email: coovi.meha@colorado.edu"
+    echo "      Email: bruce.wallin@colorado.edu"
     echo "      Phone: 720-468-9447"
     echo "  Sid A"
     echo "      Email: siar7178@colorado.edu"
@@ -46,7 +48,7 @@ else
         echo "${time_now:0:19} ${time_now:24}: Power track file missing! Created" >>$SYSTEM
     else
         if [ -s $POWER ]; then
-            echo "not empty" >/dev/null
+            echo "not empty" >$BLACK_HOLE
         else
             echo "0b00000000,0b00000000,0b00000000" >$POWER
             echo "${time_now:0:19} ${time_now:24}: Power track file empty! Filled" >>$SYSTEM
@@ -72,6 +74,12 @@ if [ ! -d $BACKUPS ]; then
 fi
 if [ ! -d $GPS ]; then
     mkdir $GPS
+fi
+if [ ! -d $SEABIRD ]; then
+    mkdir $SEABIRD
+fi
+if [ ! -d $AQUADOPP ]; then
+    mkdir $AQUADOPP
 fi
 if [ ! -d $BACKSYS ]; then
     mkdir $BACKSYS

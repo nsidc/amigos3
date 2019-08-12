@@ -1,5 +1,7 @@
 import datetime
 import sys
+import re
+import uuid
 
 
 def print_err():
@@ -10,7 +12,7 @@ def printf(message, date=False):
     """
         Print to the log file
     """
-    if date == True:
+    if date is True:
         with open('/media/mmcblk0p1/logs/system.log', 'a+') as log:
             log.write(message + '\n')
             return
@@ -23,19 +25,18 @@ def amigos_Unit():
     """
     Get the amigos unit ID
     """
+    unit = "*Magic*"
     try:
-        ifconfig = None
-        with open("/root/ifconfig", 'r') as f:
-            ifconfig = f.read()
-        if ifconfig.find("70:B3:D5:65:46:03") != -1:
-            return "C"
-        elif ifconfig.find("70:B3:D5:65:46:00") != -1:
-            return "B"
-        elif ifconfig == ifconfig.find(" ") != -1:
-            return "A"
-        return "unknown"
+        MAC = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
+        if MAC.find(":03") != -1:
+            unit = "C"
+        elif MAC.find(":00") != -1:
+            unit = "B"
+        elif MAC.find(" ") != -1:
+            unit = "A"
     except:
         printf("Failled to get the unit  ``\\_(^/)_/``")
+    return unit
 
 
 def welcome():

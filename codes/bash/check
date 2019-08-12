@@ -43,6 +43,7 @@ index1="${task:13:8}"
 index2="${task:24:8}"
 task_val=$((index0 + index1 + index2))
 mid_nght="$(date +%H)"
+LOG="/media/mmcblk0p1/logs/system.log"
 sleep 1
 
 if (($diff > 10500)); then
@@ -53,13 +54,13 @@ if (($diff > 10500)); then
         exit 0
     fi
     sleep 1
-    if (($taskval > 0)); then
+    if (($task_val > 0)); then
         exit 0
     fi
     sleep 1
     pidd="$(pgrep python)"
     time_now="$(date)"
-    echo "${time_now:0:19} ${time_now:24}: Scheduler freezed $task_val" >>/media/mmcblk0p1/logs/system.log
+    echo "${time_now:0:19} ${time_now:24}: Scheduler freezed $task_val" >>$LOG
     kill -2 $pidd
 
 fi

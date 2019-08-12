@@ -57,8 +57,6 @@ def do_rerun(jobs, task):
     """
     for job in jobs:
         if job.job_func.__name__ == task:
-            track[task][1] = 1 + \
-                track[task][1]
             if track[task][0] > 1:
                 track[task][0] = 0
                 set_reschedule("")
@@ -75,6 +73,8 @@ def do_rerun(jobs, task):
             next_year = job.next_run.year
             printf("Schedule integrity will be altered :(")
             job.run()
+            track[task][1] = 1 + \
+                track[task][1]
             track[task][0] = track[task][0]+1
             job.next_run = job.next_run.replace(
                 minute=next_minute, hour=next_hour, day=next_day, year=next_year, second=next_second, month=next_month)
@@ -145,8 +145,9 @@ def get_stat():
         ll = 14
         ldiff = ll-ld
         tota = array[4]
+        percent = (array[3]*100)/tota
         printf("| " + str(array[2]) + " "*ldiff + " | " +
-               str(array[1]) + " | " + str(array[3]) + " | " + str((array[3]/tota)*100) + " | ", date=True)
+               str(array[1]) + " | " + str(array[3]) + " | " + str(percent) + " | ", date=True)
         printf("|________________|____|____|_____|", date=True)
 
 
@@ -158,7 +159,7 @@ def get_disk_space():
     pass
 
 
-def backup(sub_files, own=False):
+def backup(sub_files, own=False, sbd=False):
     """Backup files.
 
     Arguments:
@@ -192,6 +193,11 @@ def backup(sub_files, own=False):
                 new_name = source + item + "/" + \
                     time_now + "_" + sub_files.split("/")[-1]
         shutil.move(sub_files, new_name)
+        printf("Backed up {0}".format(sub_files.split("/")[-1]))
+        if sbd is True:
+            os.remove(sub_files)
+            printf("Removed {0}".format(sub_files.split("/")[-1]))
+            sbd = False
     except:
         printf("Files backup failed ")
         traceback.print_exc(
@@ -289,13 +295,16 @@ def put_to_inactive_sleep(jobs):
     time_interval = int(str(next_run_diff).split(":")[-2])
     str_time = str(next_run_diff)
     if time_interval < 3 or str_time.find("-") != -1:
-        sleep(1)
+        with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:
+            sch.write(str(jobs) + "\n" + str(time_interval) + str_time+"*"*50)
     elif no_task():
         # if interval> 52:
         printf(
             "Next task: {0} job is in {1} minutes. Going on StandBy".format(track[sorted_jobs[0].job_func.__name__][2], time_interval))
         with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
             slept.write("1")
+        with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:
+            sch.write(str(jobs) + "\n" + str(time_interval) + str_time+"#"*50)
         w.toggle_1hour()
         sleep(time_interval*60)
 
