@@ -296,7 +296,7 @@ def put_to_inactive_sleep(jobs):
     str_time = str(next_run_diff)
     if time_interval < 3 or str_time.find("-") != -1:
         with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:
-            sch.write(str(jobs) + "\n" + str(time_interval) + str_time+"*"*50)
+            sch.write(str(sorted(jobs)) + "\n" + str(time_interval) + str_time+"*"*50)
     elif no_task():
         # if interval> 52:
         printf(
@@ -304,7 +304,8 @@ def put_to_inactive_sleep(jobs):
         with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
             slept.write("1")
         with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:
-            sch.write(str(jobs) + "\n" + str(time_interval) + str_time+"#"*50)
+            sch.write(str(sorted(jobs)) + "\n" +
+                      str(time_interval) + str_time+"#"*50 + "\n")
         w.toggle_1hour()
         sleep(time_interval*60)
 

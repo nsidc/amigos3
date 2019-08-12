@@ -86,7 +86,7 @@ class Average_Reading():
                 numbers_divide = numbers_sum/(len(float_array_final))
                 data_array_final.append(round(numbers_divide, 3))
 
-            with open("/media/mmcblk0p1/logs/weather_raw.log") as rawfile:
+            with open("/media/mmcblk0p1/logs/weather_raw.log","a+") as rawfile:
                 rawfile.write("WT " + data_array_final + "\n")
 
             # Write the averaged array elements to a final log file - append

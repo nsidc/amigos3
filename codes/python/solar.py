@@ -8,7 +8,6 @@ from execp import printf
 from monitor import reschedule
 
 
-
 def readsolar():
     """Read solar sensor values and save to a file."""
     printf("Started Solar Sensor data acquisition ")
@@ -52,7 +51,7 @@ def readsolar():
                 solar.write(data + '\n')
                 sleep(8)  # set rate of readings in seconds
             t = t + 10  # keep time
-            with open("/media/mmcblk0p1/logs/solar_raw.log") as rawfile:
+            with open("/media/mmcblk0p1/logs/solar_raw.log", "a+") as rawfile:
                 rawfile.write("SO " + data)
 
         printf("All done with Solar Sensor")
@@ -112,13 +111,12 @@ class solar_live():
         return data1, data2
 
     def solar_sbd(self):
-        with open("/media/mmcblk0p1/logs/solar_raw.log","r") as rawfile:
+        with open("/media/mmcblk0p1/logs/solar_raw.log", "r") as rawfile:
             lines = rawfile.readlines()
             lastline = lines[-1]
         from monitor import backup
-        backup("/media/mmcblk0p1/logs/solar_raw.log",sbd = True)
+        backup("/media/mmcblk0p1/logs/solar_raw.log", sbd=True)
         return lastline
-
 
     def solar_1(self):
         data1, data2 = self.read_solar()

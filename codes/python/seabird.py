@@ -10,6 +10,7 @@ def read_seabird():
         port = ser("/dev/ttyS4")
         port.baudrate = 9600
         port.flushInput()
+        sleep(5)
         port.write("GetCD\r\n")
         sleep(5)
         port.write("GetCD\r\n")
@@ -18,8 +19,8 @@ def read_seabird():
         sleep(3)
         port.write("SendWakeUpTone\r\n")
         sleep(5)
-        #port.write (Get datetime from amigos and set it in the seabird) and set unit ID too
-        #sleep(5)
+        # port.write (Get datetime from amigos and set it in the seabird) and set unit ID too
+        # sleep(5)
         print(port.read(port.inWaiting()))
     except:
         printf("Imm could not connect to the seabird")
@@ -35,29 +36,35 @@ def read_seabird():
 
     return seabird_raw_data
 
+
 def clean_data():
     seabird_raw_data = read_seabird()
-    numbers = seabird_raw_data[seabird_raw_data.find("<RemoteReply>")+22:seabird_raw_data.find("<Executed/>")-5]
+    numbers = seabird_raw_data[seabird_raw_data.find(
+        "<RemoteReply>")+22:seabird_raw_data.find("<Executed/>")-5]
     seabird_data = numbers.split(', ')
-    with open("/media/mmcblk0p1/logs/seabird_raw.log","a+") as rawfile:
+    with open("/media/mmcblk0p1/logs/seabird_raw.log", "a+") as rawfile:
         rawfile.write("SB " + seabird_data + "\n")
     return seabird_data
 
+
 def labeled_data():
     seabird_data = clean_data()
-    labels = ['Temperature: ','Conductivity: ','Pressure: ','Date: ','Time: ']
-    units = [' [degrees C]',' [S/m]',' [dbar]',' [Day Month Year]',' [Hour:Minute:Second]']
+    labels = ['Temperature: ', 'Conductivity: ', 'Pressure: ', 'Date: ', 'Time: ']
+    units = [' [degrees C]', ' [S/m]', ' [dbar]',
+             ' [Day Month Year]', ' [Hour:Minute:Second]']
     for i in range(len(seabird_data)):
-        with open("/media/mmcblk0p1/logs/seabird_clean.log","a+") as data_file:
+        with open("/media/mmcblk0p1/logs/seabird_clean.log", "a+") as data_file:
             data_file.write(labels[i] + seabird_data[i] + units[i] + '\n')
 
+
 def seabird_sbd():
-    with open("/media/mmcblk0p1/logs/seabird_raw.log","r") as rawfile:
+    with open("/media/mmcblk0p1/logs/seabird_raw.log", "r") as rawfile:
         lines = rawfile.readlines()
         lastline = lines[-1]
     from monitor import backup
-    backup("/media/mmcblk0p1/logs/seabird_raw.log",sbd = True)
+    backup("/media/mmcblk0p1/logs/seabird_raw.log", sbd=True)
     return lastline
+
 
 if __name__ == "__main__":
     labeled_data()

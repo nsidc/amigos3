@@ -101,8 +101,8 @@ class gps_data():
             elif int(diff_split[-2]) > 1 or int(diff_split[-3]) > 0:
                 self.update(str_time, date_now)
             else:
-                print("Time difference is less than 2 minutes. No time update need it")
-                printf("Time difference is less than 2 minutes. No time update need it")
+                print("Time difference is less than 1 minutes. No time update need it")
+                printf("Time difference is less than 1 minutes. No time update need it")
                 return
         finally:
             if out:
