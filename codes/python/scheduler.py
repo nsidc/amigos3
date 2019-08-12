@@ -50,12 +50,12 @@ class summer():
         self.sched_summer.every().day.at("22:10").do(cam.move)
 
     def aquadopp_schedule(self):
-        from aquadopp import read_aquadopp
-        self.sched_summer.every(2).hours.at(":52").do(read_aquadopp)
+        from aquadopp import labeled_data
+        self.sched_summer.every(2).hours.at(":52").do(labeled_data)
 
     def seabird_schedule(self):
-        from seabird import read_seabird
-        self.sched_summer.every().hour.at(":50").do(read_seabird)
+        from seabird import labeled_data
+        self.sched_summer.every().hour.at(":51").do(labeled_data)
 
     def cr100x_schedule(self):
         # add cr100 schedules
@@ -148,12 +148,12 @@ class winter():
         self.sched_winter.every().day.at("20:10").do(cam.move)
 
     def aquadopp_schedule(self):
-        from aquadopp import read_aquadopp
-        self.sched_winter.every(2).hours.at(":52").do(read_aquadopp)
+        from aquadopp import labeled_data
+        self.sched_winter.every(2).hours.at(":52").do(labeled_data)
 
     def seabird_schedule(self):
-        from seabird import read_seabird
-        self.sched_winter.every().hour.at(":50").do(read_seabird)
+        from seabird import labeled_data
+        self.sched_winter.every().hour.at(":51").do(labeled_data)
 
     def cr100x_schedule(self):
         # add cr100x schedules
