@@ -1,4 +1,3 @@
-import time
 from time import sleep
 import serial
 import re
@@ -6,8 +5,8 @@ import datetime
 import subprocess
 from execp import printf
 import traceback
-from onboard_device import get_battery_current
 from monitor import reschedule
+
 
 class Average_Reading():
 
@@ -136,11 +135,11 @@ class Average_Reading():
         return data_array_final
 
     def vaisala_sbd(self):
-        with open("/media/mmcblk0p1/logs/weather_raw.log","r") as rawfile:
+        with open("/media/mmcblk0p1/logs/weather_raw.log", "r") as rawfile:
             lines = rawfile.readlines()
             lastline = lines[-1]
         from monitor import backup
-        backup("/media/mmcblk0p1/logs/weather_raw.log",sbd = True)
+        backup("/media/mmcblk0p1/logs/weather_raw.log", sbd=True)
         return lastline
 
 # Class that will allow the user to access specific weather data points whenever needed

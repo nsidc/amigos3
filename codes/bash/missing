@@ -50,7 +50,7 @@ else
         echo "${time_now:0:19} ${time_now:24}: Power track file missing! Created" >>$SYSTEM
     else
         if [ -s $POWER ]; then
-            echo "not empty" >$BLACK_HOLE
+            :
         else
             echo "0b00000000,0b00000000,0b00000000" >$POWER
             echo "${time_now:0:19} ${time_now:24}: Power track file empty! Filled" >>$SYSTEM

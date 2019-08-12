@@ -264,20 +264,19 @@ class dial():
 
 class sbd():
     def __init__(self):
-        from gpio import iridium_on, sbd_on, enable_serial
         self.port = ser('/dev/ttyS1')
         self.port.baudrate = 9600
         self.port.open()
-        iridium_on(1)
-        sbd_on(1)
-        sleep(1)
-        enable_serial()
-        sleep(1)
 
     # Calling this function will call the rest of the device SBD functions
 
     def SBD(self):
-        from gpio import disable_serial, iridium_off, sbd_off
+        from gpio import disable_serial, iridium_off, sbd_off, iridium_on, sbd_on, enable_serial
+        iridium_on(1)
+        sbd_on(1)
+        sleep(1)
+        enable_serial()
+        sleep(10)
         self.solar_SBD()
         disable_serial()
         sbd_off(1)

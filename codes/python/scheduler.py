@@ -104,13 +104,13 @@ class summer():
         s = sb()
         unit = amigos_Unit()
         if unit == "A":
-            self.sched_summer.every().day.at("00:02").do(s.send)
+            self.sched_summer.every().day.at("00:02").do(s.SBD)
         # # box B
         elif unit == "B":
-            self.sched_summer.every().day.at("00:04").do(s.send)
+            self.sched_summer.every().day.at("00:04").do(s.SBD)
         # # box C
         elif unit == "C":
-            self.sched_summer.every().day.at("00:06").do(s.send)
+            self.sched_summer.every().day.at("00:06").do(s.SBD)
 
     def sched(self):
         # load all the schedules
@@ -191,13 +191,13 @@ class winter():
         s = sb()
         unit = amigos_Unit()
         if unit == "A":
-            self.sched_winter.every().day.at("00:02").do(s.send)
+            self.sched_winter.every().day.at("00:02").do(s.SBD)
             # # box B
         elif unit == "B":
-            self.sched_winter.every().day.at("00:04").do(s.send)
+            self.sched_winter.every().day.at("00:04").do(s.SBD)
             # # box C
         elif unit == "C":
-            self.sched_winter.every().day.at("00:06").do(s.send)
+            self.sched_winter.every().day.at("00:06").do(s.SBD)
 
     def sched(self):
         self.vaisala_schedule()
