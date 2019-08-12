@@ -43,10 +43,13 @@ def readsolar():
                 data = date + ",  " + str(data1) + ",  " + str(data2) + "\n"
             data = str(data)
             # print(data)
-            with open("/media/mmcblk0p1/logs/solar.log", "a+") as solar:
+            with open("/media/mmcblk0p1/logs/solar_clean.log", "a+") as solar:
                 solar.write(data + '\n')
                 sleep(8)  # set rate of readings in seconds
             t = t + 10  # keep time
+            with open("/media/mmcblk0p1/logs/solar_raw.log") as rawfile:
+                rawfile.write("SO " + data)
+
     except:
         with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
             res.write("readsolar")
@@ -97,17 +100,12 @@ class solar_live():
         finally:
             if not is_on:
                 solar_off()
-
         return data1, data2
 
     def solar_sbd(self):
-        data1, data2 = self.read_solar()
-        array = [data1,data2]
-        solar_dict = {
-            'S1':array[0],
-            'S2':array[1]
-        }
-        return str(solar_dict)
+        with open("/media/mmcblk0p1/logs/solar_raw.log","r") as rawfile:
+            #Take backup and read last line on the bottom and return this function 
+            pass
 
 
     def solar_1(self):

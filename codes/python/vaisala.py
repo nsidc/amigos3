@@ -22,6 +22,7 @@ from onboard_device import get_battery_current
 
 
 class Average_Reading():
+    
     def read_data(self):
         try:
             # Turn on Weather Station
@@ -77,7 +78,7 @@ class Average_Reading():
         finally:
             # Erase the tempoerary ascii data file
             subprocess.call(
-                "rm /media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", shell=True)
+                "rm /media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", shell=True)       
         return string_array_final, float_array_final
 
     def average_data(self):
@@ -94,9 +95,13 @@ class Average_Reading():
                     numbers_sum = numbers_sum + float_array_final[k][j]
                 numbers_divide = numbers_sum/(len(float_array_final))
                 data_array_final.append(round(numbers_divide, 3))
+            
+            with open("/media/mmcblk0p1/logs/weather_raw.log") as rawfile:
+                rawfile.write("WT " + data_array_final + "\n")
+
             # Write the averaged array elements to a final log file - append
             now = datetime.datetime.now()
-            with open("/media/mmcblk0p1/logs/weather.log", "a+") as hourly:
+            with open("/media/mmcblk0p1/logs/weather_clean.log", "a+") as hourly:
                 hourly.write("Current Date and Time: " +
                              now.strftime("%Y-%m-%d %H:%M:%S\n"))
                 hourly.write("Wind Direction Average (Degrees): " +
@@ -140,26 +145,9 @@ class Average_Reading():
         return data_array_final
 
     def vaisala_sbd(self):
-        data_array_final = self.average_data()
-        weather_dict = {
-            'WD':data_array_final[0],
-            'WS':data_array_final[1],
-            'AT':data_array_final[2],
-            'RH':data_array_final[3],
-            'AP':data_array_final[4],
-            'RA':data_array_final[5],
-            'RD':data_array_final[6],
-            'RI':data_array_final[7],
-            'RPI':data_array_final[11],
-            'HA':data_array_final[8],
-            'HD':data_array_final[9],
-            'HI':data_array_final[10],
-            'HPI':data_array_final[12],
-            'UT':data_array_final[13],
-            'UV':data_array_final[14],
-            'USV':data_array_final[15]
-        }
-        return str(weather_dict)
+        with open("/media/mmcblk0p1/logs/weather_raw.log","r") as rawfile:
+            #Take backup and read last line on the bottom and return this function 
+            pass
 
 # Class that will allow the user to access specific weather data points whenever needed
 class Live_Data():

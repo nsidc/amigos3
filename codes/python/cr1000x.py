@@ -63,34 +63,14 @@ class cr1000x:
                       'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T6_5', 'T8_5', 'DT', 'Q', 'TCDT']
             values = [Batt_volt, Ptemp_C, R6, R10, R20, R2_5,
                       R4_5, R6_5, R8_5, R40, T6, T6_5, T10, T20, T40, T2_5, T4_5, T8_5, dt, Q, tcdt]
+        with open("/media/mmcblk0p1/logs/cr1000x_raw.log","a+") as rawfile:
+            rawfile.write("CR " + values + "\n")
         return labels, values
 
     def cr_sbd(self):
-        labels, values = self.finddata()
-        cr_dict = {
-            'BV':values[2],
-            'CRT':values[3],
-            'R6':values[4],
-            'R10':values[5],
-            'R20':values[6],
-            'R40':values[11],
-            'R2_5':values[7],
-            'R4_5':values[8],
-            'R6_5':values[9],
-            'R8_5':values[10],
-            'T6':values[12],
-            'T10':values[14],
-            'T20':values[15],
-            'T40':values[16],
-            'T2_5':values[17],
-            'T4_5':values[18],
-            'T6_5':values[13],
-            'T8_5':values[19],
-            'SN':values[20],
-            'SNQ':values[21],
-            'SNC':values[22]
-        }
-        return str(cr_dict)
+        with open("/media/mmcblk0p1/logs/cr1000x_raw.log","r") as rawfile:
+            #Take backup and read last line on the bottom and return this function 
+            pass
 
 
 # write to txt file
@@ -109,7 +89,7 @@ class cr1000x:
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
             therms = open(
-                "/media/mmcblk0p1/logs/cr1000x.log", "a+")
+                "/media/mmcblk0p1/logs/cr1000x_clean.log", "a+")
             try:
                 for i in range(len(labels)):
                     therms.write(labels[i] + ': ' + values[i] + "\n")
