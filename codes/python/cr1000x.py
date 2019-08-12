@@ -2,7 +2,7 @@ from gpio import cr1000_off, cr1000_on, is_on_checker, modem_on, modem_off
 from time import sleep
 from execp import printf
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 class cr1000x():
@@ -38,7 +38,6 @@ class cr1000x():
             data = data[0]['RecFrag'][0]['Fields']
             # print(data[0])
             # finds strings inbetween parenthesis
-
             Batt_volt = str(data['Batt_volt'])
             Ptemp_C = str(data['Ptemp_C'])
             R6 = str(data['R6'])
@@ -60,41 +59,26 @@ class cr1000x():
             dt = str(data['DT'])
             Q = str(data['Q'])
             tcdt = str(data['TCDT'])
-            labels = ['Batt_volt', 'Ptemp_C', 'R40', 'R6', 'R10', 'R20', 'R2_5', 'R4_5',
+            date_now = str(datetime.now())
+            labels = ["Date_Time"'Batt_volt', 'Ptemp_C', 'R40', 'R6', 'R10', 'R20', 'R2_5', 'R4_5',
                       'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T6_5', 'T8_5', 'DT', 'Q', 'TCDT']
-            values = [Batt_volt, Ptemp_C, R40, R6, R10, R20, R2_5,
+            values = [date_now, Batt_volt, Ptemp_C, R40, R6, R10, R20, R2_5,
                       R4_5, R6_5, R8_5,  T6,  T10, T20, T40, T2_5, T4_5, T6_5, T8_5, dt, Q, tcdt]
         return labels, values
 
     def cr_sbd(self):
         labels, values = self.finddata()
-        cr_dict = {
-            'BV': values[2],
-            'CRT': values[3],
-            'R6': values[4],
-            'R10': values[5],
-            'R20': values[6],
-            'R40': values[11],
-            'R2_5': values[7],
-            'R4_5': values[8],
-            'R6_5': values[9],
-            'R8_5': values[10],
-            'T6': values[12],
-            'T10': values[14],
-            'T20': values[15],
-            'T40': values[16],
-            'T2_5': values[17],
-            'T4_5': values[18],
-            'T6_5': values[13],
-            'T8_5': values[19],
-            'SN': values[20],
-            'SNQ': values[21],
-            'SNC': values[22]
-        }
-        return str(cr_dict)
+        cr_dict = {}
+        if len(labels) != len(values):
+            printf("Received incorrect CR1000 values")
+        else:
+            for index, val in enumerate(values):
+                cr_dict[labels[index]] = val
+            return str(cr_dict)
 
 
 # write to txt file
+
 
     def cr1000(self):
         from monitor import reschedule

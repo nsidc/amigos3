@@ -9,7 +9,7 @@ try:
     run_schedule()
 except Exception as err:
     printf('Scheduler failed with error message :' +
-           str(err) + str(sys.exc_info()[0]) + '\n' + 'Trying to restart scheduler')
+           str(err) + str(sys.exc_info()[0]) + '.' + 'Trying to restart scheduler')
     traceback.print_exc(
         file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 finally:

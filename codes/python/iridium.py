@@ -57,6 +57,7 @@ class dial():
                 greeting = greeting.append(welcome)
             except:
                 reschedule(re="Out")
+                printf("Server sent no greetting")
             if greeting is not None:
                 printf(greeting)
             return ftp
@@ -135,7 +136,6 @@ class dial():
             printf(response)
             printf("Backing up files now ...")
             backup(path_file, own)
-            printf("Back up done :)")
             return True
         except:
             reschedule(re="Out")
@@ -197,8 +197,8 @@ class dial():
                     "The state of the schedule so far is presented in the table below.", date=True)
                 reschedule(run="Out")
                 get_stat()
-                printf("All Done with dial out session")
                 reschedule(start=True)
+                printf("All Done with dial out session")
 
         except:
             reschedule(re="Out")
