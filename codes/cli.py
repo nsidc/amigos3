@@ -519,3 +519,7 @@ def main():
         if inp in ['y', 'yes', "Yes", "YES"]:
             parser.print_help()
     printf("Human has left the chanel" + "*"*30)
+
+
+if __name__ == "__main__":
+    main()

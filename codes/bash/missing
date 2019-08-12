@@ -17,7 +17,6 @@ POWER="${LOGS}/power_log.log"
 SLEPT="${LOGS}/slept.log"
 SYSTEM="${LOGS}/system.log"
 BACK_PHOTO="${BACKUPS}/pictures"
-BLACK_HOLE= /dev/null
 
 time_now="$(date)"
 

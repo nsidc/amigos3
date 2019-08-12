@@ -43,7 +43,7 @@ def clean_data():
         "<RemoteReply>")+22:seabird_raw_data.find("<Executed/>")-5]
     seabird_data = numbers.split(', ')
     with open("/media/mmcblk0p1/logs/seabird_raw.log", "a+") as rawfile:
-        rawfile.write("SB " + seabird_data + "\n")
+        rawfile.write("SB " + str(seabird_data) + "\n")
     return seabird_data
 
 

@@ -38,7 +38,7 @@ def clean_data():
         "'>")+3:aquadopp_raw_data.find("</SampleData")-2]
     aquadopp_data = numbers.split(' ')
     with open("/media/mmcblk0p1/logs/aquadopp_raw.log", "a+") as rawfile:
-        rawfile.write("AD " + aquadopp_data + "\n")
+        rawfile.write("AD " + str(aquadopp_data) + "\n")
     return aquadopp_data
 
 
