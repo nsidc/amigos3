@@ -1,10 +1,4 @@
-# Sid Arora
-# UPDATED AS OF 6/25/19
-
-# This Program will read in data from the Vaisala Weather Sensor
-# It can read data over long periods of time and perform averages or can output live data
-
-# Import Modules
+import time
 from time import sleep
 import serial
 import re
@@ -12,10 +6,11 @@ import datetime
 import subprocess
 from execp import printf
 import traceback
-# Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
-
+from onboard_device import get_battery_current
+from monitor import reschedule
 
 class Average_Reading():
+
     def read_data(self):
         from monitor import reschedule
         from gpio import weather_on, weather_off
@@ -28,6 +23,7 @@ class Average_Reading():
             port.baudrate = 115200
             port.timeout = 60
         except:
+            set_reschedule("cr1000")
             print("Problem with port 5 or problem with power to the vaisala")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
@@ -90,9 +86,13 @@ class Average_Reading():
                     numbers_sum = numbers_sum + float_array_final[k][j]
                 numbers_divide = numbers_sum/(len(float_array_final))
                 data_array_final.append(round(numbers_divide, 3))
+
+            with open("/media/mmcblk0p1/logs/weather_raw.log") as rawfile:
+                rawfile.write("WT " + data_array_final + "\n")
+
             # Write the averaged array elements to a final log file - append
             now = datetime.datetime.now()
-            with open("/media/mmcblk0p1/logs/weather.log", "a+") as hourly:
+            with open("/media/mmcblk0p1/logs/weather_clean.log", "a+") as hourly:
                 hourly.write("Current Date and Time: " +
                              now.strftime("%Y-%m-%d %H:%M:%S\n"))
                 hourly.write("Wind Direction Average (Degrees): " +
@@ -136,26 +136,12 @@ class Average_Reading():
         return data_array_final
 
     def vaisala_sbd(self):
-        data_array_final = self.average_data()
-        weather_dict = {
-            'WD': data_array_final[0],
-            'WS': data_array_final[1],
-            'AT': data_array_final[2],
-            'RH': data_array_final[3],
-            'AP': data_array_final[4],
-            'RA': data_array_final[5],
-            'RD': data_array_final[6],
-            'RI': data_array_final[7],
-            'RPI': data_array_final[11],
-            'HA': data_array_final[8],
-            'HD': data_array_final[9],
-            'HI': data_array_final[10],
-            'HPI': data_array_final[12],
-            'UT': data_array_final[13],
-            'UV': data_array_final[14],
-            'USV': data_array_final[15]
-        }
-        return str(weather_dict)
+        with open("/media/mmcblk0p1/logs/weather_raw.log","r") as rawfile:
+            lines = rawfile.readlines()
+            lastline = lines[-1]
+        from monitor import backup
+        backup("/media/mmcblk0p1/logs/weather_raw.log",sbd = True)
+        return lastline
 
 # Class that will allow the user to access specific weather data points whenever needed
 

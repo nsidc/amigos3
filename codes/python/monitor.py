@@ -351,7 +351,7 @@ def put_to_power_sleep():
             printf('Voltage in normal operating range. Reading {0} volt :)'.format(
                 voltage))
     except:
-        printf('failed to excute put_to_sleep')
+        w.printf('failed to excute put_to_sleep')
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 

@@ -1,5 +1,3 @@
-from gpio import dts_on, dts_off, modem_on, modem_off  # FIX IMPORTING THESE FUNCTIONS!!
-import csv
 from execp import printf
 from copy import deepcopy
 from time import sleep
@@ -7,6 +5,7 @@ from monitor import reschedule
 
 
 def test():
+    from gpio import modem_on,modem_off,dts_on,dts_off
     printf("DTS data acquisition stated")
     dts_on(1)
     modem_on(1)
@@ -27,113 +26,124 @@ def test():
 # Program will read in data from DTS xml files, average the data over 2 meter lengths, and save to a csv file
 
 
-# Import modules
-
 # Function that will ssh from the windows computer into the triton board
-class dts():
-    def __init__(self, *args, **kwargs):
-        self.hosname = "192.168.0.50"
-        self.pswd = 'admin'
-        self.username = "admin"
 
-    def ssh(self):
-        try:
-            dts_on(1)
-        except:
-            printf("Not able to turn on the windows computer to run dts")
-        else:
-            pass
-        finally:
-            dts_off(1)
 
-            # set up windows computer to automaticlly start running dts software when it boots up
-            # then run ssh function to find and copy over files or just read in and output csv
+def ssh():
+    try:
+        from gpio import dts_on, dts_off
+        dts_on(1)
 
-    # Function that needs to locate the dts channel files in the directory path/rename them
+        #Defines paths to data files
+        #windows_filepath = '/Desktop/DTS_data/XT17057/temperature/'
+        #linux_filepath = '/media/mmcblk0p1/dts'
 
-    def find_files(self):
-        # figure out how to open xml files here that automatically output from dts - or figure out how to rename the files first using python
-        # use subprocess - import first too
-        # rename the file so that write to csv file cleanly
-
-        # need to first ssh in to windows comp and run the dts software and save the entire channel folder somewhere repeadedly
-        # then find that folder and rename/read in all the channel data - rename to channel1.xml etc every time so function calls always work
-
+        from pyssh.session import Session
+        session = Session(hostname = '192.168.0.50',username = 'admin',password = 'admin')
+        ftp = session.createftp()
+        ftp.get("Desktop/","/media/mmcblk0p1/dts/")
+    except:
+        printf("Not able to turn on the windows computer to run dts")
+    else:
+        # subprocess(ssh command and windows IP)
         pass
+    finally:
+        dts_off(1)
 
-    # Function that creates tree roots of xml file and preps a csv file to be written to
+        # set up windows computer to automaticlly start running dts software when it boots up
+        # then run ssh function to find and copy over files or just read in and output csv
 
-    def read_xml(self, filename):
-        import xml.etree.ElementTree as ET
-        tree = ET.parse(filename)
-        root = tree.getroot()
-        with open('test_csv_file.csv', "a+") as csvfil:
-            csvfil.write(filename)
-            csvfil.write('\n\n')
-            csvfil.write('Date/Time START: ' + root[0][7].text)
-            csvfil.write('\n\n')
-            csvfil.write('Date/Time END: ' + root[0][8].text)
-            csvfil.write('\n\n')
-            csvfil.write('Length, stokes, anti-stokes, Temp(C)')
-            csvfil.write('\n\n')
-        return root
+# Function that needs to locate the dts channel files in the directory path/rename them
 
-    # Function that creates a 2D array of float elements
 
-    def array(self, filename):
-        root = self.read_xml(filename)
-        large_array = []
-        for i in range(2, len(root[0][15])):
-            text = root[0][15][i].text
-            text = text.replace('\n', '')
-            text = text.split(",")
-            for i in range(0, len(text)):
-                text[i] = float(text[i])
-            large_array.append(text)
-        return large_array, text
+def find_files():
+    # figure out how to open xml files here that automatically output from dts - or figure out how to rename the files first using python
+    # use subprocess - import first too
+    # rename the file so that write to csv file cleanly
 
-    # Function that will average 8 0.25 meter data points into 1 data point
+    # need to first ssh in to windows comp and run the dts software and save the entire channel folder somewhere repeadedly
+    # then find that folder and rename/read in all the channel data - rename to channel1.xml etc every time so function calls always work
 
-    def average(self, filename):
-        large_array, text = self.array(filename)
-        zero_array = deepcopy(large_array)
-        for h in range(0, len(large_array)):
-            for s in range(0, len(text)):
-                zero_array[h][s] = 0
-        final_array = zero_array[0:(len(large_array)/8)]
+    pass
+
+# Function that creates tree roots of xml file and preps a csv file to be written to
+
+
+def read_xml(filename):
+    import xml.etree.ElementTree as ET
+    tree = ET.parse(filename)
+    root = tree.getroot()
+    with open('test_csv_file.csv', "a+") as csvfile:
+        csvfile.write(filename)
+        csvfile.write('\n\n')
+        csvfile.write('Date/Time START: ' + root[0][7].text)
+        csvfile.write('\n\n')
+        csvfile.write('Date/Time END: ' + root[0][8].text)
+        csvfile.write('\n\n')
+        csvfile.write('Length, stokes, anti-stokes, Temp(C)')
+        csvfile.write('\n\n')
+    return root
+
+# Function that creates a 2D array of float elements
+
+
+def array(filename):
+    root = read_xml(filename)
+    large_array = []
+    for i in range(2, len(root[0][15])):
+        text = root[0][15][i].text
+        text = text.replace('\n', '')
+        text = text.split(",")
+        for i in range(0, len(text)):
+            text[i] = float(text[i])
+        large_array.append(text)
+    return large_array, text
+
+# Function that will average 8 0.25 meter data points into 1 data point
+
+
+def average(filename):
+    large_array, text = array(filename)
+    zero_array = deepcopy(large_array)
+    for h in range(0, len(large_array)):
         for s in range(0, len(text)):
-            for h in range(0, (len(large_array)/8)):
-                tem = str((large_array[8*h][s] +
-                           large_array[8*h + 1][s] +
-                           large_array[8*h + 2][s] +
-                           large_array[8*h + 3][s] +
-                           large_array[8*h + 4][s] +
-                           large_array[8*h + 5][s] +
-                           large_array[8*h + 6][s] +
-                           large_array[8*h + 7][s])/8)
-                index = tem.find(".")
-                tem = tem[0:index] + tem[index:index+4]
-                final_array[h][s] = float(tem)
-        return final_array
+            zero_array[h][s] = 0
+    final_array = zero_array[0:(len(large_array)/8)]
+    for s in range(0, len(text)):
+        for h in range(0, (len(large_array)/8)):
+            tem = str((large_array[8*h][s] +
+                       large_array[8*h + 1][s] +
+                       large_array[8*h + 2][s] +
+                       large_array[8*h + 3][s] +
+                       large_array[8*h + 4][s] +
+                       large_array[8*h + 5][s] +
+                       large_array[8*h + 6][s] +
+                       large_array[8*h + 7][s])/8)
+            index = tem.find(".")
+            tem = tem[0:index] + tem[index:index+4]
+            final_array[h][s] = float(tem)
+    return final_array
 
-    # Function that writes arrays to csv - appends to bottom
+# Function that writes arrays to csv - appends to bottom
 
-    def write(self, filename):
-        final_array = self.average(filename)
-        with open('test_csv_file.csv', "a") as csvfile:
-            for i in range(0, len(final_array)):
-                temp = str(final_array[i])
-                endindex = temp.find("]")
-                temp = temp[1:endindex]
-                csvfile.write(temp)
-                csvfile.write("\n")
-            csvfile.write("\n\n\n")
 
-    # Function main that calls other functions and provides a filename
+def write(filename):
+    final_array = average(filename)
+    with open('test_csv_file.csv', "a") as csvfile:
+        for i in range(0, len(final_array)):
+            temp = str(final_array[i])
+            endindex = temp.find("]")
+            temp = temp[1:endindex]
+            csvfile.write(temp)
+            csvfile.write("\n")
+        csvfile.write("\n\n\n")
 
-    def main(self):
-        self.write("channel1.xml")
-        self.write("channel2.xml")
+# Function main that calls other functions and provides a filename
+
+
+def main():
+    write("channel1.xml")
+    write("channel2.xml")
 
 
 # If python script is called, the main funciton is called

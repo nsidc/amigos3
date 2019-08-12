@@ -8,6 +8,7 @@ from execp import printf
 from monitor import reschedule
 
 
+
 def readsolar():
     """Read solar sensor values and save to a file."""
     printf("Started Solar Sensor data acquisition ")
@@ -47,14 +48,19 @@ def readsolar():
                 data = date + ",  " + str(data1) + ",  " + str(data2) + "\n"
             data = str(data)
             # print(data)
-            with open("/media/mmcblk0p1/logs/solar.log", "a+") as solar:
+            with open("/media/mmcblk0p1/logs/solar_clean.log", "a+") as solar:
                 solar.write(data + '\n')
                 sleep(8)  # set rate of readings in seconds
             t = t + 10  # keep time
+            with open("/media/mmcblk0p1/logs/solar_raw.log") as rawfile:
+                rawfile.write("SO " + data)
+
         printf("All done with Solar Sensor")
         reschedule(run="readsolar")
     except:
         reschedule(re="readsolar")
+        with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
+            res.write("readsolar")
         printf("Unable to read solar sensor")
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
@@ -103,17 +109,16 @@ class solar_live():
         finally:
             if not is_on:
                 solar_off()
-
         return data1, data2
 
     def solar_sbd(self):
-        data1, data2 = self.read_solar()
-        array = [data1, data2]
-        solar_dict = {
-            'S1': array[0],
-            'S2': array[1]
-        }
-        return str(solar_dict)
+        with open("/media/mmcblk0p1/logs/solar_raw.log","r") as rawfile:
+            lines = rawfile.readlines()
+            lastline = lines[-1]
+        from monitor import backup
+        backup("/media/mmcblk0p1/logs/solar_raw.log",sbd = True)
+        return lastline
+
 
     def solar_1(self):
         data1, data2 = self.read_solar()

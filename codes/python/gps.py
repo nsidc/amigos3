@@ -1,5 +1,4 @@
 # !/bin/python2
-import pynmea2 as nmea2
 from serial import Serial as ser
 from time import sleep
 # import binascii as bina
@@ -132,6 +131,7 @@ class gps_data():
             gps_on(bit=1)
             sleep(60)
         except:
+            set_reschedule("get_binex")
             self.port = None
             printf('An error occurred ``\\_(^/)_/``')
             traceback.print_exc(
@@ -243,6 +243,7 @@ class gps_data():
             disable_serial()
 
     def __Nmea_parse(self):
+        import pynmea2 as nmea2
         """
         Parser the nmea language code into human readable location code GPGGA, GPVTG
         Take no argument

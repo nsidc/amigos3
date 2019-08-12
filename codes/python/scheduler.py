@@ -5,11 +5,8 @@ from time import sleep
 from datetime import datetime
 from gps import gps_data as gps_data
 from gpio import modem_on, is_on_checker, all_off
-from vaisala import Average_Reading as vg
 from onvif import ptz_client as ptz
-from cr1000x import cr1000x
 from onboard_device import get_humidity, get_temperature
-from solar import readsolar
 import ast
 from execp import printf, sig_handler, terminateProcess, welcome, amigos_Unit
 import signal
@@ -18,8 +15,6 @@ import traceback
 from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sleep, clear_cached, get_system_performance, has_slept, reschedule, get_stat
 from iridium import sbd as sb, dial
 from dts import test as dts_test
-from aquadopp import read_aquadopp
-from seabird import read_seabird
 
 # call("env >> /media/mmcblk0p1/logs/system.log", shell=True)
 welcome()
@@ -34,6 +29,7 @@ class summer():
         self.sched_summer = schedule.Scheduler()  # create a new schedule instance
 
     def vaisala_schedule(self):
+        from vaisala import Average_Reading as vg
         v = vg()
         # Perform this measurement reading every hour between :58 to :00
         self.sched_summer.every().hour.at(":59").do(v.vaisala)  # add vaisala schedule
@@ -54,17 +50,21 @@ class summer():
         self.sched_summer.every().day.at("22:10").do(cam.move)
 
     def aquadopp_schedule(self):
+        from aquadopp import read_aquadopp
         self.sched_summer.every(2).hours.at(":52").do(read_aquadopp)
 
     def seabird_schedule(self):
+        from seabird import read_seabird
         self.sched_summer.every().hour.at(":50").do(read_seabird)
 
     def cr100x_schedule(self):
         # add cr100 schedules
+        from cr1000x import cr1000x
         cr = cr1000x()
         self.sched_summer.every().hour.at(":55").do(cr.cr1000)
 
     def solar_schedule(self):
+        from solar import readsolar
         self.sched_summer.every().hour.at(":57").do(readsolar)
 
     def dial_out(self):
@@ -129,10 +129,11 @@ class summer():
 
 
 class winter():
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.sched_winter = schedule.Scheduler()
 
     def vaisala_schedule(self):
+        from vaisala import Average_Reading as vg
         v = vg()
         # Perform this measurement reading every hour between :58 to :00
         self.sched_winter.every().hour.at(":59").do(v.vaisala)
@@ -147,17 +148,21 @@ class winter():
         self.sched_winter.every().day.at("20:10").do(cam.move)
 
     def aquadopp_schedule(self):
+        from aquadopp import read_aquadopp
         self.sched_winter.every(2).hours.at(":52").do(read_aquadopp)
 
     def seabird_schedule(self):
+        from seabird import read_seabird
         self.sched_winter.every().hour.at(":50").do(read_seabird)
 
     def cr100x_schedule(self):
         # add cr100x schedules
+        from cr1000x import cr1000x
         cr = cr1000x()
         self.sched_winter.every().hour.at(":55").do(cr.cr1000)
 
     def solar_schedule(self):
+        from solar import readsolar
         self.sched_winter.every().hour.at(":56").do(readsolar)
 
     def dial_out(self):
@@ -210,7 +215,7 @@ class winter():
 
 
 class monitor():
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.sched_monitor = schedule.Scheduler()
 
     def execute(self):
@@ -335,6 +340,8 @@ def run_schedule():
         if new_sched:
             winter_time = new_sched[0]
             summer_time = new_sched[0]
+        if not is_on_checker(1, 6):
+            modem_on(1)
         # get the today date (tritron time must update to uptc time)
         today = datetime.now()
         # minutes = today.minute

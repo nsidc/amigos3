@@ -21,6 +21,8 @@ BLACK_HOLE= /dev/null
 
 time_now="$(date)"
 
+time_now="$(date)"
+
 if [ ! -d $DIR ]; then
     echo "This code can not run on this computer. Are  sure you are on a Tritron board?"
     echo "If so, check If SD_CARD directory In /media is named mmcblk0p1 by typing 'cd /media && ls'"

@@ -1,4 +1,3 @@
-from gpio import cr1000_off, cr1000_on, is_on_checker, modem_on, modem_off
 from time import sleep
 from execp import printf
 import traceback
@@ -7,6 +6,7 @@ from datetime import datetime
 
 class cr1000x():
     def finddata(self):
+        from gpio import cr1000_on, modem_on
         printf("Cr1000 data acquisition started")
         modem_on(1)
         cr1000_on(1)
@@ -64,24 +64,24 @@ class cr1000x():
                       'R6_5', 'R8_5', 'T6,', 'T10', 'T20', 'T40', 'T2_5', 'T4_5', 'T6_5', 'T8_5', 'DT', 'Q', 'TCDT']
             values = [date_now, Batt_volt, Ptemp_C, R40, R6, R10, R20, R2_5,
                       R4_5, R6_5, R8_5,  T6,  T10, T20, T40, T2_5, T4_5, T6_5, T8_5, dt, Q, tcdt]
+        with open("/media/mmcblk0p1/logs/cr1000x_raw.log", "r") as rawfile:
+            rawfile.write("CR " + values + "\n")
         return labels, values
 
     def cr_sbd(self):
-        labels, values = self.finddata()
-        cr_dict = {}
-        if len(labels) != len(values):
-            printf("Received incorrect CR1000 values")
-        else:
-            for index, val in enumerate(values):
-                cr_dict[labels[index]] = val
-            return str(cr_dict)
+        with open("/media/mmcblk0p1/logs/cr1000x_raw.log", "r") as rawfile:
+            lines = rawfile.readlines()
+            lastline = lines[-1]
+        from monitor import backup
+        backup("/media/mmcblk0p1/logs/cr1000x_raw.log", sbd=True)
+        return lastline
 
 
 # write to txt file
 
-
     def cr1000(self):
         from monitor import reschedule
+        from gpio import modem_off, cr1000_off
         try:
             labels, values = self.finddata()
             if not values:
@@ -96,7 +96,7 @@ class cr1000x():
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
             therms = open(
-                "/media/mmcblk0p1/logs/cr1000x.log", "a+")
+                "/media/mmcblk0p1/logs/cr1000x_clean.log", "a+")
             try:
                 for i in range(len(labels)):
                     therms.write(labels[i] + ': ' + values[i] + "\n")
@@ -117,7 +117,9 @@ class cr1000x():
 
 
 class cr1000x_live():
+
     def cr_read(self):
+        from gpio import cr1000_off, cr1000_on, is_on_checker, modem_on, modem_off
         try:
             modem_on(1)
             is_on = is_on_checker(0, 5)
