@@ -16,11 +16,11 @@ class Average_Reading():
         try:
             # Turn on Weather Station
             weather_on(1)
-            sleep(60)
+            sleep(20)
             # Read in the weather sensor data and write to an ascii text file
             port = serial.Serial("/dev/ttyS5")
             port.baudrate = 115200
-            port.timeout = 60
+            port.timeout = 20
         except:
             set_reschedule("cr1000")
             print("Problem with port 5 or problem with power to the vaisala")
@@ -39,7 +39,7 @@ class Average_Reading():
                         printf("Vaisala could not take reading. Got empty data")
                         break
                     raw_data.write(data)
-                    sleep(10)
+                    sleep(0.5)
                 t = t+10
         finally:
             # Turn off Weather Station

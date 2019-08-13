@@ -149,6 +149,9 @@ class dial():
         """
         printf("Starting dial out session")
         from gpio import iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
+        from monitor import timing
+        from timeit import default_timer as timer
+        start = timer()
         iridium_on(1)
         router_on(1)
         modem_on(1)
@@ -197,6 +200,8 @@ class dial():
                 from monitor import get_stat
                 get_stat()
                 reschedule(start=True)
+                end = timer()
+                timing("Out", end-start)
                 printf("All Done with dial out session")
 
         except:
@@ -218,7 +223,10 @@ class dial():
         try:
             from requests import post
             from gpio import iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
+            from monitor import timing
+            from timeit import default_timer as timer
             printf("Started dial in section")
+            start = timer()
             iridium_on(1)
             router_on(1)
             modem_on(1)
@@ -251,6 +259,8 @@ class dial():
                 i = i+1
             printf("Dial in section timeout")
             reschedule(run="In")
+            end = timer()
+            timing("In", end-start)
         except Exception as err:
             printf("Dial out session failed with {0}".format(err))
             traceback.print_exc(
@@ -272,15 +282,25 @@ class sbd():
 
     def SBD(self):
         from gpio import disable_serial, iridium_off, sbd_off, iridium_on, sbd_on, enable_serial
-        iridium_on(1)
-        sbd_on(1)
-        sleep(1)
-        enable_serial()
-        sleep(10)
-        self.solar_SBD()
-        disable_serial()
-        sbd_off(1)
-        iridium_off(1)
+        from monitor import timing
+        from timeit import default_timer as timer
+        try:
+            start = timer()
+            iridium_on(1)
+            sbd_on(1)
+            sleep(1)
+            enable_serial()
+            sleep(10)
+            self.solar_SBD()
+            end = timer()
+            timing("SBD", end-start)
+            reschedule(run="SBD")
+        except:
+            reschedule(re="SBD")
+        finally:
+            disable_serial()
+            sbd_off(1)
+            iridium_off(1)
 
     def solar_SBD(self):
         # collect dictionary of solar data from other scripts
@@ -290,7 +310,7 @@ class sbd():
 
         # Commands send to iridium solar data
         message_sent = False
-        sbd_port = ser("/dev/ttyUSB0")
+        sbd_port = ser("/dev/ttyS1")
         sbd_port.flushInput()
         sbd_port.write("AT\r\n")
         sleep(2)
@@ -333,7 +353,7 @@ class sbd():
 
         # Commands send to iridium vaisala data
         message_sent = False
-        sbd_port = ser("/dev/ttyUSB0")
+        sbd_port = ser("/dev/ttyS1")
         sbd_port.flushInput()
         sbd_port.write("AT\r\n")
         sleep(2)
@@ -376,7 +396,7 @@ class sbd():
 
         # Commands send to iridium CR data
         message_sent = False
-        sbd_port = ser("/dev/ttyUSB0")
+        sbd_port = ser("/dev/ttyS1")
         sbd_port.flushInput()
         sbd_port.write("AT\r\n")
         sleep(2)
@@ -418,7 +438,7 @@ class sbd():
 
         # Commands send to iridium seabird data
         message_sent = False
-        sbd_port = ser("/dev/ttyUSB0")
+        sbd_port = ser("/dev/ttyS1")
         sbd_port.flushInput()
         sbd_port.write("AT\r\n")
         sleep(2)
@@ -460,7 +480,7 @@ class sbd():
 
         # Commands send to iridium aquadopp data
         message_sent = False
-        sbd_port = ser("/dev/ttyUSB0")
+        sbd_port = ser("/dev/ttyS1")
         sbd_port.flushInput()
         sbd_port.write("AT\r\n")
         sleep(2)

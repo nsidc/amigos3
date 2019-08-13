@@ -210,6 +210,9 @@ class ptz_client():
         try:
             from monitor import reschedule
             from gpio import modem_off, modem_on
+            from monitor import timing
+            from timeit import default_timer as timer
+            start = timer()
             modem_on(1)
             sleep(5)
             printf("Camera moving north")
@@ -237,6 +240,8 @@ class ptz_client():
             sleep(1)
             self.send('absolute', pan=0, tilt=45, zoom=0)
             reschedule(run="move")
+            end = timer()
+            timing("move", end-start)
         except:
             printf("Camera failed to take picture")
             reschedule(re="move")

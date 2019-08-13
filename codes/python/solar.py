@@ -11,6 +11,9 @@ from monitor import reschedule
 def readsolar():
     """Read solar sensor values and save to a file."""
     printf("Started Solar Sensor data acquisition ")
+    from monitor import timing
+    from timeit import default_timer as timer
+    start = timer()
     V5_ENA_ON()
     solar_on()
     sleep(5)
@@ -56,6 +59,8 @@ def readsolar():
 
         printf("All done with Solar Sensor")
         reschedule(run="readsolar")
+        end = timer()
+        timing("readsolar", end-start)
     except:
         reschedule(re="readsolar")
         with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:

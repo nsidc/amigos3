@@ -28,12 +28,6 @@ class summer():
     def __init__(self, *args, **kwargs):
         self.sched_summer = schedule.Scheduler()  # create a new schedule instance
 
-    def vaisala_schedule(self):
-        from vaisala import Average_Reading as vg
-        v = vg()
-        # Perform this measurement reading every hour between :58 to :00
-        self.sched_summer.every().hour.at(":59").do(v.vaisala)  # add vaisala schedule
-
     def gps_schedule(self):
         gps = gps_data()
         # add gps schedules
@@ -41,6 +35,12 @@ class summer():
         self.sched_summer.every().day.at("11:10").do(gps.get_binex)
         self.sched_summer.every().day.at("17:10").do(gps.get_binex)
         self.sched_summer.every().day.at("23:10").do(gps.get_binex)
+
+    def vaisala_schedule(self):
+        from vaisala import Average_Reading as vg
+        vai = vg()
+        # Perform this measurement reading every hour between :58 to :00
+        self.sched_summer.every().hour.at(":57").do(vai.vaisala)  # add vaisala schedule
 
     def camera_schedule(self):
         cam = ptz()
@@ -65,33 +65,33 @@ class summer():
 
     def solar_schedule(self):
         from solar import readsolar
-        self.sched_summer.every().hour.at(":57").do(readsolar)
+        self.sched_summer.every().hour.at(":56").do(readsolar)
 
     def dial_out(self):
-        d = dial()
+        di = dial()
         unit = amigos_Unit()
         # # box a
         if unit == "A":
-            self.sched_summer.every().day.at("06:10").do(d.Out)
-            self.sched_summer.every().day.at("12:10").do(d.Out)
-            self.sched_summer.every().day.at("18:10").do(d.Out)
-            self.sched_summer.every().day.at("00:10").do(d.Out)
+            self.sched_summer.every().day.at("06:10").do(di.Out)
+            self.sched_summer.every().day.at("12:10").do(di.Out)
+            self.sched_summer.every().day.at("18:10").do(di.Out)
+            self.sched_summer.every().day.at("00:10").do(di.Out)
         # # box b
         elif unit == "B":
-            self.sched_summer.every().day.at("06:20").do(d.Out)
-            self.sched_summer.every().day.at("12:20").do(d.Out)
-            self.sched_summer.every().day.at("18:20").do(d.Out)
-            self.sched_summer.every().day.at("00:20").do(d.Out)
+            self.sched_summer.every().day.at("06:20").do(di.Out)
+            self.sched_summer.every().day.at("12:20").do(di.Out)
+            self.sched_summer.every().day.at("18:20").do(di.Out)
+            self.sched_summer.every().day.at("00:20").do(di.Out)
         # # box c
         elif unit == "C":
-            self.sched_summer.every().day.at("06:30").do(d.Out)
-            self.sched_summer.every().day.at("12:30").do(d.Out)
-            self.sched_summer.every().day.at("18:30").do(d.Out)
-            self.sched_summer.every().day.at("00:30").do(d.Out)
+            self.sched_summer.every().day.at("06:30").do(di.Out)
+            self.sched_summer.every().day.at("12:30").do(di.Out)
+            self.sched_summer.every().day.at("18:30").do(di.Out)
+            self.sched_summer.every().day.at("00:30").do(di.Out)
 
     def dial_in(self):
-        d = dial()
-        self.sched_summer.every().day.at("19:20").do(d.In)
+        di = dial()
+        self.sched_summer.every().day.at("19:20").do(di.In)
 
     def dts(self):
         self.sched_summer.every().day.at("03:05").do(dts_test)
@@ -101,16 +101,16 @@ class summer():
 
     def sbd(self):
         # box A
-        s = sb()
+        ss = sb()
         unit = amigos_Unit()
         if unit == "A":
-            self.sched_summer.every().day.at("00:02").do(s.SBD)
+            self.sched_summer.every().day.at("00:02").do(ss.SBD)
         # # box B
         elif unit == "B":
-            self.sched_summer.every().day.at("00:04").do(s.SBD)
+            self.sched_summer.every().day.at("00:04").do(ss.SBD)
         # # box C
         elif unit == "C":
-            self.sched_summer.every().day.at("00:06").do(s.SBD)
+            self.sched_summer.every().day.at("00:06").do(ss.SBD)
 
     def sched(self):
         # load all the schedules
@@ -134,9 +134,9 @@ class winter():
 
     def vaisala_schedule(self):
         from vaisala import Average_Reading as vg
-        v = vg()
+        vai = vg()
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_winter.every().hour.at(":59").do(v.vaisala)
+        self.sched_winter.every().hour.at(":57").do(vai.vaisala)
 
     def gps_schedule(self):
         gps = gps_data()
@@ -166,38 +166,38 @@ class winter():
         self.sched_winter.every().hour.at(":56").do(readsolar)
 
     def dial_out(self):
-        d = dial()
+        di = dial()
         unit = amigos_Unit()
 
         # # box a
         if unit == "A":
-            self.sched_winter.every().day.at("00:10").do(d.Out)
+            self.sched_winter.every().day.at("00:10").do(di.Out)
         # # box b
         elif unit == "B":
-            self.sched_winter.every().day.at("00:20").do(d.Out)
+            self.sched_winter.every().day.at("00:20").do(di.Out)
         # # box c
         elif unit == "C":
-            self.sched_winter.every().day.at("00:30").do(d.Out)
+            self.sched_winter.every().day.at("00:30").do(di.Out)
 
     def dial_in(self):
 
-        d = dial()
-        self.sched_winter.every().day.at("19:20").do(d.In)
+        di = dial()
+        self.sched_winter.every().day.at("19:20").do(di.In)
 
     def dts(self):
         self.sched_winter.every().day.at("21:05").do(dts_test)
 
     def sbd(self):
-        s = sb()
+        ss = sb()
         unit = amigos_Unit()
         if unit == "A":
-            self.sched_winter.every().day.at("00:02").do(s.SBD)
+            self.sched_winter.every().day.at("00:02").do(ss.SBD)
             # # box B
         elif unit == "B":
-            self.sched_winter.every().day.at("00:04").do(s.SBD)
+            self.sched_winter.every().day.at("00:04").do(ss.SBD)
             # # box C
         elif unit == "C":
-            self.sched_winter.every().day.at("00:06").do(s.SBD)
+            self.sched_winter.every().day.at("00:06").do(ss.SBD)
 
     def sched(self):
         self.vaisala_schedule()

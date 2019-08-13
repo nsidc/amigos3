@@ -158,7 +158,7 @@ def imm_on(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("Weather station turned on")
+        printf("IMM  turned on")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 
@@ -173,7 +173,7 @@ def imm_off(bit):
         __toggle(bit-1)
         subprocess.call(
             "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))), shell=True)
-        printf("weather station turned off")
+        printf("IMM turned off")
         __update_bit(bit_str + ','+bit_string[1]+','+bit_string[2])
 
 

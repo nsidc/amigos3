@@ -6,8 +6,11 @@ from datetime import datetime
 
 class cr1000x():
     def finddata(self):
-        from gpio import cr1000_on, modem_on
+        from timeit import default_timer as timer
+        from gpio import cr1000_on, modem_on, cr1000_off, modem_off
+        from monitor import timing
         printf("Cr1000 data acquisition started")
+        start = timer()
         modem_on(1)
         cr1000_on(1)
         sleep(10)
@@ -30,10 +33,14 @@ class cr1000x():
         # printf("Updating device time ...")
         # start_time = device.settime(datetime.now())
         # printf("Device time set to {0}".format(start_time))
-        sleep(80)
+        sleep(30)
         data = device.get_raw_packets("Public")
         device.bye()
         printf("Sent bye to device")
+        cr1000_off(1)
+        modem_off(1)
+        end = timer()
+        timing("cr1000", end-start)
         if data:
             data = data[0]['RecFrag'][0]['Fields']
             # print(data[0])
@@ -78,6 +85,7 @@ class cr1000x():
 
 
 # write to txt file
+
 
     def cr1000(self):
         from monitor import reschedule
