@@ -328,9 +328,9 @@ def put_to_inactive_sleep(jobs):
     elif no_task():
         power, totaltime, total = power_consumption()
         printf(
-            "*_* Total power consumed in Watt during this session is {0} and toke {1}s".format(str(power)[0:-6], str(totaltime))[0:-6])
+            "*_* Total power consumed during this session is {0} Wh and toke {1}s".format(str(power)[0:-6], str(totaltime))[0:-6])
         printf(
-            "*__* Next task: {0} job is in {1} minutes. Going on StandBy".format(track[sorted_jobs[0].job_func.__name__][2], time_interval))
+            "/\\ Next task: {0} job is in {1} minutes. Going on StandBy".format(track[sorted_jobs[0].job_func.__name__][2], time_interval))
         with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
             slept.write("1")
         with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:

@@ -16,7 +16,6 @@ from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sle
 from iridium import sbd as sb, dial
 from dts import test as dts_test
 
-# call("env >> /media/mmcblk0p1/logs/system.log", shell=True)
 welcome()
 printf("The state of the schedule so far is presented in the table below.", date=True)
 get_stat()
@@ -393,52 +392,7 @@ def run_schedule():
                 modem_on(1)
             reschedule(jobs=summer_task.jobs)
             put_to_inactive_sleep(summer_task.jobs)
-
-        # check if today falls into winter
         sleep(1)
-
- # if winter_running:
-        #     winter_task.run_pending()
-        #     reschedule(jobs=winter_task.jobs)
-        #     if not is_on_checker(1, 6):
-        #         modem_on(1)
-        #     # with open('/media/mmcblk0p1/logs/schedule.log', 'w+') as sched_log:
-        #     #     sched_log.write(str(sorted(winter_task.jobs)))
-        #     if int(hours) == 00 and int(minutes) == 15:
-        #         winter_running = False
-        #         printf('Loading summer schedule')
-        #         s = summer()  # reload the schedule
-        #         summer_task = s.sched()
-        #         sleep(61)
-        #         printf('clearing winter schedule')
-        #         winter_task.clear()
-        #         printf('Started summer schedule')
-        #         summer_running = True  # set flag
-        #     put_to_inactive_sleep(winter_task.jobs)
-        # elif summer_running:
-        #     summer_task.run_pending()
-        #     reschedule(jobs=summer_task.jobs)
-        #     if not is_on_checker(1, 6):
-        #         modem_on(1)
-        #     # with open('/media/mmcblk0p1/logs/schedule.log', 'w+') as sched_log:
-        #     #     sched_log.write(str(sorted(summer_task.jobs)))
-        #     if int(hours) == 00 and int(minutes) == 15:
-        #         summer_running = False  # set flag
-        #         printf('Loading winter schedule')
-        #         s = winter()  # reload the schedule
-        #         winter_task = s.sched()
-        #         sleep(61)
-        #         printf("clearing summer tasks")
-        #         summer_task.clear()
-        #         printf('Started winter schedule')
-        #         winter_running = True
-        #     put_to_inactive_sleep(summer_task.jobs)
-
-        # else:
-        #     printf('Loading summer schedule')
-        #     sleep(2)
-        #     summer_running = True
-        #     printf('Started summer schedule as default')
 
 
 # running this script start the schedule
@@ -453,16 +407,3 @@ if __name__ == "__main__":
                str(err) + str(sys.exc_info()[0]) + '\n' + 'Trying to restart scheduler')
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
-# t = cold_test()
-        # s = t.sched()
-        # dog = dog_mode(mode=1)
-        # dog.run_all()
-        # mo = monitor()
-        # m = mo.sched()
-        # while True:
-        #     m.run_pending()
-        #     dog.run_pending()
-        #     s.run_pending()
-        #     with open('/media/mmcblk0p1/logs/sched.log', 'w+') as sched_log:
-        #         sched_log.write(str(m.jobs)+',' + str(s.jobs))
-        #     sleep(1)

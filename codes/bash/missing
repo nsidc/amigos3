@@ -5,6 +5,7 @@ PICTURES="${DIR}/picture"
 UPICTURES="${DIR}/unscaled_picture"
 DTS="${DIR}/dts"
 LOGS="${DIR}/logs"
+BACK_PHOTO="${BACKUPS}/picture"
 BACKDTS="${BACKUPS}/dts"
 BACKSYS="${BACKUPS}/system"
 GPS="${BACKUPS}/gps"
@@ -16,7 +17,8 @@ AQUADOPP="${BACKUPS}/aquadopp"
 POWER="${LOGS}/power_log.log"
 SLEPT="${LOGS}/slept.log"
 SYSTEM="${LOGS}/system.log"
-BACK_PHOTO="${BACKUPS}/picture"
+DIALOUT="${LOGS}/dialout_list.log"
+RESCHEDULE="${LOGS}/reschedule.log"
 
 time_now="$(date)"
 
@@ -60,7 +62,12 @@ fi
 if [ ! -f $SLEPT ]; then
     touch $SLEPT
 fi
-
+if [ ! -f $RESCHEDULE ]; then
+    touch $RESCHEDULE
+fi
+if [ ! -f $DIALOUT ]; then
+    touch $DIALOUT
+fi
 if [ ! -d $PICTURES ]; then
     mkdir $PICTURES
     echo "${time_now:0:19} ${time_now:24}: Pictures folder missing! Created" >>$SYSTEM
