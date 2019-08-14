@@ -65,5 +65,8 @@ def sig_handler(signum, frame):
 
 
 def terminateProcess(signalNumber, frame):
-    printf('received (SIGTERM),  terminating the scheduler. System must be going down or a human sends "kill" command.')
+    from monitor import power_consumption
+    power = power_consumption()[2]
+    printf('received (SIGTERM),  terminating the scheduler. Total power consumed is {0}'.format(
+        str(power)[0:-6]))
     sys.exit(0)

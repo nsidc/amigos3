@@ -16,13 +16,13 @@ class Average_Reading():
         try:
             # Turn on Weather Station
             weather_on(1)
-            sleep(60)
+            sleep(20)
             # Read in the weather sensor data and write to an ascii text file
             port = serial.Serial("/dev/ttyS5")
             port.baudrate = 115200
-            port.timeout = 60
+            port.timeout = 20
         except:
-            set_reschedule("cr1000")
+            reschedule(re="cr1000")
             print("Problem with port 5 or problem with power to the vaisala")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))

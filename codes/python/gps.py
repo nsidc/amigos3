@@ -108,7 +108,7 @@ class gps_data():
             if out:
                 gps_off(1)
                 disable_serial()
-                out=False
+                out = False
         # subprocess.call(
         #     'bash /media/mmcblk0p1/codes/bash/set_time "{0}"'.format(str_time), shell=True)
         # os.system('date -s "{0}" >/dev/null'.format(str_time))
@@ -123,9 +123,12 @@ class gps_data():
         Take no argument
         Return None
         """
+        from monitor import timing
+        from timeit import default_timer as timer
         printf('GPS data acquisition started')
         try:
             # try opening the port
+            start = timer()
             self.port.open()
             enable_serial()
             gps_on(bit=1)
@@ -170,6 +173,8 @@ class gps_data():
                 self.sequence = self.sequence+1
             printf("Updating Tritron time")
             self.update_time()
+            end = timer()
+            timing("get_binex", end-start)
             printf("All done with gps")
             reschedule(run="get_binex")
         finally:

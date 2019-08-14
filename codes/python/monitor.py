@@ -10,19 +10,48 @@ from execp import printf
 # Dictionary obeject to track schedule execution. index 0: task failure conter, Index 1:
 # total task failure counter, index 2 Device name with description index 3:
 # total successful run index 4: Number of run per hour
-track = {"cr1000": [0, 0, "CR1000x", 0, 6],
-         "readsolar": [0, 0, "Solar sensor", 0, 6],
-         "vaisala": [0, 0, "Vaisala", 0, 6],
-         "get_binex": [0, 0, "GPS Binex", 0, 1],
-         "Out": [0, 0, "Dial_out", 0, 1],
-         "send": [0, 0, "SBD out Tweet", 0, 1],
-         "In": [0, 0, "Dial_in", 0, 1],
-         "read_aquadopp": [0, 0, "Aquadopp", 0, 6],
-         "read_seabird": [0, 0, "Sea Bird", 0, 6],
-         "test": [0, 0, "DTS", 0, 1],
-         "move": [0, 0, "Camera", 0, 1],
+track = {"cr1000": [0, 0, "CR1000x", 0, 6, 0.576447027, 0],
+         "readsolar": [0, 0, "Solar sensor", 0, 6, 0.131056604, 0],
+         "vaisala": [0, 0, "Vaisala", 0, 6, 0.146047619, 0],
+         "get_binex": [0, 0, "GPS Binex", 0, 1, 0.281862069, 0],
+         "Out": [0, 0, "Dial_out", 0, 1, 0.941735425, 0],
+         "SBD": [0, 0, "SBD out Tweet", 0, 1, 0, 0.197106061, 0],
+         "In": [0, 0, "Dial_in", 0, 1, 0.554076212, 0],
+         "read_aquadopp": [0, 0, "Aquadopp", 0, 3, 0, 0],
+         "read_seabird": [0, 0, "Sea Bird", 0, 6, 0, 0],
+         "test": [0, 0, "DTS", 0, 1, 0, 0],
+         "move": [0, 0, "Camera", 0, 1, 0, 0],
          }
-parm = [0, True]
+parm = [0, True, 0.0]
+
+
+def timing(device, dur):
+    """Update durration of a job
+
+    Arguments:
+        device {[string]} -- task name
+        dur {float} -- durection
+    """
+    for item, array in track.items():
+        if item == device:
+            track[item][6] = dur
+
+
+def power_consumption():
+    """Get the total power consumed
+
+    Returns:
+        [float] -- total power in Watt
+    """
+    consume = 0.0
+    total_time = 0.0
+    volt = get_battery_voltage()
+    for item, array in track.items():
+        consume = consume+(track[item][5]*volt*track[item][6])*0.000277778
+        total_time = total_time+track[item][6]
+        track[item][6] = 0
+    parm[2] = parm[2]+consume
+    return consume, total_time, parm[2]
 
 
 def set_reschedule(device):
@@ -133,9 +162,11 @@ def reschedule(jobs=None, start=False, re=None, run=None):
 def get_stat():
     """Print statistic to log file."""
     stat_dic = track
+    power = power_consumption()[2]
     printf('TF: Total failure', date=True)
     printf("TR: Total successfull run", date=True)
     printf("PE: Percent of execution", date=True)
+    printf("Total Power consumed so far: {0} Watt".format(str(power))[0:-6], date=True)
     printf(" ________________ ____ ____ _____", date=True)
     printf("| Device         | TF | TR | PE  |", date=True)
     printf("|________________|____|____|_____|", date=True)
@@ -171,9 +202,6 @@ def backup(sub_files, own=False, sbd=False):
     """
     try:
         import shutil
-        time_now = datetime.datetime.now()
-        time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
-            str(time_now.day) + "_" + str(time_now.hour) + str(time_now.minute)
         if own:
             new_name = sub_files.split("/")
             new_name.insert(-1, "trashes")
@@ -184,20 +212,15 @@ def backup(sub_files, own=False, sbd=False):
             shutil.move(sub_files, new_name)
             return
         source = "/media/mmcblk0p1/backups/"
-        folders = ["gps", "weather", "cr1000x", "solar", "dts", "pictures", "system"]
+        folders = ["gps", "weather", "cr1000x", "solar", "dts", "picture", "system"]
         time_now = datetime.datetime.now()
         time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
             str(time_now.day) + "_" + str(time_now.hour) + "_" + str(time_now.minute)
         for index, item in enumerate(folders):
             if sub_files.find(item) != -1:
-                new_name = source + item + "/" + \
-                    time_now + "_" + sub_files.split("/")[-1]
+                new_name = source + item + "/" + sub_files.split("/")[-1]
         shutil.move(sub_files, new_name)
         printf("Backed up {0}".format(sub_files.split("/")[-1]))
-        if sbd is True:
-            os.remove(sub_files)
-            printf("Removed {0}".format(sub_files.split("/")[-1]))
-            sbd = False
     except:
         printf("Files backup failed ")
         traceback.print_exc(
@@ -296,16 +319,19 @@ def put_to_inactive_sleep(jobs):
     str_time = str(next_run_diff)
     if time_interval < 3 or str_time.find("-") != -1:
         with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:
-            sch.write(str(sorted(jobs)) + "\n" + str(time_interval) + str_time+"*"*50)
+            sch.write(str(sorted(jobs)) + "\n" +
+                      str(time_interval) + "\n" + str_time+"*"*50 + "\n")
     elif no_task():
-        # if interval> 52:
+        power, totaltime, total = power_consumption()
         printf(
-            "Next task: {0} job is in {1} minutes. Going on StandBy".format(track[sorted_jobs[0].job_func.__name__][2], time_interval))
+            "*_* Total power consumed during this session is {0} Wh and toke {1}s".format(str(power)[0:-6], str(totaltime))[0:-6])
+        printf(
+            "/\\ Next task: {0} job is in {1} minutes. Going on StandBy".format(track[sorted_jobs[0].job_func.__name__][2], time_interval))
         with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
             slept.write("1")
         with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:
             sch.write(str(sorted(jobs)) + "\n" +
-                      str(time_interval) + str_time+"#"*50 + "\n")
+                      str(time_interval) + "\n" + str_time+"#"*50 + "\n")
         w.toggle_1hour()
         sleep(time_interval*60)
 
@@ -367,7 +393,7 @@ def get_schedule_health():
         out = p.communicate()
         out = out[0].replace(' ', '')
         st = out.find('root')
-        out = int(out[st+5:st+10])
+        out = int(out[st+5:st+9])
     except:
         printf("Schedule health: Failed to check schedule health ``\\_(^/)_/``")
         traceback.print_exc(

@@ -11,6 +11,9 @@ from monitor import reschedule
 def readsolar():
     """Read solar sensor values and save to a file."""
     printf("Started Solar Sensor data acquisition ")
+    from monitor import timing
+    from timeit import default_timer as timer
+    start = timer()
     V5_ENA_ON()
     solar_on()
     sleep(5)
@@ -52,10 +55,12 @@ def readsolar():
                 sleep(8)  # set rate of readings in seconds
             t = t + 10  # keep time
             with open("/media/mmcblk0p1/logs/solar_raw.log", "a+") as rawfile:
-                rawfile.write("SO: " + data)
+                rawfile.write("SO:" + data)
 
         printf("All done with Solar Sensor")
         reschedule(run="readsolar")
+        end = timer()
+        timing("readsolar", end-start)
     except:
         reschedule(re="readsolar")
         with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
@@ -115,7 +120,7 @@ class solar_live():
             lines = rawfile.readlines()
             lastline = lines[-1]
         from monitor import backup
-        backup("/media/mmcblk0p1/logs/solar_raw.log", sbd=True)
+        backup("/media/mmcblk0p1/logs/solar_raw.log")
         return lastline
 
     def solar_1(self):

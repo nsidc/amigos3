@@ -16,7 +16,6 @@ from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sle
 from iridium import sbd as sb, dial
 from dts import test as dts_test
 
-# call("env >> /media/mmcblk0p1/logs/system.log", shell=True)
 welcome()
 printf("The state of the schedule so far is presented in the table below.", date=True)
 get_stat()
@@ -28,12 +27,6 @@ class summer():
     def __init__(self, *args, **kwargs):
         self.sched_summer = schedule.Scheduler()  # create a new schedule instance
 
-    def vaisala_schedule(self):
-        from vaisala import Average_Reading as vg
-        v = vg()
-        # Perform this measurement reading every hour between :58 to :00
-        self.sched_summer.every().hour.at(":59").do(v.vaisala)  # add vaisala schedule
-
     def gps_schedule(self):
         gps = gps_data()
         # add gps schedules
@@ -41,6 +34,12 @@ class summer():
         self.sched_summer.every().day.at("11:10").do(gps.get_binex)
         self.sched_summer.every().day.at("17:10").do(gps.get_binex)
         self.sched_summer.every().day.at("23:10").do(gps.get_binex)
+
+    def vaisala_schedule(self):
+        from vaisala import Average_Reading as vg
+        vai = vg()
+        # Perform this measurement reading every hour between :58 to :00
+        self.sched_summer.every().hour.at(":57").do(vai.vaisala)  # add vaisala schedule
 
     def camera_schedule(self):
         cam = ptz()
@@ -65,33 +64,33 @@ class summer():
 
     def solar_schedule(self):
         from solar import readsolar
-        self.sched_summer.every().hour.at(":57").do(readsolar)
+        self.sched_summer.every().hour.at(":56").do(readsolar)
 
     def dial_out(self):
-        d = dial()
+        di = dial()
         unit = amigos_Unit()
         # # box a
         if unit == "A":
-            self.sched_summer.every().day.at("06:10").do(d.Out)
-            self.sched_summer.every().day.at("12:10").do(d.Out)
-            self.sched_summer.every().day.at("18:10").do(d.Out)
-            self.sched_summer.every().day.at("00:10").do(d.Out)
+            self.sched_summer.every().day.at("06:10").do(di.Out)
+            self.sched_summer.every().day.at("12:10").do(di.Out)
+            self.sched_summer.every().day.at("18:10").do(di.Out)
+            self.sched_summer.every().day.at("00:10").do(di.Out)
         # # box b
         elif unit == "B":
-            self.sched_summer.every().day.at("06:20").do(d.Out)
-            self.sched_summer.every().day.at("12:20").do(d.Out)
-            self.sched_summer.every().day.at("18:20").do(d.Out)
-            self.sched_summer.every().day.at("00:20").do(d.Out)
+            self.sched_summer.every().day.at("06:20").do(di.Out)
+            self.sched_summer.every().day.at("12:20").do(di.Out)
+            self.sched_summer.every().day.at("18:20").do(di.Out)
+            self.sched_summer.every().day.at("00:20").do(di.Out)
         # # box c
         elif unit == "C":
-            self.sched_summer.every().day.at("06:30").do(d.Out)
-            self.sched_summer.every().day.at("12:30").do(d.Out)
-            self.sched_summer.every().day.at("18:30").do(d.Out)
-            self.sched_summer.every().day.at("00:30").do(d.Out)
+            self.sched_summer.every().day.at("06:30").do(di.Out)
+            self.sched_summer.every().day.at("12:30").do(di.Out)
+            self.sched_summer.every().day.at("18:30").do(di.Out)
+            self.sched_summer.every().day.at("00:30").do(di.Out)
 
     def dial_in(self):
-        d = dial()
-        self.sched_summer.every().day.at("19:20").do(d.In)
+        di = dial()
+        self.sched_summer.every().day.at("19:20").do(di.In)
 
     def dts(self):
         self.sched_summer.every().day.at("03:05").do(dts_test)
@@ -101,16 +100,16 @@ class summer():
 
     def sbd(self):
         # box A
-        s = sb()
+        ss = sb()
         unit = amigos_Unit()
         if unit == "A":
-            self.sched_summer.every().day.at("00:02").do(s.SBD)
+            self.sched_summer.every().day.at("00:02").do(ss.SBD)
         # # box B
         elif unit == "B":
-            self.sched_summer.every().day.at("00:04").do(s.SBD)
+            self.sched_summer.every().day.at("00:04").do(ss.SBD)
         # # box C
         elif unit == "C":
-            self.sched_summer.every().day.at("00:06").do(s.SBD)
+            self.sched_summer.every().day.at("00:06").do(ss.SBD)
 
     def sched(self):
         # load all the schedules
@@ -134,9 +133,9 @@ class winter():
 
     def vaisala_schedule(self):
         from vaisala import Average_Reading as vg
-        v = vg()
+        vai = vg()
         # Perform this measurement reading every hour between :58 to :00
-        self.sched_winter.every().hour.at(":59").do(v.vaisala)
+        self.sched_winter.every().hour.at(":57").do(vai.vaisala)
 
     def gps_schedule(self):
         gps = gps_data()
@@ -166,38 +165,38 @@ class winter():
         self.sched_winter.every().hour.at(":56").do(readsolar)
 
     def dial_out(self):
-        d = dial()
+        di = dial()
         unit = amigos_Unit()
 
         # # box a
         if unit == "A":
-            self.sched_winter.every().day.at("00:10").do(d.Out)
+            self.sched_winter.every().day.at("00:10").do(di.Out)
         # # box b
         elif unit == "B":
-            self.sched_winter.every().day.at("00:20").do(d.Out)
+            self.sched_winter.every().day.at("00:20").do(di.Out)
         # # box c
         elif unit == "C":
-            self.sched_winter.every().day.at("00:30").do(d.Out)
+            self.sched_winter.every().day.at("00:30").do(di.Out)
 
     def dial_in(self):
 
-        d = dial()
-        self.sched_winter.every().day.at("19:20").do(d.In)
+        di = dial()
+        self.sched_winter.every().day.at("19:20").do(di.In)
 
     def dts(self):
         self.sched_winter.every().day.at("21:05").do(dts_test)
 
     def sbd(self):
-        s = sb()
+        ss = sb()
         unit = amigos_Unit()
         if unit == "A":
-            self.sched_winter.every().day.at("00:02").do(s.SBD)
+            self.sched_winter.every().day.at("00:02").do(ss.SBD)
             # # box B
         elif unit == "B":
-            self.sched_winter.every().day.at("00:04").do(s.SBD)
+            self.sched_winter.every().day.at("00:04").do(ss.SBD)
             # # box C
         elif unit == "C":
-            self.sched_winter.every().day.at("00:06").do(s.SBD)
+            self.sched_winter.every().day.at("00:06").do(ss.SBD)
 
     def sched(self):
         self.vaisala_schedule()
@@ -393,52 +392,7 @@ def run_schedule():
                 modem_on(1)
             reschedule(jobs=summer_task.jobs)
             put_to_inactive_sleep(summer_task.jobs)
-
-        # check if today falls into winter
         sleep(1)
-
- # if winter_running:
-        #     winter_task.run_pending()
-        #     reschedule(jobs=winter_task.jobs)
-        #     if not is_on_checker(1, 6):
-        #         modem_on(1)
-        #     # with open('/media/mmcblk0p1/logs/schedule.log', 'w+') as sched_log:
-        #     #     sched_log.write(str(sorted(winter_task.jobs)))
-        #     if int(hours) == 00 and int(minutes) == 15:
-        #         winter_running = False
-        #         printf('Loading summer schedule')
-        #         s = summer()  # reload the schedule
-        #         summer_task = s.sched()
-        #         sleep(61)
-        #         printf('clearing winter schedule')
-        #         winter_task.clear()
-        #         printf('Started summer schedule')
-        #         summer_running = True  # set flag
-        #     put_to_inactive_sleep(winter_task.jobs)
-        # elif summer_running:
-        #     summer_task.run_pending()
-        #     reschedule(jobs=summer_task.jobs)
-        #     if not is_on_checker(1, 6):
-        #         modem_on(1)
-        #     # with open('/media/mmcblk0p1/logs/schedule.log', 'w+') as sched_log:
-        #     #     sched_log.write(str(sorted(summer_task.jobs)))
-        #     if int(hours) == 00 and int(minutes) == 15:
-        #         summer_running = False  # set flag
-        #         printf('Loading winter schedule')
-        #         s = winter()  # reload the schedule
-        #         winter_task = s.sched()
-        #         sleep(61)
-        #         printf("clearing summer tasks")
-        #         summer_task.clear()
-        #         printf('Started winter schedule')
-        #         winter_running = True
-        #     put_to_inactive_sleep(summer_task.jobs)
-
-        # else:
-        #     printf('Loading summer schedule')
-        #     sleep(2)
-        #     summer_running = True
-        #     printf('Started summer schedule as default')
 
 
 # running this script start the schedule
@@ -453,16 +407,3 @@ if __name__ == "__main__":
                str(err) + str(sys.exc_info()[0]) + '\n' + 'Trying to restart scheduler')
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
-# t = cold_test()
-        # s = t.sched()
-        # dog = dog_mode(mode=1)
-        # dog.run_all()
-        # mo = monitor()
-        # m = mo.sched()
-        # while True:
-        #     m.run_pending()
-        #     dog.run_pending()
-        #     s.run_pending()
-        #     with open('/media/mmcblk0p1/logs/sched.log', 'w+') as sched_log:
-        #         sched_log.write(str(m.jobs)+',' + str(s.jobs))
-        #     sleep(1)

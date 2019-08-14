@@ -84,7 +84,6 @@ class ptz_client():
 
         # for the function get status
         else:
-            # print(self.path)
             with open("/media/mmcblk0p1/codes/onvif/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()
 
@@ -120,10 +119,9 @@ class ptz_client():
 
             # get apply the service to the header message
             self.__get_service(typeof)
-            # print(self.msg)
-            # print('-'*50)
+
             reply = post(self.url, data=self.msg, headers=self.header)
-            # print(reply.text)
+
 
             return reply  # return the reply.
         except:
@@ -161,7 +159,7 @@ class ptz_client():
         print("PAN_Position: {0}\nTITL_Position: {1}\nZOOM_Position: {2}\n".format(
             pan, tilt, zoom))
 
-    def snapShot(self, size="1/2"):
+    def snapShot(self, size="3/8"):
         try:
             """
             get a snapshot
@@ -185,22 +183,20 @@ class ptz_client():
             f = open('/media/mmcblk0p1/pic.jpg', 'wb')  # opening
 
             # Write the file to the time stamp
-            newname = '/media/mmcblk0p1/'+'photo'+dt[0:-7]+'.jpg'
-            # print(dt[0:-7])
+            newname = '/media/mmcblk0p1/'+'picture'+dt[0:-7]+'.jpg'
             subprocess.call("mv {0} {1}".format(
                 '/media/mmcblk0p1/pic.jpg', newname), shell=True)
-            # os.rename('/media/mmcblk0p1/pic.jpg', newname)
             sleep(2)
             f.write(response.content)
             f.close()
             printf("Camera SnapShot taken :)")
             subprocess.call("mv {0} {1}".format(
-                newname, "/media/mmcblk0p1/unscaled_pictures/"), shell=True)
+                newname, "/media/mmcblk0p1/unscaled_picture/"), shell=True)
             sleep(1)
             printf("Resizing  SnapShot")
             sleep(1)
             subprocess.call("resize_jpeg {0} {1} {2}".format(
-                size, "/media/mmcblk0p1/unscaled_pictures/"+"photo"+dt[0:-7]+".jpg", "/media/mmcblk0p1/pictures/"+"photo"+dt[0:-7]+".jpg"), shell=True)
+                size, "/media/mmcblk0p1/unscaled_picture/"+"picture"+dt[0:-7]+".jpg", "/media/mmcblk0p1/picture/"+"picture"+dt[0:-7]+".jpg"), shell=True)
             printf("Resizing done!")
         except:
             printf('Unable to take snapshot``\\_(^/)_/``')
@@ -210,6 +206,9 @@ class ptz_client():
         try:
             from monitor import reschedule
             from gpio import modem_off, modem_on
+            from monitor import timing
+            from timeit import default_timer as timer
+            start = timer()
             modem_on(1)
             sleep(5)
             printf("Camera moving north")
@@ -237,6 +236,8 @@ class ptz_client():
             sleep(1)
             self.send('absolute', pan=0, tilt=45, zoom=0)
             reschedule(run="move")
+            end = timer()
+            timing("move", end-start)
         except:
             printf("Camera failed to take picture")
             reschedule(re="move")
