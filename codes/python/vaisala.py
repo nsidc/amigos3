@@ -87,7 +87,7 @@ class Average_Reading():
                 data_array_final.append(round(numbers_divide, 3))
 
             with open("/media/mmcblk0p1/logs/weather_raw.log", "a+") as rawfile:
-                rawfile.write("WT " + str(data_array_final) + "\n")
+                rawfile.write("WX: " + str(data_array_final) + "\n")
 
             # Write the averaged array elements to a final log file - append
             now = datetime.datetime.now()

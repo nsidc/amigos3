@@ -471,7 +471,7 @@ class sbd():
             iridium_off(1)
 
     def solar_SBD(self):
-        # collect dictionary of solar data from other scripts
+        # collect array of solar data from other scripts
         from solar import solar_live
         solarclass = solar_live()
         solar = solarclass.solar_sbd()
@@ -514,7 +514,7 @@ class sbd():
             self.vaisala_SBD()
 
     def vaisala_SBD(self):
-        # collect dictionary of vaisala data from other script
+        # collect array of vaisala data from other script
         from vaisala import Average_Reading
         vaisalaclass = Average_Reading()
         vaisala = vaisalaclass.vaisala_sbd()
@@ -557,7 +557,7 @@ class sbd():
             self.cr_SBD()
 
     def cr_SBD(self):
-        # collect dictionary of CR data from other scripts
+        # collect array of CR data from other scripts
         from cr1000x import cr1000x
         crclass = cr1000x()
         cr = crclass.cr_sbd()
@@ -600,9 +600,9 @@ class sbd():
             self.seabird_SBD()
 
     def seabird_SBD(self):
-        # collect dictionary of seabird data from other scripts
+        # collect array of seabird data from other scripts
         from seabird import seabird_sbd
-        seabird = seabird_sbd
+        seabird = seabird_sbd()
 
         # Commands send to iridium seabird data
         message_sent = False
@@ -642,9 +642,12 @@ class sbd():
             self.aquadopp_SBD()
 
     def aquadopp_SBD(self):
-        # collect dictionary of aquadopp data from other scripts
+        # collect array of aquadopp data from other scripts
         from aquadopp import aquadopp_sbd
-        aquadopp = aquadopp_sbd
+        if isinstance(aquadopp_sbd,"list"):
+            aquadopp1,aquadopp2 = aquadopp_sbd()
+        else:
+            aquadopp = aquadopp_sbd()
 
         # Commands send to iridium aquadopp data
         message_sent = False

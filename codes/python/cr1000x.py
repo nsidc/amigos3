@@ -72,7 +72,7 @@ class cr1000x():
             values = [date_now, Batt_volt, Ptemp_C, R40, R6, R10, R20, R2_5,
                       R4_5, R6_5, R8_5,  T6,  T10, T20, T40, T2_5, T4_5, T6_5, T8_5, dt, Q, tcdt]
         with open("/media/mmcblk0p1/logs/cr1000x_raw.log", "a+") as rawfile:
-            rawfile.write("CR " + str(values) + "\n")
+            rawfile.write("CR: " + str(values) + "\n")
         return labels, values
 
     def cr_sbd(self):
