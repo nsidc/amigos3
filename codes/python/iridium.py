@@ -460,6 +460,10 @@ class sbd():
             enable_serial()
             sleep(10)
             self.solar_SBD()
+            self.cr_SBD()
+            self.aquadopp_SBD()
+            self.vaisala_SBD()
+            self.seabird_SBD()
             end = timer()
             timing("SBD", end-start)
             reschedule(run="SBD")
@@ -475,216 +479,59 @@ class sbd():
         from solar import solar_live
         solarclass = solar_live()
         solar = solarclass.solar_sbd()
-
-        # Commands send to iridium solar data
-        message_sent = False
-        sbd_port = ser("/dev/ttyS1")
-        sbd_port.flushInput()
-        sbd_port.write("AT\r\n")
-        sleep(2)
-        check = sbd_port.read(sbd_port.inWaiting())
-        if check.find("OK") != -1:
-            sbd_port.write("AT&K0\r\n")
-            sleep(2)
-            check = sbd_port.read(sbd_port.inWaiting())
-            if check.find("OK") != -1:
-                sbd_port.write("AT+SBDWT={0}\r\n".format(solar))
-                sleep(2)
-                check = sbd_port.read(sbd_port.inWaiting())
-                if check.find("OK") != -1:
-                    sbd_port.write("AT+SBDIX\r\n")
-                    sleep(15)
-                    array = sbd_port.read(sbd_port.inWaiting())
-                    array1 = array.split(":")[1].split(",")
-                    if array1[0] == " 0":
-                        message_sent = True
-                else:
-                    printf("AT+SBDWT message command did not work to the iridium (Solar)")
-            else:
-                printf("AT&K0 command did not work to the iridium (Solar)")
-        else:
-            printf("AT command did not work to the iridium (Solar)")
-
-        # If solar message sent successfully, move on and call the vaisala funciton
-        if message_sent is True:
-            printf("Solar message successfuly sent, moving to iridium Vaisala")
-            self.vaisala_SBD()
-        else:
-            printf("Solar message DID NOT SEND, still moving to iridium Vaisala")
-            self.vaisala_SBD()
+        self.iridium_send(solar)
 
     def vaisala_SBD(self):
         # collect array of vaisala data from other script
         from vaisala import Average_Reading
-        vaisalaclass = Average_Reading()
-        vaisala = vaisalaclass.vaisala_sbd()
-
-        # Commands send to iridium vaisala data
-        message_sent = False
-        sbd_port = ser("/dev/ttyS1")
-        sbd_port.flushInput()
-        sbd_port.write("AT\r\n")
-        sleep(2)
-        check = sbd_port.read(sbd_port.inWaiting())
-        if check.find("OK") != -1:
-            sbd_port.write("AT&K0\r\n")
-            sleep(2)
-            check = sbd_port.read(sbd_port.inWaiting())
-            if check.find("OK") != -1:
-                sbd_port.write("AT+SBDWT={0}\r\n".format(vaisala))
-                sleep(2)
-                check = sbd_port.read(sbd_port.inWaiting())
-                if check.find("OK") != -1:
-                    sbd_port.write("AT+SBDIX\r\n")
-                    sleep(15)
-                    array = sbd_port.read(sbd_port.inWaiting())
-                    array1 = array.split(":")[1].split(",")
-                    if array1[0] == " 0":
-                        message_sent = True
-                else:
-                    printf("AT+SBDWT message command did not work to the iridium (Vaisala)")
-            else:
-                printf("AT&K0 command did not work to the iridium (Vaisala)")
-        else:
-            printf("AT command did not work to the iridium (Vaisala)")
-
-        # If vaisala message sent successfully, move on and call the cr funciton
-        if message_sent == True:
-            printf("Vaisala message successfuly sent, moving to iridium CR")
-            self.cr_SBD()
-        else:
-            printf("Vaisala message DID NOT SEND, still moving to iridium CR")
-            self.cr_SBD()
+        vaisala_class = Average_Reading()
+        vaisala = vaisala_class.vaisala_sbd()
+        self.iridium_send(vaisala)
 
     def cr_SBD(self):
         # collect array of CR data from other scripts
         from cr1000x import cr1000x
         crclass = cr1000x()
         cr = crclass.cr_sbd()
-
-        # Commands send to iridium CR data
-        message_sent = False
-        sbd_port = ser("/dev/ttyS1")
-        sbd_port.flushInput()
-        sbd_port.write("AT\r\n")
-        sleep(2)
-        check = sbd_port.read(sbd_port.inWaiting())
-        if check.find("OK") != -1:
-            sbd_port.write("AT&K0\r\n")
-            sleep(2)
-            check = sbd_port.read(sbd_port.inWaiting())
-            if check.find("OK") != -1:
-                sbd_port.write("AT+SBDWT={0}\r\n".format(cr))
-                sleep(2)
-                check = sbd_port.read(sbd_port.inWaiting())
-                if check.find("OK") != -1:
-                    sbd_port.write("AT+SBDIX\r\n")
-                    sleep(15)
-                    array = sbd_port.read(sbd_port.inWaiting())
-                    array1 = array.split(":")[1].split(",")
-                    if array1[0] == " 0":
-                        message_sent = True
-                else:
-                    printf("AT+SBDWT message command did not work to the iridium (CR)")
-            else:
-                printf("AT&K0 command did not work to the iridium (CR)")
-        else:
-            printf("AT command did not work to the iridium (CR)")
-
-        # If CR message sent successfully, move on and call the seabird funciton
-        if message_sent == True:
-            printf("CR message successfuly sent, moving to iridium seabird")
-            self.seabird_SBD()
-        else:
-            printf("CR message DID NOT SEND, still moving to iridium seabird")
-            self.seabird_SBD()
+        self.iridium_send(cr)
 
     def seabird_SBD(self):
         # collect array of seabird data from other scripts
         from seabird import seabird_sbd
         seabird = seabird_sbd()
-
-        # Commands send to iridium seabird data
-        message_sent = False
-        sbd_port = ser("/dev/ttyS1")
-        sbd_port.flushInput()
-        sbd_port.write("AT\r\n")
-        sleep(2)
-        check = sbd_port.read(sbd_port.inWaiting())
-        if check.find("OK") != -1:
-            sbd_port.write("AT&K0\r\n")
-            sleep(2)
-            check = sbd_port.read(sbd_port.inWaiting())
-            if check.find("OK") != -1:
-                sbd_port.write("AT+SBDWT={0}\r\n".format(seabird))
-                sleep(2)
-                check = sbd_port.read(sbd_port.inWaiting())
-                if check.find("OK") != -1:
-                    sbd_port.write("AT+SBDIX\r\n")
-                    sleep(15)
-                    array = sbd_port.read(sbd_port.inWaiting())
-                    array1 = array.split(":")[1].split(",")
-                    if array1[0] == " 0":
-                        message_sent = True
-                else:
-                    printf("AT+SBDWT message command did not work to the iridium (seabird)")
-            else:
-                printf("AT&K0 command did not work to the iridium (seabird)")
-        else:
-            printf("AT command did not work to the iridium (seabird)")
-
-        # If seabird message sent successfully, move on and call the aquadopp funciton
-        if message_sent == True:
-            printf("seabird message successfuly sent, moving to iridium aquadopp")
-            self.aquadopp_SBD()
-        else:
-            printf("seabird message DID NOT SEND, still moving to iridium aquadopp")
-            self.aquadopp_SBD()
+        self.iridium_send(seabird)
 
     def aquadopp_SBD(self):
         # collect array of aquadopp data from other scripts
         from aquadopp import aquadopp_sbd
-        if isinstance(aquadopp_sbd,"list"):
-            aquadopp1,aquadopp2 = aquadopp_sbd()
+        aquadopp = aquadopp_sbd()
+        if isinstance(aquadopp_sbd, "list"):
+            for index, item in enumerate(aquadopp):
+                self.iridium_send(item)
         else:
-            aquadopp = aquadopp_sbd()
+            self.iridium_send(item)
 
+    def reply(self, resp):
+        if resp.find("OK") != -1:
+            return True
+        return False
+
+    def iridium_talk(self, comment):
+        self.port.write(comment+"\r\n")
+        sleep(3)
+        response = self.port.read(self.pot.inWaiting())
+        return response
+
+    def iridium_send(self, message):
         # Commands send to iridium aquadopp data
-        message_sent = False
-        sbd_port = ser("/dev/ttyS1")
-        sbd_port.flushInput()
-        sbd_port.write("AT\r\n")
-        sleep(2)
-        check = sbd_port.read(sbd_port.inWaiting())
-        if check.find("OK") != -1:
-            sbd_port.write("AT&K0\r\n")
-            sleep(2)
-            check = sbd_port.read(sbd_port.inWaiting())
-            if check.find("OK") != -1:
-                sbd_port.write("AT+SBDWT={0}\r\n".format(aquadopp))
-                sleep(2)
-                check = sbd_port.read(sbd_port.inWaiting())
-                if check.find("OK") != -1:
-                    sbd_port.write("AT+SBDIX\r\n")
-                    sleep(15)
-                    array = sbd_port.read(sbd_port.inWaiting())
-                    array1 = array.split(":")[1].split(",")
-                    if array1[0] == " 0":
-                        message_sent = True
-                else:
-                    printf("AT+SBDWT message command did not work to the iridium (aquadopp)")
-            else:
-                printf("AT&K0 command did not work to the iridium (aquadopp)")
-        else:
-            printf("AT command did not work to the iridium (aquadopp)")
-
-        # If aquadopp message sent successfully, move on and call the (next device) funciton
-        if message_sent == True:
-            printf("aquadopp message successfuly sent, moving to iridium (next device)")
-            # self.(next device)
-        else:
-            printf("aquadopp message DID NOT SEND, still moving to iridium (next device)")
-            # self.(next device)
+        self.port.flushInput()
+        data = self.iridium_talk("AT")
+        commands = ["AT", "AT&K0", "AT+SBDWT={0}".format(message), "AT+SBDIX"]
+        for index, item in enumerate(commands):
+            data = self.iridium_talk(item)
+            if not self.reply(data):
+                return False
+        return True
 
     def read(self):
         try:
