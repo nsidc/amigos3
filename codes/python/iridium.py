@@ -87,8 +87,6 @@ class dial():
         Returns:
             String or None -- Path to the new conpressed file, None if failure
         """
-        # if own is True:
-        #     # print(file_name)
         try:
             folder_name = file_name
             from execp import amigos_Unit
@@ -97,21 +95,17 @@ class dial():
                 folder_name = folder_name.replace(".log", '')
             elif file_name.find(".jpg") != -1:
                 folder_name = folder_name.replace(".jpg", '')
-            # print(folder_name, file_name)
             import datetime
             time_now = datetime.datetime.now()
             time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
                 str(time_now.day) + "_" + str(time_now.hour) + \
                 "_" + str(time_now.minute) + "_"
-            # printf(file_name)
             if file_name.find("\n") != -1:
                 file_name = file_name.replace("\n", '')
                 folder_name = folder_name.replace("\n", '')
             newname = folder_name.split("/")
             time_now = time_now+newname[-1]+unit
             newname[-1] = time_now
-            # newname.insert(-1, time_now)
-            # printf(str(newname))
             try:
                 folder_name = "/".join(newname)
             except:
@@ -166,7 +160,7 @@ class dial():
                 printf("Failed to transfere files :(")
                 return False
             printf("Transfere finished successfully :)")
-            printf(response)
+            printf(response.replace("\n", ""))
             printf("Backing up files now ...")
             from monitor import backup
             backup(path_file, own)
@@ -230,7 +224,6 @@ class dial():
             if item.find(files) != -1:
                 new_waiting = deepcopy(in_waiting)
                 pop = new_waiting.pop(index)
-                # print(index, item, str(pop), str(in_waiting), str(new_waiting))
                 with open(self.default_path+"logs/dialout_list.log", "w+") as listd:
                     listd.write("")
                 for inde, ite in enumerate(new_waiting):
@@ -238,7 +231,8 @@ class dial():
                         with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
                             listd.write(ite)
                 index = 0
-                return True
+                break
+        return True
 
     def send_dir(self, files):
         """Send files in a directory.
@@ -308,12 +302,10 @@ class dial():
                 in_waiting = listd.readlines()
         except:
             return False
-        # print(in_waiting)
         if in_waiting:
             if in_waiting[0] in ["", " ", None, " \n", "\n"] and len(in_waiting) < 2:
                 return False
             printf("Sending files that could not be sent")
-            # printf(str(in_waiting))
             for index, item in enumerate(in_waiting):
                 if item.find("tar.gz") != -1:
                     self.clean_up(True, item)
@@ -414,8 +406,7 @@ class dial():
             if reply.status_code != 200:
                 printf(
                     "Failed to configure the router ip6600. Exiting now, will try again shortly!")
-                # what sap  #This is so cool #hhaha I am going to get ready for the lab. See you
-                reschedule(re="In")  # See you soon buddy #:)
+                reschedule(re="In")
                 return
 
             sleep(2)
@@ -456,8 +447,6 @@ class sbd():
         self.port = ser('/dev/ttyS1')
         self.port.baudrate = 9600
         self.port.open()
-
-    # Calling this function will call the rest of the device SBD functions
 
     def SBD(self):
         from gpio import disable_serial, iridium_off, sbd_off, iridium_on, sbd_on, enable_serial

@@ -288,7 +288,7 @@ def camera(args, val):
             val[0]), tilt=float(val[1]), zoom=float(val[2]))
     elif args.snapshot:
         print("Warning: Dialout the pictures or it will affect the next scheduled dialout session time")
-        print('To do so, type: amigos dial -out "/media/mmcblk0p1/pictures"')
+        print('To do so, type: amigos dial -out "/media/mmcblk0p1/picture"')
         ptz.snapShot()
     elif args.get_status:
         ptz.getStatus(output=True)

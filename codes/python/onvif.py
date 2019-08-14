@@ -84,7 +84,6 @@ class ptz_client():
 
         # for the function get status
         else:
-            # print(self.path)
             with open("/media/mmcblk0p1/codes/onvif/soap_{0}.xml".format(service), 'r') as soap:
                 self.msg = soap.read()
 
@@ -120,10 +119,9 @@ class ptz_client():
 
             # get apply the service to the header message
             self.__get_service(typeof)
-            # print(self.msg)
-            # print('-'*50)
+
             reply = post(self.url, data=self.msg, headers=self.header)
-            # print(reply.text)
+
 
             return reply  # return the reply.
         except:
@@ -186,10 +184,8 @@ class ptz_client():
 
             # Write the file to the time stamp
             newname = '/media/mmcblk0p1/'+'picture'+dt[0:-7]+'.jpg'
-            # print(dt[0:-7])
             subprocess.call("mv {0} {1}".format(
                 '/media/mmcblk0p1/pic.jpg', newname), shell=True)
-            # os.rename('/media/mmcblk0p1/pic.jpg', newname)
             sleep(2)
             f.write(response.content)
             f.close()

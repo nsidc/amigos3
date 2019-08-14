@@ -17,7 +17,7 @@ track = {"cr1000": [0, 0, "CR1000x", 0, 6, 0.576447027, 0],
          "Out": [0, 0, "Dial_out", 0, 1, 0.941735425, 0],
          "SBD": [0, 0, "SBD out Tweet", 0, 1, 0, 0.197106061, 0],
          "In": [0, 0, "Dial_in", 0, 1, 0.554076212, 0],
-         "read_aquadopp": [0, 0, "Aquadopp", 0, 6, 0, 0],
+         "read_aquadopp": [0, 0, "Aquadopp", 0, 3, 0, 0],
          "read_seabird": [0, 0, "Sea Bird", 0, 6, 0, 0],
          "test": [0, 0, "DTS", 0, 1, 0, 0],
          "move": [0, 0, "Camera", 0, 1, 0, 0],
@@ -326,7 +326,6 @@ def put_to_inactive_sleep(jobs):
             sch.write(str(sorted(jobs)) + "\n" +
                       str(time_interval) + "\n" + str_time+"*"*50 + "\n")
     elif no_task():
-        # if interval> 52:
         power, totaltime, total = power_consumption()
         printf(
             "*_* Total power consumed in Watt during this session is {0} and toke {1}s".format(str(power)[0:-6], str(totaltime))[0:-6])

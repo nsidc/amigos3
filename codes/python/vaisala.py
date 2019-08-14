@@ -22,7 +22,7 @@ class Average_Reading():
             port.baudrate = 115200
             port.timeout = 20
         except:
-            set_reschedule("cr1000")
+            reschedule(re="cr1000")
             print("Problem with port 5 or problem with power to the vaisala")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
@@ -39,7 +39,7 @@ class Average_Reading():
                         printf("Vaisala could not take reading. Got empty data")
                         break
                     raw_data.write(data)
-                    sleep(0.5)
+                    sleep(10)
                 t = t+10
         finally:
             # Turn off Weather Station
