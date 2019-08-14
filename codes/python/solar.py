@@ -52,7 +52,7 @@ def readsolar():
                 sleep(8)  # set rate of readings in seconds
             t = t + 10  # keep time
             with open("/media/mmcblk0p1/logs/solar_raw.log", "a+") as rawfile:
-                rawfile.write("SO " + data)
+                rawfile.write("SO: " + data)
 
         printf("All done with Solar Sensor")
         reschedule(run="readsolar")
