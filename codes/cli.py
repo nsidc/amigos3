@@ -381,9 +381,7 @@ def iridium(args):
     if args.read:
         print(s.read_sbd())
     if args.send:
-        message = raw_input()
-        message = message + '\r\n'
-        s.send_sbd(message)
+        s.SBD()
 
 
 def gps(args):

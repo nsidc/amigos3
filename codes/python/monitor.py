@@ -221,10 +221,6 @@ def backup(sub_files, own=False, sbd=False):
                 new_name = source + item + "/" + sub_files.split("/")[-1]
         shutil.move(sub_files, new_name)
         printf("Backed up {0}".format(sub_files.split("/")[-1]))
-        if sbd is True:
-            os.remove(sub_files)
-            printf("Removed {0}".format(sub_files.split("/")[-1]))
-            sbd = False
     except:
         printf("Files backup failed ")
         traceback.print_exc(

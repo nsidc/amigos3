@@ -6,6 +6,7 @@ from time import sleep
 from monitor import reschedule
 import traceback
 from subprocess import call, Popen, PIPE
+import traceback
 
 
 class dial():
@@ -447,6 +448,7 @@ class sbd():
         self.port = ser('/dev/ttyS1')
         self.port.baudrate = 9600
         self.port.open()
+        self.port.timeout = 20
 
     def SBD(self):
         from gpio import disable_serial, iridium_off, sbd_off, iridium_on, sbd_on, enable_serial
@@ -454,6 +456,7 @@ class sbd():
         from timeit import default_timer as timer
         try:
             start = timer()
+            printf("Starting SBD session")
             iridium_on(1)
             sbd_on(1)
             sleep(1)
@@ -464,6 +467,7 @@ class sbd():
             self.aquadopp_SBD()
             self.vaisala_SBD()
             self.seabird_SBD()
+            printf("All Done with SBD")
             end = timer()
             timing("SBD", end-start)
             reschedule(run="SBD")
@@ -474,42 +478,72 @@ class sbd():
             sbd_off(1)
             iridium_off(1)
 
+    def p_err(self, device):
+        printf("{0} SBD failed ".format(device))
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+
     def solar_SBD(self):
         # collect array of solar data from other scripts
-        from solar import solar_live
-        solarclass = solar_live()
-        solar = solarclass.solar_sbd()
-        self.iridium_send(solar)
+        printf("Sending Solar SBD")
+        try:
+            from solar import solar_live
+            solarclass = solar_live()
+            solar = solarclass.solar_sbd()
+            self.iridium_send(solar)
+            printf("Done with Solar SBD")
+        except:
+            self.p_err("Solar SBD ")
 
     def vaisala_SBD(self):
         # collect array of vaisala data from other script
-        from vaisala import Average_Reading
-        vaisala_class = Average_Reading()
-        vaisala = vaisala_class.vaisala_sbd()
-        self.iridium_send(vaisala)
+        printf("Sending Vaisala SBD")
+        try:
+            from vaisala import Average_Reading
+            vaisala_class = Average_Reading()
+            vaisala = vaisala_class.vaisala_sbd()
+            self.iridium_send(vaisala)
+            printf("Done with Vaisala SBD")
+        except:
+            self.p_err("Vaisala")
 
     def cr_SBD(self):
         # collect array of CR data from other scripts
-        from cr1000x import cr1000x
-        crclass = cr1000x()
-        cr = crclass.cr_sbd()
-        self.iridium_send(cr)
+        printf("Sending CR1000X SBD")
+        try:
+            from cr1000x import cr1000x
+            crclass = cr1000x()
+            cr = crclass.cr_sbd()
+            self.iridium_send(cr)
+            printf("Done with CR100x SBD")
+
+        except:
+            self.p_err("CR1000X SBD")
 
     def seabird_SBD(self):
         # collect array of seabird data from other scripts
-        from seabird import seabird_sbd
-        seabird = seabird_sbd()
-        self.iridium_send(seabird)
+        printf("Sending Sea Bird SBD")
+        try:
+            from seabird import seabird_sbd
+            seabird = seabird_sbd()
+            self.iridium_send(seabird)
+            printf("Done with Sea Bird SBD")
+        except:
+            self.p_err("Sea Bird ")
 
     def aquadopp_SBD(self):
         # collect array of aquadopp data from other scripts
-        from aquadopp import aquadopp_sbd
-        aquadopp = aquadopp_sbd()
-        if isinstance(aquadopp_sbd, "list"):
-            for index, item in enumerate(aquadopp):
-                self.iridium_send(item)
-        else:
-            self.iridium_send(item)
+        printf("Sending Aquadopp SBD")
+        try:
+            from aquadopp import aquadopp_sbd
+            aquadopp = aquadopp_sbd()
+            if isinstance(aquadopp_sbd, list):
+                for index, item in enumerate(aquadopp):
+                    self.iridium_send(item)
+            else:
+                self.iridium_send(aquadopp)
+        except:
+            self.p_err("Aquadopp")
 
     def reply(self, resp):
         if resp.find("OK") != -1:
@@ -518,8 +552,8 @@ class sbd():
 
     def iridium_talk(self, comment):
         self.port.write(comment+"\r\n")
-        sleep(3)
-        response = self.port.read(self.pot.inWaiting())
+        sleep(10)
+        response = self.port.read(self.port.inWaiting())
         return response
 
     def iridium_send(self, message):
@@ -529,8 +563,16 @@ class sbd():
         commands = ["AT", "AT&K0", "AT+SBDWT={0}".format(message), "AT+SBDIX"]
         for index, item in enumerate(commands):
             data = self.iridium_talk(item)
-            if not self.reply(data):
+            print(data)
+            if index < len(commands) and not self.reply(data):
                 return False
+            elif item == commands[-1] and self.reply(data):
+                ans = data.split("BDIX:")[1].split(",")
+                print(ans)
+                if int(ans[0]) == 0:
+                    message = str(message)
+                    printf("Successfully send {0} bytes".format(len(message)))
+
         return True
 
     def read(self):
@@ -547,4 +589,5 @@ class sbd():
 
 
 if __name__ == "__main__":
-    sbd()
+    s = sbd()
+    s.SBD()

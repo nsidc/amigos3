@@ -1,9 +1,10 @@
 from time import sleep
 from execp import printf
 
+
 def read_seabird_samples(ID):
     try:
-        from gpio import imm_off, imm_on,enable_serial
+        from gpio import imm_off, imm_on, enable_serial
         imm_on(1)
         enable_serial()
         sleep(10)
@@ -46,9 +47,10 @@ def round_3_places(num):
 
 
 def clean_data(ID):
-    try:    
+    try:
         seabird_raw_data = read_seabird_samples(ID)
-        numbers = seabird_raw_data[seabird_raw_data.find("start time")+37:seabird_raw_data.find("<Executed/>")-1]
+        numbers = seabird_raw_data[seabird_raw_data.find(
+            "start time")+37:seabird_raw_data.find("<Executed/>")-1]
         numSamples = 6
         samples = numbers.split('\n')
         data = []
@@ -58,7 +60,7 @@ def clean_data(ID):
                 data[i][j] = float(data[i][j])
         seabird_data = ''
         seabird_list = []
-        totals = [0,0,0]
+        totals = [0, 0, 0]
         for i in range(numSamples):
             totals[0] = totals[0] + data[i][0]
             totals[1] = totals[1] + data[i][1]
@@ -72,11 +74,12 @@ def clean_data(ID):
             seabird_list[i] = float(seabird_list[i])
             seabird_list[i] = round_3_places(seabird_list[i])
         for i in range(len(seabird_list)):
-            seabird_data = seabird_data + str(seabird_list[i])+ ','
+            seabird_data = seabird_data + str(seabird_list[i]) + ','
         with open("/media/mmcblk0p1/logs/seabird"+str(ID)+"_raw.log", "a+") as rawfile:
             rawfile.write("SB"+str(ID)+":" + str(seabird_data) + "\n")
     except:
-        printf("Imm did not take data from the seabird unit " + str(ID) + ". Maybe poor connectivity.")
+        printf("Imm did not take data from the seabird unit " +
+               str(ID) + ". Maybe poor connectivity.")
     return seabird_list
 
 
@@ -84,10 +87,10 @@ def labeled_data(ID):
     seabird_data = clean_data(ID)
     for i in range(len(seabird_data)):
         seabird_data[i] = str(seabird_data[i])
-    labels = ['Temperature: ','Conductivity: ','Pressure: ','Date: ','Hour: ']
-    units = [' [degrees C]',' [S/m]',' [dbar]',' [Day Month Year]','']
+    labels = ['Temperature: ', 'Conductivity: ', 'Pressure: ', 'Date: ', 'Hour: ']
+    units = [' [degrees C]', ' [S/m]', ' [dbar]', ' [Day Month Year]', '']
     for i in range(len(seabird_data)):
-        with open("/media/mmcblk0p1/logs/seabird"+str(ID)+"_clean.log","a+") as labeled_data:
+        with open("/media/mmcblk0p1/logs/seabird"+str(ID)+"_clean.log", "a+") as labeled_data:
             labeled_data.write(labels[i] + seabird_data[i] + units[i] + '\n')
 
 
@@ -119,6 +122,7 @@ def prep_sbd(ID):
 def seabird_sbd():
     from execp import amigos_Unit
     unit = amigos_Unit
+    lastlinetotal = []
     if unit == "A":
         lastline1 = prep_sbd("90")
         lastline2 = prep_sbd("80")
@@ -132,9 +136,10 @@ def seabird_sbd():
         lastline2 = prep_sbd("07")
         lastline3 = prep_sbd("06")
         lastline4 = prep_sbd("#Enter fourth Id for seabird on C - no battery unit")
-        #Seabird data is short enough to send all 4 seabird's data in one SBD message
+        # Seabird data is short enough to send all 4 seabird's data in one SBD message
         lastlinetotal = lastline1 + lastline2 + lastline3 + lastline4
     return lastlinetotal
+
 
 if __name__ == "__main__":
     labeled_data("90")
