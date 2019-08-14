@@ -49,6 +49,7 @@ def power_consumption():
     for item, array in track.items():
         consume = consume+(track[item][5]*volt*track[item][6])*0.000277778
         total_time = total_time+track[item][6]
+        track[item][6] = 0
     parm[2] = parm[2]+consume
     return consume, total_time, parm[2]
 
@@ -201,9 +202,6 @@ def backup(sub_files, own=False, sbd=False):
     """
     try:
         import shutil
-        time_now = datetime.datetime.now()
-        time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
-            str(time_now.day) + "_" + str(time_now.hour) + str(time_now.minute)
         if own:
             new_name = sub_files.split("/")
             new_name.insert(-1, "trashes")
@@ -214,14 +212,13 @@ def backup(sub_files, own=False, sbd=False):
             shutil.move(sub_files, new_name)
             return
         source = "/media/mmcblk0p1/backups/"
-        folders = ["gps", "weather", "cr1000x", "solar", "dts", "pictures", "system"]
+        folders = ["gps", "weather", "cr1000x", "solar", "dts", "picture", "system"]
         time_now = datetime.datetime.now()
         time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
             str(time_now.day) + "_" + str(time_now.hour) + "_" + str(time_now.minute)
         for index, item in enumerate(folders):
             if sub_files.find(item) != -1:
-                new_name = source + item + "/" + \
-                    time_now + "_" + sub_files.split("/")[-1]
+                new_name = source + item + "/" + sub_files.split("/")[-1]
         shutil.move(sub_files, new_name)
         printf("Backed up {0}".format(sub_files.split("/")[-1]))
         if sbd is True:

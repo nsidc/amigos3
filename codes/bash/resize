@@ -11,5 +11,5 @@ if [ "$#" -ne 3 ]; then
 fi
 djpeg -scale $SIZE $SRC >$TEMP
 sleep 1
-cjpeg -scale 1 $TEMP >$DEST
+cjpeg -scale 1/1 $TEMP >$DEST
 rm $TEMP

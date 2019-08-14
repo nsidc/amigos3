@@ -19,6 +19,23 @@ class dial():
         self.router_auth = ("admin", "")
         self.default_path = "/media/mmcblk0p1/"
 
+    def list_files(self, folder):
+        """List files in a directory recursively
+
+        Arguments:
+            folder {string} -- Path to the base directory
+
+        Returns:
+            [List] -- List of all file
+        """
+        walker = os.walk(folder)
+        list_file = []
+        for root, dirs, files in walker:
+            for name in files:
+                path = os.path.join(root, name)
+                list_file.append(path)
+        return list_file
+
     def test_connection(self):
         """Test up/down of server.
 
@@ -30,7 +47,7 @@ class dial():
         try:
             ftp = FTP(self.hostname, timeout=5*60)
         except:
-            print("FTP connection failed. Trying once more :(")
+            printf("FTP connection failed. Trying once more :(")
             try:
                 ftp = FTP(self.hostname, timeout=5*60)
             except:
@@ -39,7 +56,7 @@ class dial():
             welcome = ftp.getwelcome()
         except:
             reschedule(re="Out")
-            print("Can not connect to server 128.138.135.165. Will try later :(")
+            printf("Can not connect to server 128.138.135.165. No more try")
             if ftp is not None:
                 return ftp
             return None
@@ -56,7 +73,7 @@ class dial():
             if greeting is not None:
                 printf(greeting)
             return ftp
-        return None
+        return ftp
 
     def compress_file(self, file_name, own=False):
         """Compress file to tar.zip.
@@ -74,20 +91,40 @@ class dial():
         #     # print(file_name)
         try:
             folder_name = file_name
-            if os.path.isfile(file_name):
-                folder_name = file_name.replace(".log", '')
-            # print(folder_name, file_name)
             from execp import amigos_Unit
             unit = amigos_Unit()
+            if file_name.find(".log") != -1:
+                folder_name = folder_name.replace(".log", '')
+            elif file_name.find(".jpg") != -1:
+                folder_name = folder_name.replace(".jpg", '')
+            # print(folder_name, file_name)
+            import datetime
+            time_now = datetime.datetime.now()
+            time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
+                str(time_now.day) + "_" + str(time_now.hour) + \
+                "_" + str(time_now.minute) + "_"
+            # printf(file_name)
+            if file_name.find("\n") != -1:
+                file_name = file_name.replace("\n", '')
+                folder_name = folder_name.replace("\n", '')
+            newname = folder_name.split("/")
+            time_now = time_now+newname[-1]+unit
+            newname[-1] = time_now
+            # newname.insert(-1, time_now)
+            # printf(str(newname))
+            try:
+                folder_name = "/".join(newname)
+            except:
+                self.update_log(file_name)
+                return None
             printf("zipping file ")
-            p = Popen("tar czf {0} {1}".format(folder_name+"{0}.tar.gz".format(unit), file_name),
+            p = Popen("tar czf {0} {1}".format(folder_name+".tar.gz", file_name),
                       stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
             out = p.communicate()
             # print(out)
             sleep(2)
-            return folder_name+"{0}.tar.gz".format(unit)
+            return folder_name+".tar.gz"
         except:
-            reschedule(re="Out")
             printf("zipping failed :(")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
@@ -109,7 +146,7 @@ class dial():
             printf("Getting server status")
             ftp = self.test_connection()
             if ftp is None:
-                printf("Client server down, will try again later.")
+                printf("Client server is down.")
                 return False
             new = path_file
             path_file = self.compress_file(path_file, own)
@@ -124,7 +161,7 @@ class dial():
             printf("Starting {0} tranfer now!".format(path_file.split("/")[-1]))
             response = ftp.storbinary("STOR " + path_file.split("/")
                                       [-1], open(path_file, 'rb'), blocksize=1000)
-            ftp.close()
+            ftp.quit()
             if response.find("successfully") == -1:
                 printf("Failed to transfere files :(")
                 return False
@@ -141,6 +178,159 @@ class dial():
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return False
 
+    def clean_up(self, resp, name):
+        """Delete a file after it is sent
+
+        Arguments:
+            resp {Boll} -- Return value from the sent
+            name {String} -- Name + path to the file
+        """
+        try:
+            if resp:
+                call("rm  -rf {0}".format(name), shell=True)
+            else:
+                printf("Unknown error occurred. Dial out exit too soon :(")
+                return
+        except:
+            pass
+
+    def update_log(self, files, push=False):
+        """Update the record on the dial out files
+
+        Arguments:
+            files {string or list} -- List of file to keep track of
+
+        Keyword Arguments:
+            push {bool} -- Generate a new list of files to keep track off (default: {False})
+
+        Returns:
+            bool -- True of success and false otherwise
+        """
+        if push:
+            printf("Making record of dial out files")
+            for index, fil in enumerate(files):
+                file_path = self.default_path+fil
+                if os.path.isdir(file_path):
+                    files = self.list_files(file_path)
+                    for index, item in enumerate(files):
+                        with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
+                            listd.write(item + "\n")
+                else:
+                    with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
+                        listd.write(file_path + "\n")
+            push = False
+            return True
+        printf("Updating dial out files record")
+        in_waiting = ""
+        pop = ""
+        with open(self.default_path+"logs/dialout_list.log", "r") as listd:
+            in_waiting = listd.readlines()
+        from copy import deepcopy
+        for index, item in enumerate(in_waiting):
+            if item.find(files) != -1:
+                new_waiting = deepcopy(in_waiting)
+                pop = new_waiting.pop(index)
+                # print(index, item, str(pop), str(in_waiting), str(new_waiting))
+                with open(self.default_path+"logs/dialout_list.log", "w+") as listd:
+                    listd.write("")
+                for inde, ite in enumerate(new_waiting):
+                    if ite not in ["", " ", None, " \n", "\n"]:
+                        with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
+                            listd.write(ite)
+                index = 0
+                return True
+
+    def send_dir(self, files):
+        """Send files in a directory.
+
+        Arguments:
+            files {String} -- files list in the directory
+        """
+        if not files:
+            printf("This direcory is empty")
+        else:
+            for index, fil in enumerate(files):
+                if fil.find("tar.gz") != -1:
+                    self.clean_up(True, fil)
+                    self.update_log(fil)
+
+                else:
+                    if fil in ["", " ", None, " \n", "\n"]:
+                        return
+                    self.print_queue(files, index, fil)
+                    resp = self.send(fil)
+                    if resp:
+                        self.update_log(fil)
+                        self.clean_up(resp, fil)
+
+    def print_queue(self, filename, index, name):
+        """Print the next element for dial out in queue
+
+        Arguments:
+            filename {list} -- all files to be send
+            index {[type]} -- index of the current file that is been sent
+            name {[type]} -- the name of the current file that is been sent
+        """
+        next_in = "Nothing"
+        if index+1 < len(filename):
+            next_in = filename[index+1]
+            if next_in.find(".log") != -1 or next_in.find(".jpg") != -1:
+                next_in = next_in.split("/")[-1]
+        printf("Preparing {0} to be sent. Next in queue {1} ...".format(
+            name.split("/")[-1], next_in))
+
+    def send_fails(self):
+        """send fails dial out files. Similar to send_leftover but do recursively
+
+        Returns:
+            Bool -- Return True if some tasks that fails has been sent or false otherwise
+        """
+        in_waiting = None
+        try:
+            with open(self.default_path+"logs/dialout_list.log", "r") as listd:
+                in_waiting = listd.readline()
+        except:
+            return False
+        if in_waiting not in ["", " ", None, " \n", "\n"]:
+            print("Sending files that fails previously")
+            self.Out()
+        return True
+
+    def send_leftover(self):
+        """Send all failed dial out task
+
+        Returns:
+            Bool -- True if success false otherwise
+        """
+        in_waiting = []
+        try:
+            with open(self.default_path+"logs/dialout_list.log", "r") as listd:
+                in_waiting = listd.readlines()
+        except:
+            return False
+        # print(in_waiting)
+        if in_waiting:
+            if in_waiting[0] in ["", " ", None, " \n", "\n"] and len(in_waiting) < 2:
+                return False
+            printf("Sending files that could not be sent")
+            # printf(str(in_waiting))
+            for index, item in enumerate(in_waiting):
+                if item.find("tar.gz") != -1:
+                    self.clean_up(True, item)
+                    self.update_log(item)
+                elif item not in ["", " ", None, " \n", "\n"]:
+                    if os.path.isdir(item):
+                        files = self.list_files(item)
+                        self.send_dir(files)
+                    else:
+                        resp = self.send(item)
+                        if resp:
+                            print(item)
+                            self.update_log(item)
+                            self.clean_up(True, item)
+            return True
+        return False
+
     def Out(self, filename=None):
         """Dial out.
 
@@ -155,54 +345,43 @@ class dial():
         iridium_on(1)
         router_on(1)
         modem_on(1)
-        sleep(60)
+        sleep(30)
         try:
-            files_to_send = ["logs/gps_binex.log", "pictures", "dts", "logs/system.log"]
+            files_to_send = ["logs/gps_binex.log", "picture", "dts", "logs/system.log"]
             if filename != None:
                 if isinstance(filename, basestring):
                     printf("Sending requested file {0} ...".format(filename))
                     self.send(filename, own=True)
-            else:
+            if not self.send_leftover():
                 if filename is None:
                     filename = files_to_send
                 printf("Start sending  files ...")
+                self.update_log(filename, push=True)
                 for index, name in enumerate(filename):
-                    next_in = "Nothing"
-                    if index+1 < len(filename):
-                        next_in = filename[index+1]
-                        if next_in.find(".log"):
-                            next_in = next_in.split("/")[-1]
-                    if name.find(".log"):
-                        printf("Preparing {0} to be sent. Next in queue {1} ...".format(
-                            name.split("/")[-1], next_in))
+                    file_path = self.default_path+name
+                    if os.path.isdir(file_path):
+                        self.print_queue(filename, index, name)
+                        printf("This file is a directory")
+                        printf("Generating files list from this directory")
+                        files = self.list_files(file_path)
+                        self.send_dir(files)
                     else:
-                        printf("Preparing {0} to be sent. Next in queue {1} ...".format(
-                            name, next_in))
-                    resp = self.send(self.default_path+name)
-                    if resp and name.find(".log") == -1:
-                        p = Popen("rm  -rf {0}".format(self.default_path+name),
-                                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-                        out = p.communicate()
-                        # print(out)
-                        sleep(2)
-                        # print(self.default_path+name)
-                        os.mkdir(self.default_path+name)
-                    elif resp:
-                        call("rm  -rf {0}".format(self.default_path+name), shell=True)
-                    else:
-                        printf("Unknown error occurred. Dial out exit too soon :(")
-                        return
-                from execp import welcome
-                welcome()
-                printf(
-                    "The state of the schedule so far is presented in the table below.", date=True)
-                reschedule(run="Out")
-                from monitor import get_stat
-                get_stat()
-                reschedule(start=True)
-                end = timer()
-                timing("Out", end-start)
-                printf("All Done with dial out session")
+                        self.print_queue(filename, index, name)
+                        resp = self.send(self.default_path+name)
+                        self.update_log(file_path)
+                        self.clean_up(resp, file_path)
+            self.send_fails()
+            from execp import welcome
+            welcome()
+            printf(
+                "The state of the schedule so far is presented in the table below.", date=True)
+            reschedule(run="Out")
+            from monitor import get_stat
+            get_stat()
+            reschedule(start=True)
+            end = timer()
+            timing("Out", end-start)
+            printf("All Done with dial out session")
 
         except:
             reschedule(re="Out")
@@ -212,7 +391,7 @@ class dial():
         finally:
             iridium_off(1)
             router_off(1)
-            # modem_off(1)
+            modem_off(1)
 
     def In(self, time_out=20):
         """Execute dial in.
@@ -338,7 +517,7 @@ class sbd():
             printf("AT command did not work to the iridium (Solar)")
 
         # If solar message sent successfully, move on and call the vaisala funciton
-        if message_sent == True:
+        if message_sent is True:
             printf("Solar message successfuly sent, moving to iridium Vaisala")
             self.vaisala_SBD()
         else:

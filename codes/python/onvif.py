@@ -161,7 +161,7 @@ class ptz_client():
         print("PAN_Position: {0}\nTITL_Position: {1}\nZOOM_Position: {2}\n".format(
             pan, tilt, zoom))
 
-    def snapShot(self, size="1/2"):
+    def snapShot(self, size="3/8"):
         try:
             """
             get a snapshot
@@ -185,7 +185,7 @@ class ptz_client():
             f = open('/media/mmcblk0p1/pic.jpg', 'wb')  # opening
 
             # Write the file to the time stamp
-            newname = '/media/mmcblk0p1/'+'photo'+dt[0:-7]+'.jpg'
+            newname = '/media/mmcblk0p1/'+'picture'+dt[0:-7]+'.jpg'
             # print(dt[0:-7])
             subprocess.call("mv {0} {1}".format(
                 '/media/mmcblk0p1/pic.jpg', newname), shell=True)
@@ -195,12 +195,12 @@ class ptz_client():
             f.close()
             printf("Camera SnapShot taken :)")
             subprocess.call("mv {0} {1}".format(
-                newname, "/media/mmcblk0p1/unscaled_pictures/"), shell=True)
+                newname, "/media/mmcblk0p1/unscaled_picture/"), shell=True)
             sleep(1)
             printf("Resizing  SnapShot")
             sleep(1)
             subprocess.call("resize_jpeg {0} {1} {2}".format(
-                size, "/media/mmcblk0p1/unscaled_pictures/"+"photo"+dt[0:-7]+".jpg", "/media/mmcblk0p1/pictures/"+"photo"+dt[0:-7]+".jpg"), shell=True)
+                size, "/media/mmcblk0p1/unscaled_picture/"+"picture"+dt[0:-7]+".jpg", "/media/mmcblk0p1/picture/"+"picture"+dt[0:-7]+".jpg"), shell=True)
             printf("Resizing done!")
         except:
             printf('Unable to take snapshot``\\_(^/)_/``')

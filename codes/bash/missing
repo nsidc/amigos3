@@ -1,8 +1,8 @@
 #!/bin/bash
 DIR=/media/mmcblk0p1
 BACKUPS="${DIR}/backups"
-PICTURES="${DIR}/pictures"
-UPICTURES="${DIR}/unscaled_pictures"
+PICTURES="${DIR}/picture"
+UPICTURES="${DIR}/unscaled_picture"
 DTS="${DIR}/dts"
 LOGS="${DIR}/logs"
 BACKDTS="${BACKUPS}/dts"
@@ -16,7 +16,7 @@ AQUADOPP="${BACKUPS}/aquadopp"
 POWER="${LOGS}/power_log.log"
 SLEPT="${LOGS}/slept.log"
 SYSTEM="${LOGS}/system.log"
-BACK_PHOTO="${BACKUPS}/pictures"
+BACK_PHOTO="${BACKUPS}/picture"
 
 time_now="$(date)"
 
