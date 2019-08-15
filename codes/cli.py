@@ -184,6 +184,12 @@ def args_parser():
         gps.add_argument('-time', '--get_time',
                          help='dial in', action='store_true')
 
+        dts = parser.add_argument_group(
+            'Enter upper and lower cable thresholds ', 'Transition between ice and water')
+        dts.add_argument(
+            'dts', help='Required secondary argument', nargs='?')
+
+
         camera = parser.add_argument_group(
             'Camera Control', 'Control camera position, take pictures and more')
         camera.add_argument(
@@ -372,7 +378,10 @@ def solar(args):
 
 
 def dts(args):
-    pass
+    lower = raw_input("Enter lower threshold (meters): \n")
+    upper = raw_input("Enter upper threshold (meters): \n")
+    with open("/media/mmcblk0p1/logs/dts_thresholds.log","w+") as dts_file:
+        dts_file.write(lower + "," + upper)
 
 
 def iridium(args):
@@ -511,6 +520,8 @@ def main():
         enabler(args)
     elif args.schedule == 'sbd':
         iridium(args)
+    elif args.schedule == 'dts':
+        dts(args)
     else:
         print('No such a command or it is not implemented yet')
         inp = raw_input("print usage? y/n: ")

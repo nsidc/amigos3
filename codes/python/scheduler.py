@@ -14,7 +14,6 @@ import sys
 import traceback
 from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sleep, clear_cached, get_system_performance, has_slept, reschedule, get_stat
 from iridium import sbd as sb, dial
-from dts import test as dts_test
 
 welcome()
 printf("The state of the schedule so far is presented in the table below.", date=True)
@@ -93,10 +92,11 @@ class summer():
         self.sched_summer.every().day.at("19:20").do(di.In)
 
     def dts(self):
-        self.sched_summer.every().day.at("03:05").do(dts_test)
-        self.sched_summer.every().day.at("09:05").do(dts_test)
-        self.sched_summer.every().day.at("15:05").do(dts_test)
-        self.sched_summer.every().day.at("21:05").do(dts_test)
+        from dts import ssh
+        self.sched_summer.every().day.at("03:05").do(ssh)
+        self.sched_summer.every().day.at("09:05").do(ssh)
+        self.sched_summer.every().day.at("15:05").do(ssh)
+        self.sched_summer.every().day.at("21:05").do(ssh)
 
     def sbd(self):
         # box A
@@ -184,7 +184,8 @@ class winter():
         self.sched_winter.every().day.at("19:20").do(di.In)
 
     def dts(self):
-        self.sched_winter.every().day.at("21:05").do(dts_test)
+        from dts import ssh
+        self.sched_winter.every().day.at("21:05").do(ssh)
 
     def sbd(self):
         ss = sb()

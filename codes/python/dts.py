@@ -4,102 +4,62 @@ from time import sleep
 from monitor import reschedule
 
 
-def test():
-    from gpio import modem_on,modem_off,dts_on,dts_off
-    printf("DTS data acquisition stated")
-    dts_on(1)
-    modem_on(1)
-    sleep(60*8)
-    modem_off(1)
-    dts_off(1)
-    reschedule(run="test")
-    printf("All done with DTS")
-
-
-# Defines paths to data files
-#windows_filepath = '/Desktop/DTS_data/XT17057/temperature/'
-#linux_filepath = '/media/mmcblk0p1/dts'
-
-
-# Sid Arora/Jack Soltys/Ryan Weatherbee
-# Updated 8/2/19
-# Program will read in data from DTS xml files, average the data over 2 meter lengths, and save to a csv file
-
-
-# Function that will ssh from the windows computer into the triton board
-
-
-def ssh():
-    try:
-        from gpio import dts_on, dts_off
-        dts_on(1)
-
-        #Defines paths to data files
-        #windows_filepath = '/Desktop/DTS_data/XT17057/temperature/'
-        #linux_filepath = '/media/mmcblk0p1/dts'
-
-        from pyssh.session import Session
-        session = Session(hostname = '192.168.0.50',username = 'admin',password = 'admin')
-        ftp = session.createftp()
-        ftp.get("Desktop/","/media/mmcblk0p1/dts/")
-    except:
-        printf("Not able to turn on the windows computer to run dts")
-    else:
-        # subprocess(ssh command and windows IP)
-        pass
-    finally:
-        dts_off(1)
-
-        # set up windows computer to automaticlly start running dts software when it boots up
-        # then run ssh function to find and copy over files or just read in and output csv
-
-# Function that needs to locate the dts channel files in the directory path/rename them
-
-
-def find_files():
-    # figure out how to open xml files here that automatically output from dts - or figure out how to rename the files first using python
-    # use subprocess - import first too
-    # rename the file so that write to csv file cleanly
-
-    # need to first ssh in to windows comp and run the dts software and save the entire channel folder somewhere repeadedly
-    # then find that folder and rename/read in all the channel data - rename to channel1.xml etc every time so function calls always work
-
-    pass
-
-# Function that creates tree roots of xml file and preps a csv file to be written to
-
-
 def read_xml(filename):
     import xml.etree.ElementTree as ET
     tree = ET.parse(filename)
     root = tree.getroot()
-    with open('test_csv_file.csv', "a+") as csvfile:
+    with open('/media/mmcblk0p1/dts/dts.csv', "a+") as csvfile:
         csvfile.write(filename)
         csvfile.write('\n\n')
         csvfile.write('Date/Time START: ' + root[0][7].text)
         csvfile.write('\n\n')
         csvfile.write('Date/Time END: ' + root[0][8].text)
         csvfile.write('\n\n')
-        csvfile.write('Length, stokes, anti-stokes, Temp(C)')
+        csvfile.write('Acquisition Time: ' + root[0][18][0].text)
+        csvfile.write('\n\n')
+        csvfile.write('Reference Temp: ' + root[0][18][1].text)
+        csvfile.write('\n\n')
+        csvfile.write('Probe Temp 1: ' + root[0][18][2].text)
+        csvfile.write('\n\n')
+        csvfile.write('Probe Temp 2: ' + root[0][18][3].text)
+        csvfile.write('\n\n')
+        csvfile.write('Length(m), Stokes, Anti-stokes, Reverse-stokes, Reverse anti-stokes, Temp(C)')
         csvfile.write('\n\n')
     return root
-
-# Function that creates a 2D array of float elements
 
 
 def array(filename):
     root = read_xml(filename)
     large_array = []
-    for i in range(2, len(root[0][15])):
-        text = root[0][15][i].text
+    for i in range(2, len(root[0][17])):
+        text = root[0][17][i].text
         text = text.replace('\n', '')
         text = text.split(",")
         for i in range(0, len(text)):
             text[i] = float(text[i])
         large_array.append(text)
+    with open("/media/mmcblk0p1/logs/dts_thresholds.log","w+") as dts_file:
+        boundaries = dts_file.readline()
+    boundaries = boundaries.split(',')
+    lower = boundaries[0]
+    upper = boundaries[1]
+    try:
+        if lower.find('.') != -1:
+            lower = float(lower)
+        else:
+            lower = int(lower)
+        if upper.find('.') != -1:
+            upper = float(lower)
+        else:
+            upper = int(lower)
+    except:
+        print('Please enter a float or an integer')
+    with open('/media/mmcblk0p1/dts/dts_quarterly.csv') as quarter:
+        for j in range(0,len(large_array)):
+            if (large_array[j][0] - lower) >= 0 and (large_array[j][0] - upper) <= 0:
+                quarter.write(large_array[j])
+                quarter.write('\n')
     return large_array, text
-
-# Function that will average 8 0.25 meter data points into 1 data point
 
 
 def average(filename):
@@ -108,45 +68,75 @@ def average(filename):
     for h in range(0, len(large_array)):
         for s in range(0, len(text)):
             zero_array[h][s] = 0
-    final_array = zero_array[0:(len(large_array)/8)]
+    final_array = zero_array[0:(len(large_array)/4)]
     for s in range(0, len(text)):
-        for h in range(0, (len(large_array)/8)):
-            tem = str((large_array[8*h][s] +
-                       large_array[8*h + 1][s] +
-                       large_array[8*h + 2][s] +
-                       large_array[8*h + 3][s] +
-                       large_array[8*h + 4][s] +
-                       large_array[8*h + 5][s] +
-                       large_array[8*h + 6][s] +
-                       large_array[8*h + 7][s])/8)
+        for h in range(0, (len(large_array)/4)):
+            tem = str((large_array[4*h][s] +
+                        large_array[4*h + 1][s] +
+                        large_array[4*h + 2][s] +
+                        large_array[4*h + 3][s])/4)
             index = tem.find(".")
             tem = tem[0:index] + tem[index:index+4]
             final_array[h][s] = float(tem)
     return final_array
 
-# Function that writes arrays to csv - appends to bottom
-
 
 def write(filename):
     final_array = average(filename)
-    with open('test_csv_file.csv', "a") as csvfile:
+    with open('/media/mmcblk0p1/dts/dts.csv', "a") as csvfile:
         for i in range(0, len(final_array)):
             temp = str(final_array[i])
             endindex = temp.find("]")
             temp = temp[1:endindex]
             csvfile.write(temp)
             csvfile.write("\n")
-        csvfile.write("\n\n\n")
-
-# Function main that calls other functions and provides a filename
+        csvfile.write("\n\n\n")        
 
 
-def main():
-    write("channel1.xml")
-    write("channel2.xml")
+def list_files(folder):
+    """List files in a directory recursively
+
+    Arguments:
+        folder {string} -- Path to the base directory
+
+    Returns:
+        [List] -- List of all file
+    """
+    import os
+    walker = os.walk(folder)
+    list_file = []
+    for root, dirs, files in walker:
+        for name in files:
+            path = os.path.join(root, name)
+            list_file.append(path)
+    return list_file
 
 
-# If python script is called, the main funciton is called
+def ssh():
+    try:
+        from gpio import dts_on, dts_off
+        dts_on(1)
+        from ssh import SSH 
+        ssh = SSH("admin","192.168.0.50")
+        reschedule(run="ssh")
+    except:
+        printf("Not able to turn on the windows computer to run dts")
+    else:
+        printf("DTS data acquisition started")
+        ssh.copy("Desktop/dts_data","/media/mmcblk0p1",recursive = True)
+        array_files = list_files("/media/mmcblk0p1/dts_data")
+        for index,path in enumerate(array_files):
+            if array_files.find('channel 1'):
+                write(path)
+                break
+        ssh.execute("rm -rf Desktop/dts_data")
+        ssh.execute("mkdir Desktop/dts_data")
+        os.rmdir('/media/mmcblk0p1/dts_data')
+        printf("All done with DTS")
+    finally:
+        dts_off(1)
+
+
+
 if __name__ == "__main__":
-    d = dts()
-    d.main()
+    pass
