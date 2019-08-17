@@ -1,0 +1,15 @@
+#!/bin/bash
+SIZE=$1
+SRC=$2
+DEST=$3
+TEMP=/media/mmcblk0p1/img.pnm
+export LD_LIBRARY_PATH=/media/mmcblk0p1/codes/thumb/
+sleep 1
+if [ "$#" -ne 3 ]; then
+    echo "Resize take 3 argument: Scale (example 1/2), Source (include path), destination (include finale name with .jpeg)"
+    exit 0
+fi
+djpeg -scale $SIZE $SRC >$TEMP
+sleep 1
+cjpeg -scale 1/1 $TEMP >$DEST
+rm $TEMP
