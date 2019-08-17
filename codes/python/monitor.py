@@ -1,13 +1,241 @@
-# from watchdog import set_mode
-# from scheduler import run_schedule
-import shutil
-#import os
+import watchdog as w
+import os
 from subprocess import Popen, PIPE, call
-from execp import printf
 from onboard_device import get_battery_current, get_battery_voltage
 import traceback
 from gpio import all_off
 import datetime
+from time import sleep
+from execp import printf
+# Dictionary object to track schedule execution. index 0: task failure conter, Index 1:
+# total task failure counter, index 2 Device name with description index 3:
+# total successful run index 4: Number of run per hour
+track = {"cr1000": [0, 0, "CR1000x", 0, 6, 0.576447027, 0],
+         "readsolar": [0, 0, "Solar sensor", 0, 6, 0.131056604, 0],
+         "vaisala": [0, 0, "Vaisala", 0, 6, 0.146047619, 0],
+         "get_binex": [0, 0, "GPS Binex", 0, 1, 0.281862069, 0],
+         "Out": [0, 0, "Dial_out", 0, 1, 0.941735425, 0],
+         "SBD": [0, 0, "SBD out Tweet", 0, 1, 0, 0.197106061, 0],
+         "In": [0, 0, "Dial_in", 0, 1, 0.554076212, 0],
+         "amigos_box_sort_AQ": [0, 0, "Aquadopp", 0, 3, 0, 0],
+         "amigos_box_sort_SB": [0, 0, "Sea Bird", 0, 6, 0, 0],
+         "ssh": [0, 0, "DTS", 0, 1, 0, 0],
+         "move": [0, 0, "Camera", 0, 1, 0, 0],
+         }
+parm = [0, True, 0.0, None]
+
+
+def is_need_update(dts_time):
+    """Check if time update is needed on the GPS
+
+    Arguments:
+        dts_time {str} -- time of the dts file last modified stored of the windows unit
+
+    Returns:
+        [Bool/Str] -- True if time has diverge since last file drop/ a time object of the newly datetime of files dropped on the window unit
+    """
+    printf("Checking if dts time has diverge")
+    dts_time = dts_time.split("H")
+    day = "-".join(dts_time[0:4])
+    times = ":".join(dts_time[4:])
+    dts_time = day + " " + times
+    date_time_obj = datetime.datetime.strptime(
+        dts_time, '%Y-%m-%d %H:%M:%S')
+    time_now = datetime.datetime.now()
+    diff = str(dts_time-time_now)
+    if diff.find("-") != -1:
+        return True
+    return date_time_obj
+
+
+def update_dts_time(jobs):
+    """Update DTS time
+
+    Arguments:
+        jobs {LIST} -- List of all jobs
+
+    Returns:
+        [Bool -- True if time has diverge false otherwise
+    """
+    try:
+        from dts import get_dts_time
+        dts_time = get_dts_time()
+        update_time = is_need_update(dts_time)
+        if update_time is True:
+            from gpio import dts_on
+            printf("DTS has not drop any file since {0}".format(update_time))
+            printf("Will keep Windows unit running for one cycle to allow DTS time Sync")
+            dts_on(1)
+            return True
+        for job in jobs:
+            job_name = job.job_func.__name__
+            if job_name == "ssh":
+                job.next_run = update_time - datetime.timedelta(minutes=3)
+        return False
+    except:
+        printf("Error updating dts time")
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+
+
+def timing(device, dur):
+    """Update durration of a job
+
+    Arguments:
+        device {[string]} -- task name
+        dur {float} -- durection
+    """
+    for item, array in track.items():
+        if item == device:
+            track[item][6] = dur
+
+
+def power_consumption():
+    """Get the total power consumed
+
+    Returns:
+        [float] -- total power in Watt
+    """
+    consume = 0.0
+    total_time = 0.0
+    volt = get_battery_voltage()
+    for item, array in track.items():
+        consume = consume+(track[item][5]*volt*track[item][6])*0.000277778
+        total_time = total_time+track[item][6]
+        track[item][6] = 0
+    parm[2] = parm[2]+consume
+    return consume, total_time, parm[2]
+
+
+def set_reschedule(device):
+    """Set the reschedule.
+
+    Arguments:
+        device {string} -- The name of the sensor or device
+    """
+    with open("/media/mmcblk0p1/logs/reschedule.log", "w+") as res:
+        res.write(device)
+
+
+def first_time():
+    """Check if the Dial out has run for the first time
+    """
+    if parm[1] is True:
+        for item, array in track.items():
+            track[item][3] = 0
+            track[item][1] = 0
+        parm[1] = False
+    else:
+        parm[0] = parm[0]+1
+        for item, array in track.items():
+            track[item][4] = track[item][4]*parm[0]
+
+
+def do_rerun(jobs, task):
+    """Rerun a job that failed
+
+    Arguments:
+        jobs {Class } -- List of all jobs constructed from schedule as class (default: {None})
+        task {string} -- Name of job/Device to rerun
+    """
+    for job in jobs:
+        if job.job_func.__name__ == task:
+            if track[task][0] > 1:
+                track[task][0] = 0
+                set_reschedule("")
+                printf("Can not rerun {0} task that failed previously again. I must stay on schedule :)".format(
+                    track[task][2]))
+                return
+            printf("Executing {0} task that failed previously. {1} total rerun :)".format(
+                track[task][2], track[task][1]))
+            next_second = job.next_run.second
+            next_minute = job.next_run.minute
+            next_hour = job.next_run.hour
+            next_day = job.next_run.day
+            next_month = job.next_run.month
+            next_year = job.next_run.year
+            printf("Schedule integrity will be altered :(")
+            job.run()
+            track[task][1] = 1 + \
+                track[task][1]
+            track[task][0] = track[task][0]+1
+            job.next_run = job.next_run.replace(
+                minute=next_minute, hour=next_hour, day=next_day, year=next_year, second=next_second, month=next_month)
+            set_reschedule("")
+            printf("Done rerunning {0} task. Schedule integrity was restored :)".format(
+                track[task][2]))
+            return
+
+
+def get_rerun(jobs):
+    """check for rerun
+
+    Arguments:
+        jobs {Class } -- List of all jobs constructed from schedule as class (default: {None}))
+    """
+    try:
+        task = None
+        with open("/media/mmcblk0p1/logs/reschedule.log", "r") as res:
+            task = res.read()
+        if task not in ["", None, " "]:
+            do_rerun(jobs, task)
+
+    except:
+        printf("Rerun failed due to the following error, Might try again :)")
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+
+
+def reschedule(jobs=None, start=False, re=None, run=None):
+    """Rerun a task that has failed without affecting the integrity of the
+    schedule.
+
+    Keyword Arguments:
+        jobs {Class } -- List of all jobs constructed from schedule as class (default: {None})
+        stat {bool} -- To get the track dictionary (default: {False})
+        re {string} -- Device or sensor name to reschedule (default: {None})
+        run {string} -- Device or sensor name to updated successful run counter (default: {None})
+
+    Returns:
+        None/Dict -- Return none or Track as dictionary is stat set to True
+    """
+    if re is not None:
+        set_reschedule(re)
+        re = None
+    elif run is not None:
+        track[run][3] = track[run][3]+1
+        if run == "ssh":
+            update_dts_time(jobs)
+        run = None
+    elif start is True:
+        first_time()
+        start = False
+
+    elif jobs:
+        get_rerun(jobs)
+
+
+def get_stat():
+    """Print statistic to log file."""
+    stat_dic = track
+    power = power_consumption()[2]
+    printf('TF: Total failure', date=True)
+    printf("TR: Total successfull run", date=True)
+    printf("PE: Percent of execution", date=True)
+    printf("Total Power consumed so far: {0} Watt".format(str(power))[0:-6], date=True)
+    printf(" ________________ ____ ____ _____", date=True)
+    printf("| Device         | TF | TR | PE  |", date=True)
+    printf("|________________|____|____|_____|", date=True)
+    printf("|________________|____|____|_____|", date=True)
+    for array in stat_dic.values():
+        ld = len(str(array[2]))
+        ll = 14
+        ldiff = ll-ld
+        tota = array[4]
+        percent = (array[3]*100)/tota
+        printf("| " + str(array[2]) + " "*ldiff + " | " +
+               str(array[1]) + " | " + str(array[3]) + " | " + str(percent) + " | ", date=True)
+        printf("|________________|____|____|_____|", date=True)
 
 
 def get_schedule():  # get the running schedule
@@ -18,30 +246,43 @@ def get_disk_space():
     pass
 
 
-def backup(sub_files):
-    # files = ["gps_binex.log", "weather_data.log", "thermostat.log", "solar.log", ]
-    source = "/media/mmcblk0p1/logs"
-    gps = "/media/mmcblk0p1/backups/gps"
-    cr1000 = "/media/mmcblk0p1/backups/cr1000x"
-    weather = "/media/mmcblk0p1/backups/weather"
-    dts = "/media/mmcblk0p1/backups/dts"
-    solar = "/media/mmcblk0p1/backups/solar"
-    time_now = datetime.datetime.now()
-    time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
-        str(time_now.day) + "_" + str(time_now.hour) + str(time_now.minute)
-    # for sub_files in files:
-    if sub_files.find("gps"):
-        new_name = gps + sub_files + time_now
-    elif sub_files.find("weather"):
-        new_name = weather + sub_files + time_now
-    elif sub_files.find("therm"):
-        new_name = cr1000 + sub_files + time_now
-    elif sub_files.find("solar"):
-        new_name = solar + sub_files + time_now
-    elif sub_files.find("dts"):
-        new_name = dts + sub_files + time_now
-    sub_files = source + sub_files
-    shutil.move(sub_files, new_name)
+def backup(sub_files, own=False, sbd=False):
+    """Backup files.
+
+    Arguments:
+        sub_files {String} -- File + path
+        sub_files {String} -- File + path
+
+    Keyword Arguments:
+        own {bool} -- Set if not auto generated by software (default: {False})
+    """
+    try:
+        import shutil
+        new_name = ""
+        if own:
+            new_name = sub_files.split("/")
+            new_name.insert(-1, "trashes")
+            trash = "/".join(new_name[:-1])
+            if os.path.isdir(trash) == False:
+                os.mkdir(trash)
+            new_name = "/".join(new_name)
+            shutil.move(sub_files, new_name)
+            return
+        source = "/media/mmcblk0p1/backups/"
+        folders = ["gps", "weather", "cr1000x", "solar", "dts", "picture", "system"]
+        time_now = datetime.datetime.now()
+        time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
+            str(time_now.day) + "_" + str(time_now.hour) + "_" + str(time_now.minute)
+        for index, item in enumerate(folders):
+            if sub_files.find(item) != -1:
+                new_name = source + item + "/" + sub_files.split("/")[-1]
+        shutil.move(sub_files, new_name)
+        printf("Backed up {0}".format(sub_files.split("/")[-1]))
+
+    except:
+        printf("Files backup failed ")
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 def free_space():
@@ -49,50 +290,55 @@ def free_space():
 
 
 def has_slept():
+    """Has the Tritron went to sleep?
+
+    Returns:
+        Bool -- True if Tritron was at sleep  False otherwise
+    """
     data = None
     with open("/media/mmcblk0p1/logs/slept.log", "r") as slept:
         data = slept.read()
     if data:
+        with open("/media/mmcblk0p1/logs/slept.log", "w") as slept:
+            data = slept.write("")
         return True
     return False
 
 
 def clear_cached():
-    """
-    clear the cache memory
-    """
+    """clear the cache memory."""
     call("sync; echo 1 > /proc/sys/vm/drop_caches", shell=True)
 
 
 def get_system_performance():  # get how much cpu, memory is been used
+    """cached and  buffer memory.
+
+    Return:
+        String: Return the ram usage, cached and  buffer memory
     """
-    Return the ram usage, cached and  buffer memory
-    """
-    p = Popen("top -n 1 | grep Mem | grep -v grep",
-              stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-    out = p.communicate()
-    out = out[0].split(':')[1].split(',')
-    # print(out)
-    p = Popen("top -n 1 | grep grep",
-              stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-    out2 = p.communicate()
-    out2 = out2[0].split('\n')
-    out2 = out2[0].replace(' ', '')
-    index = out2.find('rootS')
-    grep = int(out2[index+5:index+9])
-    used_mem = int(out[0].split(" ")[1][:-1])
-    free_mem = int(out[1].split(" ")[1][:-1])
-    cached = int(out[4].split(" ")[1][:-1])
-    buff = int(out[3].split(" ")[1][:-1])
-    return used_mem-grep, free_mem+grep, cached, buff
-    # for process in out2:
-    #     mem = process.split(' ')
+    try:
+        p = Popen("top -n 1 | grep Mem | grep -v grep",
+                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        out = p.communicate()
+        p = Popen("top -n 1 | grep grep",
+                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        out2 = p.communicate()
+        out2 = out2[0].split('\n')
+        out2 = out2[0].replace(' ', '')
+        index = out2.find('rootS')
+        grep = int(out2[index+5:index+9])
+        used_mem = int(out[0].split(" ")[1][:-1])
+        free_mem = int(out[1].split(" ")[1][:-1])
+        cached = int(out[4].split(" ")[1][:-1])
+        buff = int(out[3].split(" ")[1][:-1])
+        return used_mem-grep, free_mem+grep, cached, buff
+
+    except:
+        return[0, 0, 0, 0]
 
 
 def kill():
-    """
-    Find the pid of the scheduler process and Kill the scheduler
-    """
+    """Find the pid of the scheduler process and Kill soft it."""
     out = None
     try:
         p = Popen("top -n 1 | grep python | grep -v grep",
@@ -103,9 +349,7 @@ def kill():
         pid = int(out[0:st-1])
         call("kill -2 {0}".format(pid), shell=True)
     except:
-        printf("Schedule health: Failed to check schedule health")
-        traceback.print_exc(
-            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+        printf("Schedule health: Failed to check schedule health ``\\_(^/)_/``")
 
 
 def no_task():
@@ -122,46 +366,51 @@ def no_task():
     return False
 
 
-def put_to_inactive_sleep():
-    """
-    Send the system to sleep if no task is schedule in the nest 3 minute
-    """
-    data = None
-    with open("/media/mmcblk0p1/logs/schedule.log", "r") as schedule:
-        data = schedule.read()
-    data = data.split(",")[1]
-    next_run = None
-    now = datetime.datetime.now()
-    if data:
-        next_run = data.split(" ")
-        # print(next_run)
-        years, months, days = next_run[3].split("-")
-        hours, minutes, seconds = next_run[4][0:-1].split(":")
-        next_run = now.replace(year=int(years),
-                               month=int(months), day=int(days), hour=int(hours), minute=int(minutes), second=int(seconds))
-    time_interval = int(str(next_run-now).split(":")[1])-2
-    # print(interval)
+def put_to_inactive_sleep(jobs):
+    """Send the system to sleep if no task is scheduled in the nest 3
+    minute."""
 
-    if time_interval < 3:
-        pass
+    sorted_jobs = sorted(jobs)
+    next_job = sorted_jobs[0]
+    next_job_name = track[next_job.job_func.__name__][2]
+    next_run = sorted_jobs[0].next_run
+    next_run_diff = next_run - datetime.datetime.now()
+    time_interval = int(str(next_run_diff).split(":")[-2])
+    str_time = str(next_run_diff)
+    if time_interval < 3 or str_time.find("-") != -1:
+        previous_job = parm[3]
+        if previous_job != next_job:
+            printf("~~~ Next task {0} job in {1} minute(s). Waiting~~~".format(
+                next_job_name, time_interval))
+            parm[3] = next_job
     elif no_task():
-        # if interval> 52:
+        power, totaltime, total = power_consumption()
         printf(
-            "No task in the next {0} minutes. Going on StandBy".format(time_interval))
+            "(*_*) Power consumed: {0} Wh. Total so far {1} Wh".format(str(power)[0:-6], str(total)[0:-6]))
+        printf(
+            " / \\ Next task: {0} job is in {1} minutes. Going on StandBy".format(next_job_name, time_interval))
         with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
             slept.write("1")
+        with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:
+            sch.write(str(sorted(jobs)) + "\n" +
+                      str(time_interval) + "\n" + str_time+"#"*50 + "\n")
+        w.toggle_1hour()
+        sleep(time_interval*60)
         # all_off(1)
         # call(
-            # "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(time_interval), shell=True)
+        #     "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(time_interval), shell=True)
+    return next_job_name
 
 
 def put_to_power_sleep():
+    """Put Tritron to sleep if voltage level drop bellow treshold
+    """
     voltage = get_battery_voltage()
     current = get_battery_current()
     try:
         if voltage < 2:
             voltage = voltage*10
-            printf("Voltage reading biased: Reading {0} volt and {1} amps".format(
+            printf("Voltage reading biased: Reading {0} volt and {1} amps ``\\_(^/)_/``".format(
                 voltage, current))
         if voltage < 11.0:
             had_slept = None
@@ -172,31 +421,33 @@ def put_to_power_sleep():
                 pass
             if had_slept:
                 all_off(1)
-                printf('Voltage still too low, going back to a long sleep (1 hour). Reading {0} volt and {1} amps'.format(
-                    voltage, current))
+                printf('Voltage still too low, going back to a long sleep (1 hour). Reading {0} volt'.format(
+                    voltage))
                 call('rm /media/mmcblk0p1/logs/sleep.log', shell=True)
-                # call(
-                # "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(59), shell=True)
+                call(
+                    "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(59), shell=True)
             else:
                 with open('/media/mmcblk0p1/logs/sleep.log', 'w+') as sched_log:
                     sched_log.write('1')
-                printf('Voltage too low, going back to 10 minutes sleep. Reading {0} volt and {1} amps'.format(
-                    voltage, current))
-                # call(
-                # "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(10), shell = True)
+                printf('Voltage too low, going back to 10 minutes sleep. Reading {0} volt'.format(
+                    voltage))
+                call(
+                    "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(10), shell=True)
         elif voltage > 14.0:
-            printf('Voltage is too high. Reading {0} volt and {1} amps'.format(
-                voltage, current))
+            printf('Voltage is too high. Reading {0} volt ``\\_(^/)_/``'.format(
+                voltage))
         else:
-            printf('Voltage in normal operating range. Reading {0} volt and {1} amps'.format(
-                voltage, current))
+            printf('Voltage in normal operating range. Reading {0} volt :)'.format(
+                voltage))
     except:
-        printf('failed to excute put_to_sleep')
+        w.printf('failed to excute put_to_sleep')
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 def get_schedule_health():
+    """Get Ram memory consumption by the software
+    """
     out = None
     try:
         p = Popen("top -n 1 | grep python | grep -v grep",
@@ -204,27 +455,23 @@ def get_schedule_health():
         out = p.communicate()
         out = out[0].replace(' ', '')
         st = out.find('root')
-        out = int(out[st+5:st+10])
+        out = int(out[st+5:st+9])
     except:
-        printf("Schedule health: Failed to check schedule health")
+        printf("Schedule health: Failed to check schedule health ``\\_(^/)_/``")
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
     else:
-        if out > 20000:
+        if out > 25000:
             printf(
-                "Self destrying schedule ram memory consumption above {0}".format(out))
+                "Self destrying schedule ram memory consumption above {0} ``\\_(^/)_/``".format(out))
             kill()
-        elif out < 15000:
+        elif out < 17000:
             printf('Schedule health: Normal at {0} kb of ram'.format(out))
-        elif out >= 15000 and out < 17000:
+        elif out >= 17000 and out < 20000:
             printf('Schedule health: warning at {0} kb of ram'.format(out))
         elif out == None:
-            printf('Schedule health: Scheduler not running')
+            printf('Schedule health: Scheduler not running ')
 
         else:
             printf(
-                'Schedule health: critical  at {0} kb of ram. Scheduler would be terminated at over 20000 kb'.format(out))
-
-
-if __name__ == "__main__":
-    put_to_inactive_sleep()
+                'Schedule health: critical  at {0} kb of ram. Scheduler would be terminated at over 25000 kb ``\\_(^/)_/``'.format(out))

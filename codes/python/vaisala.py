@@ -1,40 +1,32 @@
-# Sid Arora
-# UPDATED AS OF 6/25/19
-
-# This Program will read in data from the Vaisala Weather Sensor
-# It can read data over long periods of time and perform averages or can output live data
-
-# Import Modules
-import time
 from time import sleep
 import serial
 import re
 import datetime
-import math
-from gpio import weather_on
-from gpio import weather_off
-from gpio import is_on_checker
 import subprocess
 from execp import printf
 import traceback
-from onboard_device import get_battery_current
-# Class that will average the data for 2 minutes every 10 seconds at a speciic time every hour
+from monitor import reschedule
 
 
 class Average_Reading():
+
     def read_data(self):
+        from monitor import reschedule
+        from gpio import weather_on, weather_off
         try:
             # Turn on Weather Station
             weather_on(1)
-            sleep(60)
+            sleep(20)
             # Read in the weather sensor data and write to an ascii text file
             port = serial.Serial("/dev/ttyS5")
             port.baudrate = 115200
-            port.timeout = 60
+            port.timeout = 20
         except:
+            reschedule(re="cr1000")
             print("Problem with port 5 or problem with power to the vaisala")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            reschedule(re="cr1000")
         else:
             t = 0
             data = None
@@ -47,7 +39,7 @@ class Average_Reading():
                         printf("Vaisala could not take reading. Got empty data")
                         break
                     raw_data.write(data)
-                    sleep(10)
+                    sleep(7)
                 t = t+10
         finally:
             # Turn off Weather Station
@@ -79,13 +71,13 @@ class Average_Reading():
                 "rm /media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", shell=True)
         return string_array_final, float_array_final
 
-    def average_data(self):
+    def vaisala(self):
         # Call first two functions in correct order
+        data_array_final = []
         try:
             self.read_data()
             string_array_final, float_array_final = self.clean_data()
             # average the corresponding elements and output a sinlge array of numbers
-            data_array_final = []
             for j in range(0, len(string_array_final)):
                 numbers_sum = 0
                 numbers_divide = 0
@@ -93,9 +85,13 @@ class Average_Reading():
                     numbers_sum = numbers_sum + float_array_final[k][j]
                 numbers_divide = numbers_sum/(len(float_array_final))
                 data_array_final.append(round(numbers_divide, 3))
+
+            with open("/media/mmcblk0p1/logs/weather_raw.log", "a+") as rawfile:
+                rawfile.write("WX:" + str(data_array_final) + "\n")
+
             # Write the averaged array elements to a final log file - append
             now = datetime.datetime.now()
-            with open("/media/mmcblk0p1/logs/weather_data.log", "a+") as hourly:
+            with open("/media/mmcblk0p1/logs/weather_clean.log", "a+") as hourly:
                 hourly.write("Current Date and Time: " +
                              now.strftime("%Y-%m-%d %H:%M:%S\n"))
                 hourly.write("Wind Direction Average (Degrees): " +
@@ -130,15 +126,29 @@ class Average_Reading():
                              str(data_array_final[14]) + ".\n")
                 hourly.write("Vaisala Supply Voltage (V): " +
                              str(data_array_final[15]) + ".\n\n\n")
+            reschedule(run="vaisala")
         except:
+            reschedule(re="vaisala")
             printf('Fail to parser vaisala data, maybe got an empty array')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+        return data_array_final
 
+    def vaisala_sbd(self):
+        with open("/media/mmcblk0p1/logs/weather_raw.log", "r") as rawfile:
+            lines = rawfile.readlines()
+            lastline = lines[-1]
+        from monitor import backup
+        backup("/media/mmcblk0p1/logs/weather_raw.log", sbd=True)
+        return lastline
 
 # Class that will allow the user to access specific weather data points whenever needed
+
+
 class Live_Data():
+
     def read_data(self):
+        from gpio import weather_on, weather_off, is_on_checker
         try:
             is_on = is_on_checker(0, 6)
             if not is_on:
