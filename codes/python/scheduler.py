@@ -12,19 +12,20 @@ from execp import printf, sig_handler, terminateProcess, welcome, amigos_Unit
 import signal
 import sys
 import traceback
-from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sleep, clear_cached, get_system_performance, has_slept, reschedule, get_stat
+from monitor import get_schedule_health, put_to_power_sleep, put_to_inactive_sleep, has_slept, reschedule, get_stat
 from iridium import sbd as sb, dial
 
-welcome()
-printf("The state of the schedule so far is presented in the table below.", date=True)
-get_stat()
-g = gps_data()
-g.update_time(out=True)
+
+param = [False, False, None]
 
 
 class summer():
     def __init__(self, *args, **kwargs):
         self.sched_summer = schedule.Scheduler()  # create a new schedule instance
+
+    def stat_schedule(self):
+        from monitor import get_stat_log
+        self.sched_summer.every().hour.at(":49").do(get_stat_log)
 
     def gps_schedule(self):
         gps = gps_data()
@@ -43,9 +44,8 @@ class summer():
     def camera_schedule(self):
         cam = ptz()
         self.sched_summer.every().day.at("04:10").do(cam.move)
-        self.sched_summer.every().day.at("10:10").do(cam.move)
-        self.sched_summer.every().day.at("16:10").do(cam.move)
-        self.sched_summer.every().day.at("22:10").do(cam.move)
+        self.sched_summer.every().day.at("12:10").do(cam.move)
+        self.sched_summer.every().day.at("20:10").do(cam.move)
 
     def aquadopp_schedule(self):
         from aquadopp import amigos_box_sort_AQ
@@ -53,7 +53,7 @@ class summer():
 
     def seabird_schedule(self):
         from seabird import amigos_box_sort_SB
-        self.sched_summer.every().hour.at(":51").do(amigos_box_sort_SB)
+        self.sched_summer.every().hour.at(":50").do(amigos_box_sort_SB)
 
     def cr100x_schedule(self):
         # add cr100 schedules
@@ -94,9 +94,11 @@ class summer():
     def dts(self):
         from dts import ssh
         self.sched_summer.every().day.at("03:05").do(ssh)
-        self.sched_summer.every().day.at("09:05").do(ssh)
+        self.sched_summer.every().day.at("07:05").do(ssh)
+        self.sched_summer.every().day.at("11:05").do(ssh)
         self.sched_summer.every().day.at("15:05").do(ssh)
-        self.sched_summer.every().day.at("21:05").do(ssh)
+        self.sched_summer.every().day.at("19:05").do(ssh)
+        self.sched_summer.every().day.at("23:05").do(ssh)
 
     def sbd(self):
         # box A
@@ -124,12 +126,17 @@ class summer():
         self.dts()
         self.aquadopp_schedule()
         self.seabird_schedule()
+        self.stat_schedule()
         return self.sched_summer  # return the new loaded schedule
 
 
 class winter():
     def __init__(self):
         self.sched_winter = schedule.Scheduler()
+
+    def stat_schedule(self):
+        from monitor import get_stat_log
+        self.sched_winter.every().hour.at(":49").do(get_stat_log)
 
     def vaisala_schedule(self):
         from vaisala import Average_Reading as vg
@@ -152,7 +159,7 @@ class winter():
 
     def seabird_schedule(self):
         from seabird import amigos_box_sort_SB
-        self.sched_winter.every().hour.at(":51").do(amigos_box_sort_SB)
+        self.sched_winter.every().hour.at(":50").do(amigos_box_sort_SB)
 
     def cr100x_schedule(self):
         # add cr100x schedules
@@ -211,6 +218,7 @@ class winter():
         self.sbd()
         self.seabird_schedule()
         self.aquadopp_schedule()
+        self.stat_schedule()
         return self.sched_winter
 
 
@@ -235,10 +243,10 @@ class monitor():
     #     self.sched_monitor.every().minute.at(":59").do(put_to_inactive_sleep)
 
     def sched(self):
-        self.health()
+        # self.health()
         # self.voltage()
         self.execute()
-        self.onboard_device()
+        # self.onboard_device()
         # self.inactive()
         return self.sched_monitor
 
@@ -282,22 +290,24 @@ def signals():
 def season(update=None):
     if update:
         pass
+    # # winter time frame
     # winter_time = {'start': {'day': 1,
     #                          'month': 5},
     #                'end': {'day': 31,
     #                        'month': 8}
+    #                }
+    # # summer time frame
+    # summer_time = {'start': {'day': 1,
+    #                          'month': 9},
+    #                'end': {'day': 30,
+    #                        'month': 4}
     #                }
     winter_time = {'start': {'day': 1,
                              'month': 5},
                    'end': {'day': 1,
                            'month': 8}
                    }
-    # summer time frame
-    # summer_time = {'start': {'day': 1,
-    #                          'month': 9},
-    #                'end': {'day': 30,
-    #                        'month': 4}
-    #                }
+
     summer_time = {'start': {'day': 2,
                              'month': 8},
                    'end': {'day': 30,
@@ -306,12 +316,64 @@ def season(update=None):
     return winter_time, summer_time
 
 
+def run_summer(winter_task, summer_task):
+    from dts import get_dts_time
+    from monitor import get_restore_schedule
+    if not param[1]:
+        param[1] = True  # set flag
+        printf('Loading summer schedule')
+        s = summer()  # reload the schedule
+        summer_task = s.sched()
+        # summer_task.run_pending()
+        sleep(5)
+        printf("clearing winter tasks")
+        winter_task.clear()
+        param[0] = False
+        printf('Started summer schedule')
+    summer_task.run_pending()
+    # if not is_on_checker(1, 6):
+    #     modem_on(1)
+    reschedule(jobs=summer_task.jobs)
+    dts_time = get_dts_time()
+    if param[2] == "DTS" and dts_time not in ['\n', '', " "]:
+        from monitor import update_dts_time
+        update_dts_time(summer_task.jobs)
+    get_restore_schedule(summer_task.jobs)
+    param[2] = put_to_inactive_sleep(summer_task.jobs)
+    # printf(next_job)
+
+
+def run_winter(winter_task, summer_task):
+    from dts import get_dts_time
+    from monitor import get_restore_schedule
+    if not param[0]:
+        param[0] = True
+        printf('Loading winter schedule')
+        w = winter()
+        winter_task = w.sched()
+        sleep(5)
+        printf("clearing summer tasks")
+        summer_task.clear()
+        # winter_task.run_pending()
+        param[1] = False
+        printf('Started winter schedule')
+    winter_task.run_pending()
+    # if not is_on_checker(1, 6):
+    #     modem_on(1)
+    reschedule(jobs=winter_task.jobs)
+    dts_time = get_dts_time()
+    if param[2] == "DTS" and dts_time not in ['\n', '', " ", None]:
+        from monitor import update_dts_time
+        update_dts_time(winter_task.jobs)
+        dts_time = ''
+    get_restore_schedule(winter_task.jobs)
+    param[2] = put_to_inactive_sleep(winter_task.jobs)
+
+
 def run_schedule():
     # winter time frame
     winter_time, summer_time = season()
     # track thw rumming schedule
-    winter_running = False
-    summer_running = False
     # create a summer and winter schedule
     s = summer()
     w = winter()
@@ -319,20 +381,15 @@ def run_schedule():
     summer_task = s.sched()
     winter_task = w.sched()
     monitor_task = m.sched()
+    welcome()
+    printf("The state of the schedule so far is presented in the table below.", date=True)
+    get_stat()
+    g = gps_data()
+    g.update_time(out=True)
     # run forever
     while True:
         if has_slept():
             printf("Amigos! Wakes up! Job(s) awaiting.")
-            # mem = get_system_performance()
-            # printf("System Memory: {0}Kb used ram, {1}Kb free ram, {2}Kb cached , and {3}Kb buffer".format(
-            #     mem[0], mem[1], mem[2], mem[3]))
-            # if mem[1] < 10000:
-            #     printf("Clearing memory and cached too big")
-            #     clear_cached()
-            #     sleep(1)
-            #     mem = get_system_performance()
-            #     printf("System memory after cleanup : {0}Kb used ram, {1}Kb free ram, {2}Kb cached and {3}kb buffer".format(
-            #         mem[0], mem[1], mem[2], mem[3]))
             printf("Checking for voltage level.")
             put_to_power_sleep()
             printf("All ready for task(s) execution!")
@@ -340,65 +397,46 @@ def run_schedule():
         if new_sched:
             winter_time = new_sched[0]
             summer_time = new_sched[0]
-        if not is_on_checker(1, 6):
-            modem_on(1)
         # get the today date (tritron time must update to uptc time)
         today = datetime.now()
-        # minutes = today.minute
-        # hours = today.hour
-        # create datetime instance of winter and summer bracket
         winter_start = today.replace(
             month=winter_time['start']['month'], day=winter_time['start']['day'], hour=0, minute=0, second=0, microsecond=0)
         winter_end = today.replace(
             month=winter_time['end']['month'], day=winter_time['end']['day'], hour=23, minute=59, second=59, microsecond=0)
+        monitor_task.run_pending()
+        if winter_start <= today < winter_end:
+            run_winter(winter_task, summer_task)
+        else:
+            run_summer(winter_task, summer_task)
+        sleep(1)
+        # mem = get_system_performance()
+        # printf("System Memory: {0}Kb used ram, {1}Kb free ram, {2}Kb cached , and {3}Kb buffer".format(
+        #     mem[0], mem[1], mem[2], mem[3]))
+        # if mem[1] < 10000:
+        #     printf("Clearing memory and cached too big")
+        #     clear_cached()
+        #     sleep(1)
+        #     mem = get_system_performance()
+        #     printf("System memory after cleanup : {0}Kb used ram, {1}Kb free ram, {2}Kb cached and {3}kb buffer".format(
+        #         mem[0], mem[1], mem[2], mem[3]))
+
+        # if not is_on_checker(1, 6):
+        #     modem_on(1)
+        # minutes = today.minute
+        # hours = today.hour
+        # create datetime instance of winter and summer bracket
+
         # summer_start = today.replace(
         #     month=summer_time['start']['month'], day=summer_time['start']['day'], hour=0, minute=0, second=0, microsecond=0)
         # summer_end = today.replace(
         #     month=summer_time['end']['month'], day=summer_time['end']['day'], hour=23, minute=59, second=59, microsecond=0)
-        monitor_task.run_pending()
+
         # check if today falls into summer
         # print(winter_start, winter_end, summer_start, summer_end)
-        if winter_start <= today < winter_end:
-            if not winter_running:
-                winter_running = True
-                printf('Loading winter schedule')
-                w = winter()
-                winter_task = w.sched()
-                sleep(10)
-                printf("clearing summer tasks")
-                summer_task.clear()
-                # winter_task.run_pending()
-                summer_running = False
-                printf('Started winter schedule')
-            winter_task.run_pending()
-            if not is_on_checker(1, 6):
-                modem_on(1)
-            reschedule(jobs=winter_task.jobs)
-            put_to_inactive_sleep(winter_task.jobs)
-        else:
-            # do nothing if schedule is already running. This to avoid reloading the schedule arasing saved schedule
-            if not summer_running:
-                summer_running = True  # set flag
-                printf('Loading summer schedule')
-                s = summer()  # reload the schedule
-                summer_task = s.sched()
-                # summer_task.run_pending()
-                sleep(10)
-                printf("clearing winter tasks")
-                winter_task.clear()
-                winter_running = False
-                printf('Started summer schedule')
-            summer_task.run_pending()
-            if not is_on_checker(1, 6):
-                modem_on(1)
-            reschedule(jobs=summer_task.jobs)
-            put_to_inactive_sleep(summer_task.jobs)
-        sleep(1)
 
 
-# running this script start the schedule
+# running this script start the schedule (some errors might occur). However the amigos.py in the main directory should be your do go
 if __name__ == "__main__":
-
     try:
         signals()
         modem_on(1)

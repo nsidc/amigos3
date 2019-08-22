@@ -4,7 +4,8 @@ from execp import printf
 
 def read_seabird_samples(ID):
     try:
-        from gpio import imm_off, imm_on, enable_serial
+        from gpio import imm_off, imm_on, enable_serial, disable_serial
+        printf("Getting files from Sea Bird {0}".format(ID))
         imm_on(1)
         enable_serial()
         sleep(10)
@@ -32,6 +33,7 @@ def read_seabird_samples(ID):
         port.write("ReleaseLine\r\n")
         port.close()
         imm_off(1)
+        disable_serial()
     return seabird_raw_data
 
 
@@ -49,11 +51,13 @@ def round_3_places(num):
 def clean_data(ID):
     try:
         seabird_raw_data = read_seabird_samples(ID)
+        printf("Proccessing data for Sea Bird {0}".format(ID))
         numbers = seabird_raw_data[seabird_raw_data.find(
             "start time")+37:seabird_raw_data.find("<Executed/>")-1]
         numSamples = 6
         samples = numbers.split('\n')
         data = []
+        seabird_list = []
         for i in range(numSamples):
             data.append(samples[i].split(','))
             for j in range(3):
@@ -84,6 +88,7 @@ def clean_data(ID):
 
 
 def labeled_data(ID):
+    printf("Generating labels for Sea Bird {0}".format(ID))
     seabird_data = clean_data(ID)
     for i in range(len(seabird_data)):
         seabird_data[i] = str(seabird_data[i])
@@ -97,7 +102,7 @@ def labeled_data(ID):
 def amigos_box_sort_SB():
     try:
         from execp import amigos_Unit
-        unit = amigos_Unit
+        unit = amigos_Unit()
         from monitor import reschedule
         printf("Sea Bird data acquisition stated")
         if unit == "A":
@@ -107,10 +112,10 @@ def amigos_box_sort_SB():
             labeled_data("05")
             labeled_data("09")
         elif unit == "C":
-            labeled_data("08")
-            labeled_data("07")
+            labeled_data("80")
+            # labeled_data("07")
             labeled_data("06")
-            labeled_data("#Enter fourth Id for seabird on C - no battery unit")
+            # labeled_data("#Enter fourth Id for seabird on C - no battery unit")
         printf("Done with Sea Bird")
         reschedule(run="amigos_box_sort_SB")
     except:
@@ -132,7 +137,7 @@ def prep_sbd(ID):
 
 def seabird_sbd():
     from execp import amigos_Unit
-    unit = amigos_Unit
+    unit = amigos_Unit()
     lastlinetotal = []
     if unit == "A":
         lastline1 = prep_sbd("90")
@@ -143,12 +148,12 @@ def seabird_sbd():
         lastline2 = prep_sbd("09")
         lastlinetotal = lastline1 + lastline2
     elif unit == "C":
-        lastline1 = prep_sbd("08")
-        lastline2 = prep_sbd("07")
-        lastline3 = prep_sbd("06")
-        lastline4 = prep_sbd("#Enter fourth Id for seabird on C - no battery unit")
+        lastline1 = prep_sbd("80")
+        lastline2 = prep_sbd("06")
+        # lastline3 = prep_sbd("06")
+        # lastline4 = prep_sbd("#Enter fourth Id for seabird on C - no battery unit")
         # Seabird data is short enough to send all 4 seabird's data in one SBD message
-        lastlinetotal = lastline1 + lastline2 + lastline3 + lastline4
+        lastlinetotal = lastline1 + lastline2
     return lastlinetotal
 
 

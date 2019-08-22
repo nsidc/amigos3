@@ -35,7 +35,7 @@ def amigos_Unit():
         elif MAC.find(":05") != -1:
             unit = "A"
     except:
-        printf("Failled to get the unit  ``\\_(^/)_/``")
+        printf("Failled to get the unit  ``\\_(*_*)_/``")
     return unit
 
 

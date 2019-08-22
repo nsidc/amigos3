@@ -58,13 +58,15 @@ class SSH():
             [list] -- Result of the copy
         """
         from subprocess import PIPE, Popen
-        out = []
+        from time import sleep
+        outt = ''
         if isinstance(commands, list):
             for index, command in enumerate(commands):
                 p = Popen("ssh {0}@{1} {2}".format(self.username, self.hosname, command),
                           stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-                out = out + p.communicate()
-                return out
+                outt = outt + str(p.communicate())
+                sleep(1)
+            return outt
         p = Popen("ssh {0}@{1} {2}".format(self.username, self.hosname, commands),
                   stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         out = p.communicate()

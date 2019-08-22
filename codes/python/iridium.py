@@ -170,6 +170,7 @@ class dial():
         except:
             # reschedule(re="Out")
             printf("Dial out failed :(")
+            self.clean_up(True, path_file)
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return False
@@ -206,14 +207,18 @@ class dial():
             printf("Making record of dial out files")
             for index, fil in enumerate(files):
                 file_path = self.default_path+fil
-                if os.path.isdir(file_path):
-                    files = self.list_files(file_path)
-                    for inde, item in enumerate(files):
+                if os.path.exists(file_path):
+                    if os.path.isdir(file_path):
+                        files = self.list_files(file_path)
+                        for inde, item in enumerate(files):
+                            with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
+                                listd.write(item + "\n")
+                    else:
                         with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
-                            listd.write(item + "\n")
+                            listd.write(file_path + "\n")
                 else:
-                    with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
-                        listd.write(file_path + "\n")
+                    printf("The file {0} is nonexistent. Skipping".format(
+                        file_path.split("/")[-1]))
             push = False
             return True
         printf("Updating dial out files record")
@@ -234,6 +239,7 @@ class dial():
                             listd.write(ite)
                 index = 0
                 break
+
         return True
 
     def send_dir(self, files):
@@ -282,7 +288,6 @@ class dial():
             Bool -- Return True if some tasks that fails has been sent or false otherwise
         """
         in_waiting = None
-        self.count = self.count+1
         from timeit import default_timer as timer
         from monitor import timing
         start = timer()
@@ -291,32 +296,23 @@ class dial():
                 in_waiting = listd.readlines()
         except:
             return False
-        if self.count > 3:
-            from monitor import backup
-            printf("Dial out has failed 3 time consecutively. Giving up and backing of files")
-            with open(self.default_path+"logs/dialout_list.log", "w+") as listd:
-                listd.write("")
-            for fil in in_waiting:
-                if fil.find("\n") != -1:
-                    fil = fil.replace("\n", "")
-                backup(fil)
-            from execp import welcome
-            welcome()
-            printf(
-                "The state of the schedule so far is presented in the table below.", date=True)
-            reschedule(run="Out")
-            from monitor import get_stat
-            get_stat()
-            reschedule(start=True)
-            end = timer()
-            timing("Out", end-start)
-            printf("All Done with dial out session")
-            self.count = 0
-            return True
-        if in_waiting not in ["", " ", None, " \n", "\n"]:
-            printf("Sending files that fails previously")
-            self.Out()
-        return True
+        while in_waiting:
+            if self.count > 3:
+                from monitor import backup
+                printf("Dial out has failed 3 time consecutively. Giving up and backing of files")
+                with open(self.default_path+"logs/dialout_list.log", "w+") as listd:
+                    listd.write("")
+                for fil in in_waiting:
+                    if fil.find("\n") != -1:
+                        fil = fil.replace("\n", "")
+                    backup(fil)
+                break
+            if in_waiting not in ["", " ", None, " \n", "\n"]:
+                printf(
+                    "(*_*) Sending files that fails previously. {0} tries".format(self.count))
+                self.send_leftover()
+            else:
+                return False
 
     def send_leftover(self):
         """Send all failed dial out task
@@ -325,6 +321,7 @@ class dial():
             Bool -- True if success false otherwise
         """
         in_waiting = []
+        self.count = self.count+1
         try:
             with open(self.default_path+"logs/dialout_list.log", "r") as listd:
                 in_waiting = listd.readlines()
@@ -334,7 +331,6 @@ class dial():
             if in_waiting[0] in ["", " ", None, " \n", "\n"] and len(in_waiting) < 2:
                 return False
             printf("Sending files that could not be sent")
-            reschedule(re="Out")
             for index, item in enumerate(in_waiting):
                 if item.find("tar.gz") != -1:
                     self.clean_up(True, item)
@@ -344,6 +340,7 @@ class dial():
                         files = self.list_files(item)
                         self.send_dir(files)
                     else:
+                        self.print_queue(in_waiting, index, item)
                         resp = self.send(item)
                         if resp:
                             # print(item)
@@ -393,22 +390,20 @@ class dial():
                         if resp:
                             self.clean_up(resp, file_path)
                             self.update_log(file_path)
-                in_waiting = []
-                with open(self.default_path+"logs/dialout_list.log", "r") as listd:
-                    in_waiting = listd.readlines()
-                if not in_waiting:
-                    from execp import welcome
-                    welcome()
-                    printf(
-                        "The state of the schedule so far is presented in the table below.", date=True)
-                    reschedule(run="Out")
-                    from monitor import get_stat
-                    get_stat()
-                    reschedule(start=True)
-                    end = timer()
-                    timing("Out", end-start)
-                    printf("All Done with dial out session")
+            self.count = self.count+1
             self.send_fails()
+            self.count = 0
+            from execp import welcome
+            welcome()
+            printf(
+                "The state of the schedule so far is presented in the table below.", date=True)
+            reschedule(run="Out")
+            from monitor import get_stat
+            reschedule(start=True)
+            get_stat()
+            end = timer()
+            timing("Out", end-start)
+            printf("All Done with dial out session")
 
         except:
             # reschedule(re="Out")
@@ -459,11 +454,15 @@ class dial():
                 try:
                     with open("/media/mmcblk0p1/logs/dialin", "r") as d:
                         update = int(d.read())
+                    if update != update:
+                        printf("{0} extra minutes was added by a user".format(update))
                 except:
                     pass
                 sleep(60)
                 time_out = time_out + update - i
                 i = i+1
+            with open("/media/mmcblk0p1/logs/dialin", "w+") as d:
+                d.write("")
             printf("Dial in section timeout")
             reschedule(run="In")
             end = timer()
@@ -499,9 +498,13 @@ class sbd():
             enable_serial()
             sleep(10)
             self.solar_SBD()
+            sleep(60)
             self.cr_SBD()
+            sleep(60)
             self.aquadopp_SBD()
+            sleep(60)
             self.vaisala_SBD()
+            sleep(60)
             self.seabird_SBD()
             printf("All Done with SBD")
             end = timer()
@@ -590,27 +593,36 @@ class sbd():
         self.port.write(comment+"\r\n")
         sleep(10)
         response = self.port.read(self.port.inWaiting())
+        if not response:
+            sleep(25)
+            response = self.port.read(self.port.inWaiting())
         return response
 
     def iridium_send(self, message):
         # Commands send to iridium aquadopp data
         self.port.flushInput()
         data = self.iridium_talk("AT")
+        if len(message) > 255:
+            printf("SBD message too long. Sending only the first 255 bytes")
+            message = message[0:253]
         commands = ["AT", "AT&K0", "AT+SBDWT={0}".format(message), "AT+SBDIX"]
         for index, item in enumerate(commands):
             data = self.iridium_talk(item)
-            print(data)
+            # print(data)
             if index < len(commands) and not self.reply(data):
+                printf("Iridium did not response to {0} command".format(item))
                 return False
-            elif item == commands[-1] and self.reply(data):
+            elif index == len(commands)-1:
                 ans = data.split("BDIX:")[1].split(",")
                 # print(ans)
-                if int(ans[0]) == 0:
+                if int(ans) != 0:
+                    printf(
+                        "No service available")
+                else:
                     message = str(message)
                     printf("Successfully send {0} bytes".format(len(message)))
-                else:
-                    printf(
-                        "SBD Sent was not successful, got codes {0}".format(str(ans)))
+                index = 0
+                return True
 
         return True
 

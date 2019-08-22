@@ -14,7 +14,7 @@ def readsolar():
     from monitor import timing
     from timeit import default_timer as timer
     start = timer()
-    V5_ENA_ON()
+    # V5_ENA_ON()
     solar_on()
     sleep(5)
     solar1 = open("/media/mmcblk0p1/logs/solar_temp1.log", "w+")
@@ -70,7 +70,7 @@ def readsolar():
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         # print(t)
     finally:
-        V5_ENA_OFF()
+        # V5_ENA_OFF()
         solar_off()
         subprocess.call(
             'rm /media/mmcblk0p1/logs/solar_temp1.log', shell=True)
