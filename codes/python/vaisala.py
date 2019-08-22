@@ -31,6 +31,7 @@ class Average_Reading():
             t = 0
             data = None
             # Read composite data message (all readings) every 10 seconds for 2 minutes and write to temporary ascii text file
+            printf("Acquiring data from Vaisala")
             while t <= 120:
                 with open("/media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", "a+") as raw_data:
                     port.flushInput()
@@ -51,6 +52,7 @@ class Average_Reading():
             # put all the mesaurements into a matrix (array of arrays)
             float_array_final = []
             string_array_final = []
+            printf("Processing the intake data")
             with open("/media/mmcblk0p1/logs/weather_data_ASCII_schedule.log", "r") as f:
                 for line in f:
                     if "0R0" in line:
@@ -74,6 +76,7 @@ class Average_Reading():
     def vaisala(self):
         # Call first two functions in correct order
         data_array_final = []
+        printf("Vaisala data acquisition has started")
         try:
             self.read_data()
             string_array_final, float_array_final = self.clean_data()
@@ -85,9 +88,11 @@ class Average_Reading():
                     numbers_sum = numbers_sum + float_array_final[k][j]
                 numbers_divide = numbers_sum/(len(float_array_final))
                 data_array_final.append(round(numbers_divide, 3))
-
+            sbd_values = []
             with open("/media/mmcblk0p1/logs/weather_raw.log", "a+") as rawfile:
-                rawfile.write("WX:" + str(data_array_final) + "\n")
+                for index, item in enumerate(data_array_final):
+                    sbd_values.append(self.round_2_places(item))
+                rawfile.write("WX:" + str(sbd_values) + "\n")
 
             # Write the averaged array elements to a final log file - append
             now = datetime.datetime.now()
@@ -127,12 +132,23 @@ class Average_Reading():
                 hourly.write("Vaisala Supply Voltage (V): " +
                              str(data_array_final[15]) + ".\n\n\n")
             reschedule(run="vaisala")
+            printf("All done with Vaisala")
         except:
             reschedule(re="vaisala")
             printf('Fail to parser vaisala data, maybe got an empty array')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         return data_array_final
+
+    def round_2_places(self, num):
+        num = str(num)
+        if num[num.find(".")] == ".":
+            num = num.split(".")
+            num[1] = num[1][0:2]
+            num = num[0] + '.' + num[1]
+        else:
+            pass
+        return num
 
     def vaisala_sbd(self):
         with open("/media/mmcblk0p1/logs/weather_raw.log", "r") as rawfile:

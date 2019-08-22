@@ -37,15 +37,15 @@ class gps_data():
         }
         self.sequence = 1
         self.is_saved = False
-        self.interval = 15
-        self.timeout = 10
+        self.interval = 30
+        self.timeout = 20
         try:
             self.port = ser('/dev/ttyS0')  # set the port
             self.port.baudrate = 115200  # set baudrate
             self.port.timeOut = None  # set port time out
         except:
             self.port = None
-            printf('Unable to setup port ``\\_(^/)_/``')
+            printf('Unable to setup port ``\\_(*_*)_/``')
 
     # @catch_exceptions(cancel_on_failure=True)
     def get_gpstime(self):
@@ -136,7 +136,7 @@ class gps_data():
         except:
             set_reschedule("get_binex")
             self.port = None
-            printf('An error occurred ``\\_(^/)_/``')
+            printf('An error occurred ``\\_(*_*)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             reschedule(re="get_binex")
@@ -158,7 +158,7 @@ class gps_data():
                         '/media/mmcblk0p1/logs/gps_binex.log', '', 'a+')
                     subprocess.call(
                         "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
-                    printf("An error occurred during file dumping ``\\_(^/)_/``")
+                    printf("An error occurred during file dumping ``\\_(*_*)_/``")
                     traceback.print_exc(
                         file=open("/media/mmcblk0p1/logs/system.log", "a+"))
                 sleep(2)
@@ -201,7 +201,7 @@ class gps_data():
             self.port.flusInput()
         except:
             self.port = None
-            printf('An error occurred ``\\_(^/)_/``')
+            printf('An error occurred ``\\_(*_*)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
@@ -229,7 +229,7 @@ class gps_data():
             self.port.flusInput()
         except:
             self.port = None
-            printf('Unable to open port ``\\_(^/)_/``')
+            printf('Unable to open port ``\\_(*_*)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:

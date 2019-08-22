@@ -10,23 +10,24 @@ from execp import printf
 # Dictionary object to track schedule execution. index 0: task failure conter, Index 1:
 # total task failure counter, index 2 Device name with description index 3:
 # total successful run index 4: Number of run per hour
-track = {"cr1000": [0, 0, "CR1000x", 0, 6, 0.576447027, 0],
-         "readsolar": [0, 0, "Solar sensor", 0, 6, 0.131056604, 0],
-         "vaisala": [0, 0, "Vaisala", 0, 6, 0.146047619, 0],
-         "get_binex": [0, 0, "GPS Binex", 0, 1, 0.281862069, 0],
-         "Out": [0, 0, "Dial_out", 0, 1, 0.941735425, 0],
-         "SBD": [0, 0, "SBD out Tweet", 0, 1, 0, 0.197106061, 0],
-         "In": [0, 0, "Dial_in", 0, 1, 0.554076212, 0],
-         "amigos_box_sort_AQ": [0, 0, "Aquadopp", 0, 3, 0, 0],
-         "amigos_box_sort_SB": [0, 0, "Sea Bird", 0, 6, 0, 0],
-         "ssh": [0, 0, "DTS", 0, 1, 0, 0],
-         "move": [0, 0, "Camera", 0, 1, 0, 0],
+track = {"cr1000": [0, 0, "CR1000x", 0, 6, 0.576447027, 0, 0, 0, 0],
+         "readsolar": [0, 0, "Solar sensor", 0, 6, 0.131056604, 0, 0, 0, 0],
+         "vaisala": [0, 0, "Vaisala", 0, 6, 0.146047619, 0, 0, 0, 0],
+         "get_binex": [0, 0, "GPS Binex", 0, 1, 0.281862069, 0, 0, 0, 0],
+         "Out": [0, 0, "Dial_out", 0, 1, 0.941735425, 0, 0, 0, 0],
+         "SBD": [0, 0, "SBD out Tweet", 0, 1, 0, 0.197106061, 0, 0, 0, 0],
+         "In": [0, 0, "Dial_in", 0, 1, 0.554076212, 0, 0, 0, 0],
+         "amigos_box_sort_AQ": [0, 0, "Aquadopp", 0, 3, 0, 0, 0, 0, 0],
+         "amigos_box_sort_SB": [0, 0, "Sea Bird", 0, 6, 0, 0, 0, 0, 0],
+         "ssh": [0, 0, "DTS", 0, 1, 0, 0, 0, 0, 0],
+         "move": [0, 0, "Camera", 0, 1, 0, 0, 0, 0, 0],
+         "get_stat_log": [0, 0, "Print Stat", 0, 1, 0, 0, 0, 0, 0],
          }
 parm = [0, True, 0.0, None]
 
 
 def is_need_update(dts_time):
-    """Check if time update is needed on the GPS
+    """Check if time update is needed on the DTS
 
     Arguments:
         dts_time {str} -- time of the dts file last modified stored of the windows unit
@@ -36,15 +37,13 @@ def is_need_update(dts_time):
     """
     printf("Checking if dts time has diverge")
     dts_time = dts_time.split("H")
-    day = "-".join(dts_time[0:4])
-    times = ":".join(dts_time[4:])
+    day = "-".join(dts_time[0:3])
+    times = ":".join(dts_time[3:])
     dts_time = day + " " + times
     date_time_obj = datetime.datetime.strptime(
         dts_time, '%Y-%m-%d %H:%M:%S')
-    time_now = datetime.datetime.now()
-    diff = str(dts_time-time_now)
-    if diff.find("-") != -1:
-        return True
+    # time_now = datetime.datetime.now()
+    # diff = str(date_time_obj-time_now)
     return date_time_obj
 
 
@@ -55,22 +54,26 @@ def update_dts_time(jobs):
         jobs {LIST} -- List of all jobs
 
     Returns:
-        [Bool -- True if time has diverge false otherwise
+        Bool -- True if time has diverge false otherwise
     """
     try:
         from dts import get_dts_time
+        printf("Reading last DTS files dropped time")
         dts_time = get_dts_time()
         update_time = is_need_update(dts_time)
-        if update_time is True:
-            from gpio import dts_on
-            printf("DTS has not drop any file since {0}".format(update_time))
-            printf("Will keep Windows unit running for one cycle to allow DTS time Sync")
-            dts_on(1)
-            return True
-        for job in jobs:
+        s_jobs = sorted(jobs)
+        add = 4
+        d_times = []
+        for job in s_jobs:
             job_name = job.job_func.__name__
             if job_name == "ssh":
-                job.next_run = update_time - datetime.timedelta(minutes=3)
+                job.next_run = update_time - \
+                    datetime.timedelta(minutes=7) + datetime.timedelta(hours=add)
+                d_times.append(str(job.next_run.hour) + ":" + str(job.next_run.minute))
+                add = add+4
+        with open("/media/mmcblk0p1/logs/dts_time", "w+") as d_time:
+            dts_time = d_time.write("")
+        printf("DTS Times are updated to {0}".format(d_times))
         return False
     except:
         printf("Error updating dts time")
@@ -80,7 +83,6 @@ def update_dts_time(jobs):
 
 def timing(device, dur):
     """Update durration of a job
-
     Arguments:
         device {[string]} -- task name
         dur {float} -- durection
@@ -156,8 +158,7 @@ def do_rerun(jobs, task):
             next_year = job.next_run.year
             printf("Schedule integrity will be altered :(")
             job.run()
-            track[task][1] = 1 + \
-                track[task][1]
+            track[task][1] = 1 + track[task][1]
             track[task][0] = track[task][0]+1
             job.next_run = job.next_run.replace(
                 minute=next_minute, hour=next_hour, day=next_day, year=next_year, second=next_second, month=next_month)
@@ -165,6 +166,50 @@ def do_rerun(jobs, task):
             printf("Done rerunning {0} task. Schedule integrity was restored :)".format(
                 track[task][2]))
             return
+
+
+def reset_conter(jobs):
+    for job in jobs:
+        job_name = job.job_func.__name__
+        if job_name in track.keys():
+            track[job_name][8] = 0
+            track[job_name][7] = 0
+            track[job_name][9] = 0
+
+
+def get_restore_schedule(jobs):
+    delta_time = datetime.timedelta(hours=1)
+    for job in jobs:
+        last_run = job.last_run
+        # print(last_run)
+        next_run = job.next_run
+        job_period = str(job.period)
+        if job_period.find("day") == -1:
+            if last_run:
+                diff_run = next_run-last_run
+                if diff_run > delta_time:
+                    printf("(-) {0} schedule was distorted. Restoring ....".format(
+                        track[job.job_func.__name__]))
+                    job.next_run = job.next_run - delta_time
+                    printf("(-) {0} schedule back on track: {1}".format(
+                        track[job.job_func.__name__], str(job.next_run.hour) + ":" + str(job.next_run.minute)))
+
+
+def get_schedule(jobs):
+    reset_conter(jobs)
+    for job in jobs:
+        job_name = job.job_func.__name__
+        period = str(job.period)
+        if job_name in track.keys():
+            next_run = str(job.next_run.hour) + ":" + str(job.next_run.minute)
+            if period.find("day") != -1:
+                period = "Day"
+                # track[job_name][1] = track[job_name][1]+1
+            else:
+                period = "Hour"
+            track[job_name][9] = track[job_name][9]+1
+            track[job_name][7] = period
+            track[job_name][8] = next_run
 
 
 def get_rerun(jobs):
@@ -179,7 +224,7 @@ def get_rerun(jobs):
             task = res.read()
         if task not in ["", None, " "]:
             do_rerun(jobs, task)
-
+        get_schedule(jobs)
     except:
         printf("Rerun failed due to the following error, Might try again :)")
         traceback.print_exc(
@@ -204,8 +249,6 @@ def reschedule(jobs=None, start=False, re=None, run=None):
         re = None
     elif run is not None:
         track[run][3] = track[run][3]+1
-        if run == "ssh":
-            update_dts_time(jobs)
         run = None
     elif start is True:
         first_time()
@@ -215,31 +258,62 @@ def reschedule(jobs=None, start=False, re=None, run=None):
         get_rerun(jobs)
 
 
-def get_stat():
-    """Print statistic to log file."""
+def get_stat_log():
+    printf("Saving System Diagnostic table ")
     stat_dic = track
     power = power_consumption()[2]
-    printf('TF: Total failure', date=True)
-    printf("TR: Total successfull run", date=True)
-    printf("PE: Percent of execution", date=True)
-    printf("Total Power consumed so far: {0} Watt".format(str(power))[0:-6], date=True)
-    printf(" ________________ ____ ____ _____", date=True)
-    printf("| Device         | TF | TR | PE  |", date=True)
-    printf("|________________|____|____|_____|", date=True)
-    printf("|________________|____|____|_____|", date=True)
+    with open("/media/mmcblk0p1/logs/statictics", "a+") as stat:
+        stat.write("Total Power consumed so far: {0} Watt".format(
+            str(power)[0:-6]))
+        stat.write('TF: Total failure\n')
+        stat.write("TR: Total successfull run\n")
+        stat.write("FR: Frequency of run\n")
+        stat.write("TM: A time of run\n")
+        stat.write("Qt: Total per FR\n")
+        stat.write("PE: Percent of execution\n")
+        stat.write(" ________________ ____ _____ ____ _____ _____ _____\n")
+        stat.write("| Device         | FR | Qt | TM | TF  | TR  |  PE |\n")
+        stat.write("|________________|____|_____|____|_____|_____|_____|\n")
+        stat.write("|________________|____|_____|____|_____|_____|_____|\n")
     for array in stat_dic.values():
         ld = len(str(array[2]))
         ll = 14
         ldiff = ll-ld
         tota = array[4]
         percent = (array[3]*100)/tota
-        printf("| " + str(array[2]) + " "*ldiff + " | " +
-               str(array[1]) + " | " + str(array[3]) + " | " + str(percent) + " | ", date=True)
-        printf("|________________|____|____|_____|", date=True)
+        with open("/media/mmcblk0p1/logs/statictics", "a+") as stat:
+            stat.write("| " + str(array[2]) + " "*ldiff + " | " + str(array[7])+" | " + str(array[9])+" | " + str(
+                array[8])+" | " + str(array[1]) + " | " + str(array[3]) + " | " + str(percent) + " | \n")
+            stat.write("|________________|____|_____|____|_____|_____|_____|\n")
+    with open("/media/mmcblk0p1/logs/statictics", "a+") as stat:
+        stat.write("*"*50 + "\n")
+    printf("All done")
 
 
-def get_schedule():  # get the running schedule
-    pass
+def get_stat():
+    """Print statistic to log file."""
+    stat_dic = track
+    power = power_consumption()[2]
+    printf("Total Power consumed so far: {0} Watt".format(str(power))[0:-6], date=True)
+    printf('TF: Total failure', date=True)
+    printf("TR: Total successfull run", date=True)
+    printf("FR: Frequency of run", date=True)
+    printf("TM: A time of run", date=True)
+    printf("Qt: Total per FR ", date=True)
+    printf("PE: Percent of execution", date=True)
+    printf(" ________________ ____ _____ ____ _____ _____ _____", date=True)
+    printf("| Device         | FR | Qt | TM | TF  | TR  |  PE |", date=True)
+    printf("|________________|____|_____|____|_____|_____|_____|", date=True)
+    printf("|________________|____|_____|____|_____|_____|_____|", date=True)
+    for array in stat_dic.values():
+        ld = len(str(array[2]))
+        ll = 14
+        ldiff = ll-ld
+        tota = array[4]
+        percent = (array[3]*100)/tota
+        printf("| " + str(array[2]) + " "*ldiff + " | " + str(array[7])+" | " + str(array[9])+" | " + str(
+            array[8])+" | " + str(array[1]) + " | " + str(array[3]) + " | " + str(percent) + " | ", date=True)
+        printf("|________________|____|_____|____|_____|_____|_____|", date=True)
 
 
 def get_disk_space():
@@ -269,13 +343,19 @@ def backup(sub_files, own=False, sbd=False):
             shutil.move(sub_files, new_name)
             return
         source = "/media/mmcblk0p1/backups/"
-        folders = ["gps", "weather", "cr1000x", "solar", "dts", "picture", "system"]
+        folders = ["gps", "weather", "cr1000x", "solar",
+                   "dts", "aquadopp", "picture", "seabird", "system"]
         time_now = datetime.datetime.now()
         time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
             str(time_now.day) + "_" + str(time_now.hour) + "_" + str(time_now.minute)
         for index, item in enumerate(folders):
             if sub_files.find(item) != -1:
-                new_name = source + item + "/" + sub_files.split("/")[-1]
+                if sub_files.find(".tar") == -1:
+                    new_name = source + item + "/" + \
+                        time_now + "_" + sub_files.split("/")[-1]
+                else:
+                    new_name = source + item + "/" + sub_files.split("/")[-1]
+
         shutil.move(sub_files, new_name)
         printf("Backed up {0}".format(sub_files.split("/")[-1]))
 
@@ -349,7 +429,7 @@ def kill():
         pid = int(out[0:st-1])
         call("kill -2 {0}".format(pid), shell=True)
     except:
-        printf("Schedule health: Failed to check schedule health ``\\_(^/)_/``")
+        printf("Unable to find PID of the scheduler to Kill executiont\\_(*_*)_/``")
 
 
 def no_task():
@@ -380,8 +460,13 @@ def put_to_inactive_sleep(jobs):
     if time_interval < 3 or str_time.find("-") != -1:
         previous_job = parm[3]
         if previous_job != next_job:
-            printf("~~~ Next task {0} job in {1} minute(s). Waiting~~~".format(
-                next_job_name, time_interval))
+            if time_interval > 3:
+                time_interval = 60 - time_interval
+                printf("~~~ Next task {0} job late by {1} minute(s). Executing now ~~~".format(
+                    next_job_name, time_interval))
+            else:
+                printf("~~~ Next task {0} job in {1} minute(s). Waiting~~~".format(
+                    next_job_name, time_interval))
             parm[3] = next_job
     elif no_task():
         power, totaltime, total = power_consumption()
@@ -395,10 +480,18 @@ def put_to_inactive_sleep(jobs):
             sch.write(str(sorted(jobs)) + "\n" +
                       str(time_interval) + "\n" + str_time+"#"*50 + "\n")
         w.toggle_1hour()
-        sleep(time_interval*60)
-        # all_off(1)
-        # call(
-        #     "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(time_interval), shell=True)
+        slep = None
+        try:
+            with open("/media/mmcblk0p1/logs/sleep_toggle", "r") as sle:
+                slep = sle.read()
+        except:
+            pass
+        # sleep(time_interval*60)
+        if not slep:
+            all_off(1)
+            sleep(2)
+            call(
+                "bash /media/mmcblk0p1/codes/bash/sleep {0}".format(time_interval-1), shell=True)
     return next_job_name
 
 
@@ -410,7 +503,7 @@ def put_to_power_sleep():
     try:
         if voltage < 2:
             voltage = voltage*10
-            printf("Voltage reading biased: Reading {0} volt and {1} amps ``\\_(^/)_/``".format(
+            printf("Voltage reading biased: Reading {0} volt and {1} amps ``\\_(*_*)_/``".format(
                 voltage, current))
         if voltage < 11.0:
             had_slept = None
@@ -434,7 +527,7 @@ def put_to_power_sleep():
                 call(
                     "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(10), shell=True)
         elif voltage > 14.0:
-            printf('Voltage is too high. Reading {0} volt ``\\_(^/)_/``'.format(
+            printf('Voltage is too high. Reading {0} volt ``\\(_*_*)_/``'.format(
                 voltage))
         else:
             printf('Voltage in normal operating range. Reading {0} volt :)'.format(
@@ -457,13 +550,13 @@ def get_schedule_health():
         st = out.find('root')
         out = int(out[st+5:st+9])
     except:
-        printf("Schedule health: Failed to check schedule health ``\\_(^/)_/``")
+        printf("Schedule health: Failed to check schedule health ``\\_(*_*)_/``")
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
     else:
         if out > 25000:
             printf(
-                "Self destrying schedule ram memory consumption above {0} ``\\_(^/)_/``".format(out))
+                "Self destrying schedule ram memory consumption above {0} ``\\_(*_*)_/``".format(out))
             kill()
         elif out < 17000:
             printf('Schedule health: Normal at {0} kb of ram'.format(out))
@@ -474,4 +567,4 @@ def get_schedule_health():
 
         else:
             printf(
-                'Schedule health: critical  at {0} kb of ram. Scheduler would be terminated at over 25000 kb ``\\_(^/)_/``'.format(out))
+                'Schedule health: critical  at {0} kb of ram. Scheduler would be terminated at over 25000 kb ``\\_(*_*)_/``'.format(out))

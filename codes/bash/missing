@@ -19,6 +19,7 @@ SLEPT="${LOGS}/slept.log"
 SYSTEM="${LOGS}/system.log"
 DIALOUT="${LOGS}/dialout_list.log"
 RESCHEDULE="${LOGS}/reschedule.log"
+D_TIME="${LOGS}/dts_time"
 
 time_now="$(date)"
 
@@ -64,6 +65,9 @@ if [ ! -f $SLEPT ]; then
 fi
 if [ ! -f $RESCHEDULE ]; then
     touch $RESCHEDULE
+fi
+if [ ! -f $D_TIME ]; then
+    touch $D_TIME
 fi
 if [ ! -f $DIALOUT ]; then
     touch $DIALOUT

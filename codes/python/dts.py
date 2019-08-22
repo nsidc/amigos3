@@ -10,7 +10,7 @@ def read_xml(filename, count):
     import xml.etree.ElementTree as ET
     tree = ET.parse(filename)
     root = tree.getroot()
-    with open('/media/mmcblk0p1/dts/dts{0}.csv'.format(count), "w+") as csvfile:
+    with open('/media/mmcblk0p1/dts/dts{0}.csv'.format(count), "a+") as csvfile:
         csvfile.write(filename.split("/")[-1])
         csvfile.write('\n\n')
         csvfile.write('Date/Time START: ' + root[0][7].text)
@@ -62,33 +62,42 @@ def array(filename, count):
     with open('/media/mmcblk0p1/dts/dts_quarterly{0}.csv'.format(count), "a+") as quarter:
         for j in range(0, len(large_array)):
             if (large_array[j][0] - lower) >= 0 and (large_array[j][0] - upper) <= 0:
-                quarter.write(str(large_array[j]))
+                quarter.write(str(large_array[j])[1:-2])
                 quarter.write('\n')
     return large_array, text
 
 
 def average(filename, count):
-    large_array, text = array(filename, count)
-    zero_array = deepcopy(large_array)
-    for h in range(0, len(large_array)):
+    try:
+        large_array, text = array(filename, count)
+        zero_array = deepcopy(large_array)
+        for h in range(0, len(large_array)):
+            for s in range(0, len(text)):
+                zero_array[h][s] = 0
+        final_array = zero_array[0:(len(large_array)/4)]
         for s in range(0, len(text)):
-            zero_array[h][s] = 0
-    final_array = zero_array[0:(len(large_array)/4)]
-    for s in range(0, len(text)):
-        for h in range(0, (len(large_array)/4)):
-            tem = str((large_array[4*h][s] +
-                       large_array[4*h + 1][s] +
-                       large_array[4*h + 2][s] +
-                       large_array[4*h + 3][s])/4)
-            index = tem.find(".")
-            tem = tem[0:index] + tem[index:index+4]
-            final_array[h][s] = float(tem)
-    return final_array
+            for h in range(0, (len(large_array)/4)):
+                tem = str((large_array[4*h][s] +
+                           large_array[4*h + 1][s] +
+                           large_array[4*h + 2][s] +
+                           large_array[4*h + 3][s])/4)
+                index = tem.find(".")
+                try:
+                    tem = tem[0:index] + tem[index:index+4]
+                    final_array[h][s] = float(tem)
+                except:
+                    tem = tem[0:index] + tem[index:index+5]
+                    final_array[h][s] = float(tem)
+        return final_array
+    except:
+        printf("Failed to process dts data")
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
 
 def write(filename, count):
     final_array = average(filename, count)
-    with open('/media/mmcblk0p1/dts/dts{0}.csv'.format(count), "a") as csvfile:
+    with open('/media/mmcblk0p1/dts/dts{0}.csv'.format(count), "a+") as csvfile:
         for i in range(0, len(final_array)):
             temp = str(final_array[i])
             endindex = temp.find("]")
@@ -111,6 +120,7 @@ def list_files(folder):
     walker = os.walk(folder)
     list_file = []
     list_dirs = []
+    printf("Listing total files from channel 1 and 3")
     for root, dirs, files in walker:
         for name in files:
             path = os.path.join(root, name)
@@ -118,32 +128,52 @@ def list_files(folder):
         for name in dirs:
             path = os.path.join(root, name)
             list_dirs.append(path)
+    printf("A total of {0} found from copied folder".format(len(list_file)))
     return list_dirs, list_file
 
 
 def get_dts_time():
-    with open("/media/mmcblk0p1/logs/dts_time", "w+") as d_time:
+    with open("/media/mmcblk0p1/logs/dts_time", "r") as d_time:
         dts_time = d_time.read()
     return dts_time
+
+
+def update_win_time():
+    import datetime
+    time_now = str(datetime.datetime.now()).split('.')[0]
+    from ssh import SSH
+    printf("Updating Windows unit time")
+    ssh = SSH("admin", "192.168.0.50")
+    ssh.execute('date -s "{0}"'.format(time_now))
 
 
 def ssh():
     try:
         from gpio import dts_on, dts_off
         keep_up = False
+        printf("DTS data acquisition started")
         dts_on(1)
-        sleep(13*60)
+        sleep(15*60)
         count = 0
         from ssh import SSH
         ssh = SSH("admin", "192.168.0.50")
-        printf("DTS data acquisition started")
+        printf("Copying files over from windows Unit")
         ssh.copy("Desktop/dts_data", "/media/mmcblk0p1", recursive=True)
         array_dirs, array_files = list_files("/media/mmcblk0p1/dts_data")
-        dts_time = ssh.execute(
-            'ssh admin@192.168.0.50 date -r {0} "+%YH%mH%dH%HH%MH%S"'.format(array_dirs[0]))
-        dts_time = dts_time[1]
-        with open("/media/mmcblk0p1/logs/dts_time", "w+") as d_time:
-            d_time.write(str(dts_time))
+        try:
+            printf("Getting the last date of file drop from DTS")
+            path_win = "/".join(array_dirs[2].split("/")[3:])
+            dts_time = ssh.execute(
+                'date -r Desktop/{0} "+%YH%mH%dH%HH%MH%S"'.format(path_win))
+            dts_time = dts_time[0].replace("\n", "")
+            with open("/media/mmcblk0p1/logs/dts_time", "w+") as d_time:
+                d_time.write(str(dts_time))
+            printf("Time stamp saved :)")
+        except:
+            printf("Not DTS data available on the Window Unit. Keeping the unit on for one cycle")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            keep_up = True
     except:
         printf("Not able to turn on the windows computer to run dts")
         traceback.print_exc(
@@ -151,15 +181,27 @@ def ssh():
         keep_up = True
     else:
         # print(re)
-        for index, path in enumerate(array_files):
-            if path.find('channel 1') != -1:
-                write(path, count)
-                count = count+1
+        if array_files:
+            printf("Start processing files from Channel 1 only")
+        try:
+            for index, path in enumerate(array_files):
+                if path.find('channel 1') != -1:
+                    write(path, count)
+                    count = count+1
+            printf("Files processing is done successfully :)")
+        except:
+            printf("Oouch, an error occurs while processing DTS data")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+        if not keep_up:
+            reschedule(run="ssh")
+        update_win_time()
         ssh.execute(["rm -rf Desktop/dts_data", "mkdir Desktop/dts_data"])
+        # print(out)
         count = 0
         call('rm -rf /media/mmcblk0p1/dts_data', shell=True)
-        printf("All done with DTS")
-        reschedule(run="ssh")
+        printf("Removed copied files from Win unit and Tritron")
+        printf("All done with DTS :)")
     finally:
         if not keep_up:
             dts_off(1)
@@ -167,4 +209,4 @@ def ssh():
 
 
 if __name__ == "__main__":
-    ssh()
+    ss

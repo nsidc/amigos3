@@ -189,6 +189,15 @@ def args_parser():
         dts.add_argument(
             'dts', help='Required secondary argument', nargs='?')
 
+        slep = parser.add_argument_group(
+            'Set sleep mode ', 'On and Off toggle. Prevent board from sleeping')
+        slep.add_argument(
+            'sleep', help='Required secondary argument', nargs='?')
+        slep.add_argument('-on', '--on',
+                          help='Turn on sleep mode', action='store_true')
+        slep.add_argument('-off', '--ff',
+                          help='Turn off sleep mode', action='store_true')
+
         camera = parser.add_argument_group(
             'Camera Control', 'Control camera position, take pictures and more')
         camera.add_argument(
@@ -430,6 +439,20 @@ def device(args):
         is_off()
 
 
+def sleep_mode(args):
+    if args.on:
+        printf("Sleep mode is restored")
+        with open("/media/mmcblk0p1/logs/sleep_toggle", "w+") as sle:
+            sle.write("")
+        print("Thanks, sleep mode is restored. See you soon ")
+
+    elif args.off:
+        printf("Sleep mode deactivated by a user")
+        with open("/media/mmcblk0p1/logs/sleep_toggle", "w+") as sle:
+            sle.write("on")
+        print("Sleep mode is disactivated. Please remember to reactivate it")
+
+
 def dials(args, value):
     from python.iridium import dial
     d = dial()
@@ -452,6 +475,7 @@ def dials(args, value):
             print("Values must be interger")
             exit(0)
         with open("/media/mmcblk0p1/logs/dialin", "w+") as d:
+            print("Added {0} extra minute(s) to dial in session".format(val))
             d.write(value)
 
 
@@ -502,38 +526,46 @@ def main():
     Allow easy access to functionalities of the amigos
     """
     # print (args)
-    printf("Humain activity detected here!" + "*"*30)
-    parser, val = args_parser()
-    args = parser.parse_args()
-    if args.help:
-        parser.print_help()
-    elif args.schedule == 'dial':
-        dials(args, val)
-    elif args.schedule == 'power':
-        power(args)
-    elif args.schedule == 'gps':
-        gps(args)
-    # logic for watchdog configuration
-    elif args.schedule == 'watchdog':
-        watch_dog(args, val)
-    elif args.schedule == 'camera':
-        camera(args, val)
-    elif args.schedule == 'weather':
-        weather(args)
-    elif args.schedule == 'cr':
-        cr1000x(args, val)
-    elif args.schedule == 'solar':
-        solar(args)
-    elif args.schedule == 'device':
-        device(args)
-    elif args.schedule == 'serial':
-        enabler(args)
-    elif args.schedule == 'sbd':
-        iridium(args)
-    elif args.schedule == 'dts':
-        dts(args)
-    else:
-        print('No such a command or it is not implemented yet')
+    try:
+        printf("Humain activity detected here!" + "*"*30)
+        parser, val = args_parser()
+        args = parser.parse_args()
+        if args.help:
+            parser.print_help()
+        elif args.schedule == 'dial':
+            dials(args, val)
+        elif args.schedule == 'power':
+            power(args)
+        elif args.schedule == 'gps':
+            gps(args)
+        # logic for watchdog configuration
+        elif args.schedule == 'watchdog':
+            watch_dog(args, val)
+        elif args.schedule == 'camera':
+            camera(args, val)
+        elif args.schedule == 'weather':
+            weather(args)
+        elif args.schedule == 'cr':
+            cr1000x(args, val)
+        elif args.schedule == 'solar':
+            solar(args)
+        elif args.schedule == 'device':
+            device(args)
+        elif args.schedule == 'serial':
+            enabler(args)
+        elif args.schedule == 'sbd':
+            iridium(args)
+        elif args.schedule == 'dts':
+            dts(args)
+        elif args.schedule == 'sleep':
+            sleep_mode(args)
+        else:
+            print('No such a command or it is not implemented yet')
+            inp = raw_input("print usage? y/n: ")
+            if inp in ['y', 'yes', "Yes", "YES"]:
+                parser.print_help()
+    except:
+        print("Unrecognizable command")
         inp = raw_input("print usage? y/n: ")
         if inp in ['y', 'yes', "Yes", "YES"]:
             parser.print_help()

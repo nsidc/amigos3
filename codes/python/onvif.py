@@ -124,7 +124,7 @@ class ptz_client():
 
             return reply  # return the reply.
         except:
-            printf("Unable to communicate with camera``\\_(^/)_/``")
+            printf("Unable to communicate with camera``\\_(*_*)_/``")
             # traceback.print_exc(
             #     file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return None
@@ -198,7 +198,7 @@ class ptz_client():
                 size, "/media/mmcblk0p1/unscaled_picture/"+"picture"+dt[0:-7]+".jpg", "/media/mmcblk0p1/picture/"+"picture"+dt[0:-7]+".jpg"), shell=True)
             printf("Resizing done!")
         except:
-            printf('Unable to take snapshot``\\_(^/)_/``')
+            printf('Unable to take snapshot``\\_(*_*)_/``')
             reschedule(re="move")
 
     def move(self):
@@ -229,8 +229,10 @@ class ptz_client():
             self.send('absolute', pan=0, tilt=-45, zoom=0)
             sleep(2)
             self.snapShot()
-            printf("Camera moving to mirror, demo only")
-            # add later
+            printf("Camera moving to mirror")
+            self.send('absolute', pan=0, tilt=-45, zoom=100)
+            sleep(2)
+            self.snapShot()
             printf("Done! Sending camera lens to Home")
             sleep(1)
             self.send('absolute', pan=0, tilt=45, zoom=0)
