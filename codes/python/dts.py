@@ -7,6 +7,15 @@ from subprocess import call
 
 
 def read_xml(filename, count):
+    """[summary]
+
+    Arguments:
+        filename {[type]} -- [description]
+        count {[type]} -- [description]
+
+    Returns:
+        [type] -- [description]
+    """
     import xml.etree.ElementTree as ET
     tree = ET.parse(filename)
     root = tree.getroot()
@@ -32,6 +41,15 @@ def read_xml(filename, count):
 
 
 def array(filename, count):
+    """[summary]
+
+    Arguments:
+        filename {[type]} -- [description]
+        count {[type]} -- [description]
+
+    Returns:
+        [type] -- [description]
+    """
     root = read_xml(filename, count)
     large_array = []
     for i in range(2, len(root[0][17])):
@@ -68,6 +86,15 @@ def array(filename, count):
 
 
 def average(filename, count):
+    """[summary]
+
+    Arguments:
+        filename {[type]} -- [description]
+        count {[type]} -- [description]
+
+    Returns:
+        [type] -- [description]
+    """
     try:
         large_array, text = array(filename, count)
         zero_array = deepcopy(large_array)
@@ -81,13 +108,22 @@ def average(filename, count):
                            large_array[4*h + 1][s] +
                            large_array[4*h + 2][s] +
                            large_array[4*h + 3][s])/4)
-                index = tem.find(".")
                 try:
+                    index = tem.find(".")
                     tem = tem[0:index] + tem[index:index+4]
                     final_array[h][s] = float(tem)
                 except:
-                    tem = tem[0:index] + tem[index:index+5]
-                    final_array[h][s] = float(tem)
+                    try:
+                        tem = str((large_array[4*h][s] +
+                                   large_array[4*h + 1][s] +
+                                   large_array[4*h + 2][s] +
+                                   large_array[4*h + 3][s])/4)
+                        tem = tem[0:index] + tem[index:]
+                        final_array[h][s] = float(tem)
+                    except:
+                        printf("Failed to process dts data")
+                        traceback.print_exc(
+                            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         return final_array
     except:
         printf("Failed to process dts data")
@@ -96,6 +132,12 @@ def average(filename, count):
 
 
 def write(filename, count):
+    """[summary]
+
+    Arguments:
+        filename {[type]} -- [description]
+        count {[type]} -- [description]
+    """
     final_array = average(filename, count)
     with open('/media/mmcblk0p1/dts/dts{0}.csv'.format(count), "a+") as csvfile:
         for i in range(0, len(final_array)):
@@ -133,12 +175,19 @@ def list_files(folder):
 
 
 def get_dts_time():
+    """Read the DTS time from a log file
+
+    Returns:
+        [str] -- Time of last run of DTS
+    """
     with open("/media/mmcblk0p1/logs/dts_time", "r") as d_time:
         dts_time = d_time.read()
     return dts_time
 
 
 def update_win_time():
+    """Update windows unit time
+    """
     import datetime
     time_now = str(datetime.datetime.now()).split('.')[0]
     from ssh import SSH
@@ -148,10 +197,13 @@ def update_win_time():
 
 
 def ssh():
+    """Entry point of DTS files retrival and execution plus time update on windows unit
+    """
     try:
-        from gpio import dts_on, dts_off
+        from gpio import dts_on, dts_off, modem_on, modem_off
         keep_up = False
         printf("DTS data acquisition started")
+        modem_on(1)
         dts_on(1)
         sleep(15*60)
         count = 0
@@ -193,6 +245,7 @@ def ssh():
             printf("Oouch, an error occurs while processing DTS data")
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            return
         if not keep_up:
             reschedule(run="ssh")
         update_win_time()
@@ -203,10 +256,11 @@ def ssh():
         printf("Removed copied files from Win unit and Tritron")
         printf("All done with DTS :)")
     finally:
+        modem_off(1)
         if not keep_up:
             dts_off(1)
             keep_up = False
 
 
 if __name__ == "__main__":
-    ss
+    ssh()

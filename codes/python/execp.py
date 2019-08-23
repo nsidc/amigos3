@@ -40,6 +40,8 @@ def amigos_Unit():
 
 
 def welcome():
+    """Print Welcome message
+    """
     unit = amigos_Unit()
     printf("\n" + " "*30 + "*****   *****   *****" + " "*10 + "\n" + " "*20 + "Hi there, I am the Amigos Unit {0} version III.".format(unit) + " "*10 + "\n" +
            " "*10 + "Here, you will find all my actions since I was powered on." + " "*10+"\n" + " "*30 + "*****   *****   *****" + "\n", date=True)
@@ -65,6 +67,12 @@ def sig_handler(signum, frame):
 
 
 def terminateProcess(signalNumber, frame):
+    """Last  run before terminating scheduler
+    
+    Arguments:
+        signalNumber {[type]} -- [description]
+        frame {[type]} -- [description]
+    """
     from monitor import power_consumption
     power = power_consumption()[2]
     printf('received (SIGTERM),  terminating the scheduler. Total power consumed is {0}'.format(

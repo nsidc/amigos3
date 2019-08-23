@@ -212,6 +212,11 @@ def reboot(bit):
 
 
 def all_off(bit):
+    """Turn all devices off
+
+    Arguments:
+        bit {int} -- 1
+    """
     if bit:
         bit_string = "0b00000000,0b00000000,0b00000000"
         __update_bit(bit_string)
@@ -287,6 +292,11 @@ def solar_off():
 
 
 def power_up(bit):
+    """Turn all device on
+
+    Arguments:
+        bit {int} -- 1
+    """
     if bit:
         __toggle(bit-1)
         subprocess.call("echo 0xFF> /sys/class/gpio/pwr_ctl/data", shell=True)
@@ -453,6 +463,15 @@ def disable_serial():
 
 
 def is_on_checker(bit_index, bit_number):
+    """Check if a device is on
+
+    Arguments:
+        bit_index {int} -- index of the device from the power rail
+        bit_number {int} -- bit position of the device on the power rail. Counting from left to right start from zero and add 2
+
+    Returns:
+        [type] -- [description]
+    """
     with open("/media/mmcblk0p1/logs/power_log.log", "r") as logfile:
         bits = logfile.read().split(",")
         return int(bits[bit_index][bit_number])

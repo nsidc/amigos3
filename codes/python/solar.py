@@ -116,12 +116,18 @@ class solar_live():
         return data1, data2
 
     def solar_sbd(self):
-        with open("/media/mmcblk0p1/logs/solar_raw.log", "r") as rawfile:
-            lines = rawfile.readlines()
-            lastline = lines[-1]
-        from monitor import backup
-        backup("/media/mmcblk0p1/logs/solar_raw.log")
-        return lastline
+        try:
+            with open("/media/mmcblk0p1/logs/solar_raw.log", "r") as rawfile:
+                lines = rawfile.readlines()
+                lastline = lines[-1]
+            from monitor import backup
+            backup("/media/mmcblk0p1/logs/solar_raw.log")
+            return lastline
+        except:
+            printf("Solar SBD failed to run")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            return ""
 
     def solar_1(self):
         data1, data2 = self.read_solar()
