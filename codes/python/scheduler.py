@@ -382,8 +382,12 @@ def run_schedule():
     winter_task = w.sched()
     monitor_task = m.sched()
     welcome()
+    printf("")
     printf("The state of the schedule so far is presented in the table below.", date=True)
     get_stat()
+    printf("\n", date=True)
+    printf("Checking voltage level")
+    put_to_power_sleep()
     g = gps_data()
     g.update_time(out=True)
     # run forever
@@ -391,7 +395,6 @@ def run_schedule():
         if has_slept():
             printf("Amigos! Wakes up! Job(s) awaiting.")
             printf("Checking for voltage level.")
-            put_to_power_sleep()
             printf("All ready for task(s) execution!")
         new_sched = get_schedule()
         if new_sched:

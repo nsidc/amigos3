@@ -506,6 +506,8 @@ class sbd():
             self.vaisala_SBD()
             sleep(60)
             self.seabird_SBD()
+            sleep(60)
+            self.gps_sb()
             printf("All Done with SBD")
             end = timer()
             timing("SBD", end-start)
@@ -559,6 +561,16 @@ class sbd():
         except:
             self.p_err("CR1000X SBD")
 
+    def gps_sb(self):
+        printf("Started GPS SBD")
+        try:
+            from gps import gps_data
+            gps = gps_data()
+            to_send = gps.gps_sbd()
+            self.iridium_send(to_send)
+        except:
+            self.p_err("GPS SBD")
+
     def seabird_SBD(self):
         # collect array of seabird data from other scripts
         printf("Sending Sea Bird SBD")
@@ -585,23 +597,48 @@ class sbd():
             self.p_err("Aquadopp")
 
     def reply(self, resp):
+        """Verify the reply from the iridium
+
+        Arguments:
+            resp {str} -- reply from iridium
+
+        Returns:
+            [Bool] -- True if iridium has replied
+        """
         if resp.find("OK") != -1:
             return True
         return False
 
     def iridium_talk(self, comment):
+        """Execute a command to the iridium
+
+        Arguments:
+            comment {str} -- command to be executed
+
+        Returns:
+            [str] -- rebply from the iridium
+        """
         self.port.write(comment+"\r\n")
         sleep(10)
         response = self.port.read(self.port.inWaiting())
-        if not response:
-            sleep(25)
+        if not self.reply(response):
+            sleep(60)
             response = self.port.read(self.port.inWaiting())
         return response
 
     def iridium_send(self, message):
+        """Send message through the iridium
+
+        Arguments:
+            message {str} -- Message to be sent
+
+        Returns:
+            [bool] -- True on success
+        """
         # Commands send to iridium aquadopp data
         self.port.flushInput()
         data = self.iridium_talk("AT")
+        printf("Sending {0} bytes".format(len(message)))
         if len(message) > 255:
             printf("SBD message too long. Sending only the first 255 bytes")
             message = message[0:253]
@@ -615,7 +652,7 @@ class sbd():
             elif index == len(commands)-1:
                 ans = data.split("BDIX:")[1].split(",")
                 # print(ans)
-                if int(ans) != 0:
+                if int(ans[0]) != 0:
                     printf(
                         "No service available")
                 else:

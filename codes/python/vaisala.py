@@ -151,12 +151,18 @@ class Average_Reading():
         return num
 
     def vaisala_sbd(self):
-        with open("/media/mmcblk0p1/logs/weather_raw.log", "r") as rawfile:
-            lines = rawfile.readlines()
-            lastline = lines[-1]
-        from monitor import backup
-        backup("/media/mmcblk0p1/logs/weather_raw.log", sbd=True)
-        return lastline
+        try:
+            with open("/media/mmcblk0p1/logs/weather_raw.log", "r") as rawfile:
+                lines = rawfile.readlines()
+                lastline = lines[-1]
+            from monitor import backup
+            backup("/media/mmcblk0p1/logs/weather_raw.log", sbd=True)
+            return lastline
+        except:
+            printf("Vaisala SBD failed to run")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            return ""
 
 # Class that will allow the user to access specific weather data points whenever needed
 

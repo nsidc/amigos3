@@ -6,6 +6,11 @@ from datetime import datetime
 
 class cr1000x():
     def finddata(self):
+        """Get data from the CR1000X
+
+        Returns:
+            [list] -- Data values and labels
+        """
         from timeit import default_timer as timer
         from gpio import cr1000_on, modem_on, cr1000_off, modem_off
         from monitor import timing
@@ -21,7 +26,7 @@ class cr1000x():
             from pycampbellcr1000 import CR1000
             device = CR1000.from_url('tcp:192.168.0.30:6785')
         except:
-            print("Device is not on or not route to device (check the ethernet cable)")
+            printf("Device is not on or not route to device (check the ethernet cable)")
             reschedule(re="cr1000")
             return labels, values
         printf("Connecting to CR1000x ...")
@@ -77,6 +82,14 @@ class cr1000x():
         return labels, values
 
     def round_2_places(self, num):
+        """round value to two place
+
+        Arguments:
+            num {float} -- Number to be rounded
+
+        Returns:
+            [str] -- Rounded number
+        """
         num = str(num)
         if num[num.find(".")] == ".":
             num = num.split(".")
@@ -87,23 +100,31 @@ class cr1000x():
         return num
 
     def cr_sbd(self):
-        with open("/media/mmcblk0p1/logs/cr1000x_raw.log", "r") as rawfile:
-            lines = rawfile.readlines()
-            lastline = lines[-1]
-        from monitor import backup
-        backup("/media/mmcblk0p1/logs/cr1000x_raw.log", sbd=True)
-        return lastline
+        try:
+            with open("/media/mmcblk0p1/logs/cr1000x_raw.log", "r") as rawfile:
+                lines = rawfile.readlines()
+                lastline = lines[-1]
+            from monitor import backup
+            backup("/media/mmcblk0p1/logs/cr1000x_raw.log", sbd=True)
+            return lastline
+        except:
+            printf("CR100X SBD failed to run")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            return ""
 
 
 # write to txt file
 
     def cr1000(self):
+        """CR1000X
+        """
         from monitor import reschedule
         from gpio import modem_off, cr1000_off
         try:
             labels, values = self.finddata()
             if not values:
-                printf("Got a empty data clock might have shift on device. Will try again")
+                printf("Oouch!! Got a empty data  Will try again")
                 reschedule(re="cr1000")
                 return
         except Exception as err:

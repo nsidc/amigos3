@@ -169,6 +169,11 @@ def do_rerun(jobs, task):
 
 
 def reset_conter(jobs):
+    """Reset the schedule time in the track dict
+
+    Arguments:
+        jobs {List} -- All Jobs(Schedules)
+    """
     for job in jobs:
         job_name = job.job_func.__name__
         if job_name in track.keys():
@@ -178,6 +183,11 @@ def reset_conter(jobs):
 
 
 def get_restore_schedule(jobs):
+    """Readjust the schedule if needed
+
+    Arguments:
+        jobs {List} -- All Jobs(Schedules)
+    """
     delta_time = datetime.timedelta(hours=1)
     for job in jobs:
         last_run = job.last_run
@@ -189,13 +199,18 @@ def get_restore_schedule(jobs):
                 diff_run = next_run-last_run
                 if diff_run > delta_time:
                     printf("(-) {0} schedule was distorted. Restoring ....".format(
-                        track[job.job_func.__name__]))
+                        track[job.job_func.__name__][2]))
                     job.next_run = job.next_run - delta_time
                     printf("(-) {0} schedule back on track: {1}".format(
-                        track[job.job_func.__name__], str(job.next_run.hour) + ":" + str(job.next_run.minute)))
+                        track[job.job_func.__name__][2], str(job.next_run.hour) + ":" + str(job.next_run.minute)))
 
 
 def get_schedule(jobs):
+    """Update the track dict to the lastest schedule runing
+
+    Arguments:
+        jobs {List} -- All Jobs(Schedules)
+    """
     reset_conter(jobs)
     for job in jobs:
         job_name = job.job_func.__name__
@@ -247,23 +262,25 @@ def reschedule(jobs=None, start=False, re=None, run=None):
     if re is not None:
         set_reschedule(re)
         re = None
-    elif run is not None:
+    if run is not None:
         track[run][3] = track[run][3]+1
         run = None
-    elif start is True:
+    if start is True:
         first_time()
         start = False
 
-    elif jobs:
+    if jobs:
         get_rerun(jobs)
 
 
 def get_stat_log():
+    """Print stat table to  a log file
+    """
     printf("Saving System Diagnostic table ")
     stat_dic = track
     power = power_consumption()[2]
     with open("/media/mmcblk0p1/logs/statictics", "a+") as stat:
-        stat.write("Total Power consumed so far: {0} Watt".format(
+        stat.write("Total Power consumed so far: {0} Watt\n".format(
             str(power)[0:-6]))
         stat.write('TF: Total failure\n')
         stat.write("TR: Total successfull run\n")
@@ -469,25 +486,25 @@ def put_to_inactive_sleep(jobs):
                     next_job_name, time_interval))
             parm[3] = next_job
     elif no_task():
-        power, totaltime, total = power_consumption()
-        printf(
-            "(*_*) Power consumed: {0} Wh. Total so far {1} Wh".format(str(power)[0:-6], str(total)[0:-6]))
-        printf(
-            " / \\ Next task: {0} job is in {1} minutes. Going on StandBy".format(next_job_name, time_interval))
-        with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
-            slept.write("1")
-        with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:
-            sch.write(str(sorted(jobs)) + "\n" +
-                      str(time_interval) + "\n" + str_time+"#"*50 + "\n")
-        w.toggle_1hour()
-        slep = None
+        keep_awake = None
         try:
             with open("/media/mmcblk0p1/logs/sleep_toggle", "r") as sle:
-                slep = sle.read()
+                keep_awake = sle.read()
         except:
             pass
+        if not keep_awake:
+            power, totaltime, total = power_consumption()
+            printf(
+                "(*_*) Power consumed: {0} Wh. Total so far {1} Wh".format(str(power)[0:-6], str(total)[0:-6]))
+            printf(
+                " / \\ Next task: {0} job is in {1} minutes. Going on StandBy".format(next_job_name, time_interval))
+            with open("/media/mmcblk0p1/logs/slept.log", "w+") as slept:
+                slept.write("1")
+            # with open("/media/mmcblk0p1/logs/schedule.log", ("a+")) as sch:
+            #     sch.write(str(sorted(jobs)) + "\n" +
+            #               str(time_interval) + "\n" + str_time+"#"*50 + "\n")
+            w.toggle_1hour()
         # sleep(time_interval*60)
-        if not slep:
             all_off(1)
             sleep(2)
             call(
@@ -505,33 +522,43 @@ def put_to_power_sleep():
             voltage = voltage*10
             printf("Voltage reading biased: Reading {0} volt and {1} amps ``\\_(*_*)_/``".format(
                 voltage, current))
-        if voltage < 11.0:
+        while voltage < 11.0:
             had_slept = None
             try:
                 with open('/media/mmcblk0p1/logs/sleep.log', 'r') as sched_log:
                     had_slept = sched_log.read()
             except:
                 pass
-            if had_slept:
-                all_off(1)
-                printf('Voltage still too low, going back to a long sleep (1 hour). Reading {0} volt'.format(
-                    voltage))
-                call('rm /media/mmcblk0p1/logs/sleep.log', shell=True)
-                call(
-                    "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(59), shell=True)
-            else:
-                with open('/media/mmcblk0p1/logs/sleep.log', 'w+') as sched_log:
-                    sched_log.write('1')
-                printf('Voltage too low, going back to 10 minutes sleep. Reading {0} volt'.format(
-                    voltage))
-                call(
-                    "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(10), shell=True)
-        elif voltage > 14.0:
+            keep_awake = None
+            try:
+                with open("/media/mmcblk0p1/logs/sleep_toggle", "r") as sle:
+                    keep_awake = sle.read()
+            except:
+                pass
+            if not keep_awake:
+                if had_slept:
+                    printf('Voltage still too low, going back to a long sleep (1 hour). Reading {0} volt'.format(
+                        voltage))
+                    all_off(1)
+                    call('rm /media/mmcblk0p1/logs/sleep.log', shell=True)
+                    call(
+                        "bash /media/mmcblk0p1/codes/bash/sleep {0}".format(59), shell=True)
+                else:
+                    with open('/media/mmcblk0p1/logs/sleep.log', 'w+') as sched_log:
+                        sched_log.write('1')
+                    printf('Voltage too low, going to 30 minutes sleep. Reading {0} volt'.format(
+                        voltage))
+                    all_off(1)
+                    call(
+                        "bash /media/mmcblk0p1/codes/bash/sleep {0}".format(30), shell=True)
+            voltage = get_battery_voltage()
+        if voltage > 14.0:
             printf('Voltage is too high. Reading {0} volt ``\\(_*_*)_/``'.format(
                 voltage))
         else:
             printf('Voltage in normal operating range. Reading {0} volt :)'.format(
                 voltage))
+
     except:
         w.printf('failed to excute put_to_sleep')
         traceback.print_exc(

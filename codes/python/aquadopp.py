@@ -4,6 +4,14 @@ import traceback
 
 
 def read_aquadopp(ID):
+    """[summary]
+
+    Arguments:
+        ID {[type]} -- [description]
+
+    Returns:
+        [type] -- [description]
+    """
     try:
         from gpio import imm_off, imm_on, enable_serial, disable_serial
         printf("Getting files from aquadopp {0}".format(ID))
@@ -39,6 +47,14 @@ def read_aquadopp(ID):
 
 
 def clean_data(ID):
+    """[summary]
+
+    Arguments:
+        ID {[type]} -- [description]
+
+    Returns:
+        [type] -- [description]
+    """
     try:
         aquadopp_raw_data = read_aquadopp(ID)
         printf("Proccessing data for aquadopp {0}".format(ID))
@@ -61,6 +77,11 @@ def clean_data(ID):
 
 
 def labeled_data(ID):
+    """[summary]
+
+    Arguments:
+        ID {[type]} -- [description]
+    """
     printf("Generating labels for aquadopp {0}".format(ID))
     aquadopp_data = clean_data(ID)
     labels = ['Month: ', 'Day: ', 'Year: ', 'Hour: ', 'Error Code: ',
@@ -79,6 +100,8 @@ def labeled_data(ID):
 
 
 def amigos_box_sort_AQ():
+    """[summary]
+    """
     from execp import amigos_Unit
     unit = amigos_Unit()
     from monitor import reschedule
@@ -105,6 +128,14 @@ def amigos_box_sort_AQ():
 
 
 def prep_sbd(ID):
+    """[summary]
+
+    Arguments:
+        ID {[type]} -- [description]
+
+    Returns:
+        [type] -- [description]
+    """
     with open("/media/mmcblk0p1/logs/aquadopp"+str(ID)+"_raw.log", "r") as rawfile:
         lines = rawfile.readlines()
         lastline = lines[-1]
@@ -114,29 +145,41 @@ def prep_sbd(ID):
 
 
 def aquadopp_sbd():
+    """Aquadopp SBD string retrieval
+
+    Returns:
+        [str] -- Last saved aquadopp string for SBD
+    """
     from execp import amigos_Unit
     unit = amigos_Unit()
-    if unit == "A":
-        # When deploying box A - use these ID's when starting deployment files for two aquadopps
-        lastline1 = prep_sbd("20")
-        lastline2 = prep_sbd("21")
-        lastlinetotal = lastline1 + lastline2
-        return lastlinetotal
-    elif unit == "B":
-        # When deploying box B - use these ID's when starting deployment files for two aquadopps
-        lastline1 = prep_sbd("22")
-        lastline2 = prep_sbd("23")
-        lastlinetotal = lastline1 + lastline2
-        return lastlinetotal
-    elif unit == "C":
-        # When deploying box C - use these ID's when starting deployment files for four aquadopps
-        lastline1 = prep_sbd("20")
-        lastline2 = prep_sbd("21")
-        # lastline3 = prep_sbd("26")
-        # lastline4 = prep_sbd("27")
-        lastlinetotal1 = lastline1 + lastline2
-        # lastlinetotal2 = lastline3 + lastline4
-        return lastlinetotal1  # lastlinetotal2
+    try:
+        if unit == "A":
+            # When deploying box A - use these ID's when starting deployment files for two aquadopps
+            lastline1 = prep_sbd("20")
+            lastline2 = prep_sbd("21")
+            lastlinetotal = lastline1 + lastline2
+            return lastlinetotal
+        elif unit == "B":
+            # When deploying box B - use these ID's when starting deployment files for two aquadopps
+            lastline1 = prep_sbd("22")
+            lastline2 = prep_sbd("23")
+            lastlinetotal = lastline1 + lastline2
+            return lastlinetotal
+        elif unit == "C":
+            # When deploying box C - use these ID's when starting deployment files for four aquadopps
+            lastline1 = prep_sbd("20")
+            lastline2 = prep_sbd("21")
+            # lastline3 = prep_sbd("26")
+            # lastline4 = prep_sbd("27")
+            lastlinetotal1 = lastline1 + lastline2
+            # lastlinetotal2 = lastline3 + lastline4
+            return lastlinetotal1  # lastlinetotal2
+    except:
+        import traceback
+        printf("Aquadopp SBD failed to run")
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+        return ""
 
 
 if __name__ == "__main__":

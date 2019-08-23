@@ -193,9 +193,9 @@ def args_parser():
             'Set sleep mode ', 'On and Off toggle. Prevent board from sleeping')
         slep.add_argument(
             'sleep', help='Required secondary argument', nargs='?')
-        slep.add_argument('-on', '--on',
+        slep.add_argument('-ON', '--ON',
                           help='Turn on sleep mode', action='store_true')
-        slep.add_argument('-off', '--ff',
+        slep.add_argument('-OFF', '--OFF',
                           help='Turn off sleep mode', action='store_true')
 
         camera = parser.add_argument_group(
@@ -440,13 +440,13 @@ def device(args):
 
 
 def sleep_mode(args):
-    if args.on:
+    if args.ON:
         printf("Sleep mode is restored")
         with open("/media/mmcblk0p1/logs/sleep_toggle", "w+") as sle:
             sle.write("")
         print("Thanks, sleep mode is restored. See you soon ")
 
-    elif args.off:
+    elif args.OFF:
         printf("Sleep mode deactivated by a user")
         with open("/media/mmcblk0p1/logs/sleep_toggle", "w+") as sle:
             sle.write("on")
@@ -526,10 +526,10 @@ def main():
     Allow easy access to functionalities of the amigos
     """
     # print (args)
+    parser, val = args_parser()
+    args = parser.parse_args()
     try:
         printf("Humain activity detected here!" + "*"*30)
-        parser, val = args_parser()
-        args = parser.parse_args()
         if args.help:
             parser.print_help()
         elif args.schedule == 'dial':

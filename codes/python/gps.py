@@ -101,11 +101,11 @@ class gps_data():
                 diff_split = diff.split(":")
                 if diff.find("day") != -1:
                     self.update(str_time, date_now)
-            elif int(diff_split[-2]) > 1 or int(diff_split[-3]) > 0:
+            elif int(diff_split[-2]) > 0 or int(diff_split[-3]) > 0:
                 self.update(str_time, date_now)
             else:
-                print("Time difference is less than 1 minutes. No time update need it")
-                printf("Time difference is less than 1 minutes. No time update need it")
+                print("Time difference is less than 1 minutes. No time update needed")
+                printf("Time difference is less than 1 minutes. No time update needed")
                 return
         except:
             printf("Unable to update GPS time")
@@ -134,7 +134,7 @@ class gps_data():
             gps_on(bit=1)
             sleep(60)
         except:
-            set_reschedule("get_binex")
+            reschedule(re="get_binex")
             self.port = None
             printf('An error occurred ``\\_(*_*)_/``')
             traceback.print_exc(
@@ -144,6 +144,7 @@ class gps_data():
         else:
             self.port.flushInput()
             self.sequence = 1
+            printf("Collecting GPS binex data ...")
             while self.sequence <= self.timeout*60/self.interval:
                 self.port.write(self.cmd['binex']+'\r')
                 sleep(2)
@@ -173,6 +174,10 @@ class gps_data():
                 self.sequence = self.sequence+1
             printf("Updating Tritron time")
             self.update_time()
+            printf("Getting quick gps data for sbd")
+            quick = self.quick_gps_data()
+            writeFile(
+                '/media/mmcblk0p1/logs/gps_nmea.log', str(quick)+"\n", 'a+')
             end = timer()
             timing("get_binex", end-start)
             printf("All done with gps")
@@ -186,7 +191,25 @@ class gps_data():
             gps_off(bit=1)
             disable_serial()
 
-    def get_nmea(self):
+    def gps_sbd(self):
+        """SBD of GPS data
+
+        Returns:
+            [str] -- last GPS SBD data saved
+        """
+        try:
+            with open('/media/mmcblk0p1/logs/gps_nmea.log', 'r') as quick:
+                q_data = quick.readlines()
+                from monitor import backup
+                backup('/media/mmcblk0p1/logs/gps_nmea.log')
+                return q_data[-1]
+        except:
+            printf("GSP SBD failed to run")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            return ""
+
+    def get_nmea(self, out=False):
         """Initiate the reading of the binex language from GPS module to Titron
 
         Returns:
@@ -198,7 +221,7 @@ class gps_data():
             enable_serial()
             gps_on(bit=1)
             sleep(90)
-            self.port.flusInput()
+            self.port.flushInput()
         except:
             self.port = None
             printf('An error occurred ``\\_(*_*)_/``')
@@ -216,51 +239,62 @@ class gps_data():
             # At every exit close the port, and turn off the GPS
             if self.port:
                 self.port.close()
-            gps_off(bit=1)
-            disable_serial()
+            if out:
+                gps_off(bit=1)
+                disable_serial()
+                out = False
 
-    def __get_GPGGA_GPVTG(self):
+    def __get_GPGGA_GPVTG(self, out=False):
         try:
+            printf("Getting GPS Nmea GGA and VTG raw data")
             # try opening the port
             self.port.open()
             enable_serial()
             gps_on(bit=1)
             sleep(30)
-            self.port.flusInput()
+            self.port.flushInput()
         except:
             self.port = None
             printf('Unable to open port ``\\_(*_*)_/``')
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
-            self.port.write(self.cmd['GPGGA'])
-            sleep(1)
+            self.port.write(self.cmd['GPGGA']+"\r")
+            sleep(2)
             GPGGA = self.port.readline()
-            self.port.write(self.cmd['GPVTG'])
-            sleep(1)
+            self.port.write(self.cmd['GPVTG']+"\r")
+            sleep(2)
             GPVTG = self.port.readline()
             return GPGGA, GPVTG
         finally:
             # At every exit close the port, and turn off the GPS
             if self.port:
                 self.port.close()
-            gps_off(bit=1)
-            disable_serial()
+            if out:
+                gps_off(bit=1)
+                disable_serial()
+                out = False
 
     def __Nmea_parse(self):
-        import pynmea2 as nmea2
         """
         Parser the nmea language code into human readable location code GPGGA, GPVTG
         Take no argument
         Return  GPGGA_parser, GPVTG_parser
         """
-        GPGGA, GPVTG = self.__get_GPGGA_GPVTG()  # get the rwa data
+        import pynmea2 as nmea2
         GPGGA_parser = None
         GPVTG_parser = None
-        if GPGGA and GPVTG:
-            GPGGA_parser = nmea2.parse(GPGGA)  # parser the data
-            GPVTG_parser = nmea2.parse(GPVTG)
-        # print(GPGGA_parser, GPVTG_parser)
+        try:
+            GPGGA, GPVTG = self.__get_GPGGA_GPVTG()  # get the rwa data
+            printf("Parsing GPS Nmea data into Humain readable")
+            if GPGGA and GPVTG:
+                GPGGA_parser = nmea2.parse(GPGGA)  # parser the data
+                GPVTG_parser = nmea2.parse(GPVTG)
+            # print(GPGGA_parser, GPVTG_parser)
+        except:
+            printf("Cant not parser GPS data to Nmea")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         return GPGGA_parser, GPVTG_parser
 
     def quick_gps_data(self):
@@ -269,18 +303,26 @@ class gps_data():
         take no argument
         Return nothing
         """
-        gps_data = self.__Nmea_parse()
-        # print(gps_data)  # call the parser function to get location
-        Altitude = gps_data[0].altitude  # retrieve altitude
-        Longitude = gps_data[0].lon  # retrive longitude
-        Longitude_Dir = gps_data[0].lon_dir  # retrive longitude direction
-        Latitude = gps_data[0].lat  # retrive latitude
-        Latitude_Dir = gps_data[0].lat_dir
-        # retrive latitude direction
-        spd_over_grnd = gps_data[1].spd_over_grnd_kmph
-        sat = gps_data[0].num_sats
-        print(" Altitude: {0} m\n Longitude: {1} m\n Longitude Dir: {2}\n Latitude:{3}m\n Latitude Dir: {4}\n spd_over_grnd: {6} Kmph\n Total Satellites: {5}".format(
-            Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd))
+        try:
+            gps_data = self.__Nmea_parse()
+            date_time = gps_data[0].timestamp
+            # print(gps_data)  # call the parser function to get location
+            Altitude = gps_data[0].altitude  # retrieve altitude
+            Longitude = gps_data[0].lon  # retrive longitude
+            Longitude_Dir = gps_data[0].lon_dir  # retrive longitude direction
+            Latitude = gps_data[0].lat  # retrive latitude
+            Latitude_Dir = gps_data[0].lat_dir
+            # retrive latitude direction
+            spd_over_grnd = gps_data[1].spd_over_grnd_kmph
+            sat = gps_data[0].num_sats
+            # print(" Altitude: {0} m\n Longitude: {1} m\n Longitude Dir: {2}\n Latitude:{3}m\n Latitude Dir: {4}\n spd_over_grnd: {6} Kmph\n Total Satellites: {5}".format(
+            #     Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd))
+            return "GPS:", date_time, Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd
+        except:
+            printf("Error getting GPS Nmea")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            return 'GPS""'
 
 
 if __name__ == "__main__":

@@ -139,22 +139,29 @@ def seabird_sbd():
     from execp import amigos_Unit
     unit = amigos_Unit()
     lastlinetotal = []
-    if unit == "A":
-        lastline1 = prep_sbd("90")
-        lastline2 = prep_sbd("80")
-        lastlinetotal = lastline1 + lastline2
-    elif unit == "B":
-        lastline1 = prep_sbd("05")
-        lastline2 = prep_sbd("09")
-        lastlinetotal = lastline1 + lastline2
-    elif unit == "C":
-        lastline1 = prep_sbd("80")
-        lastline2 = prep_sbd("06")
-        # lastline3 = prep_sbd("06")
-        # lastline4 = prep_sbd("#Enter fourth Id for seabird on C - no battery unit")
-        # Seabird data is short enough to send all 4 seabird's data in one SBD message
-        lastlinetotal = lastline1 + lastline2
-    return lastlinetotal
+    try:
+        if unit == "A":
+            lastline1 = prep_sbd("90")
+            lastline2 = prep_sbd("80")
+            lastlinetotal = lastline1 + lastline2
+        elif unit == "B":
+            lastline1 = prep_sbd("05")
+            lastline2 = prep_sbd("09")
+            lastlinetotal = lastline1 + lastline2
+        elif unit == "C":
+            lastline1 = prep_sbd("80")
+            lastline2 = prep_sbd("06")
+            # lastline3 = prep_sbd("06")
+            # lastline4 = prep_sbd("#Enter fourth Id for seabird on C - no battery unit")
+            # Seabird data is short enough to send all 4 seabird's data in one SBD message
+            lastlinetotal = lastline1 + lastline2
+        return lastlinetotal
+    except:
+        import traceback
+        printf("Sea Bird SBD failed to run")
+        traceback.print_exc(
+            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+        return ""
 
 
 if __name__ == "__main__":
