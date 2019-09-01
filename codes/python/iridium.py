@@ -16,7 +16,7 @@ from cr1000x import cr1000x
 class dial():
     def __init__(self, *args, **kwargs):
         self.username = "amigos3"
-        self.pwd = "zaehoD1a"
+        self.pwd = "change
         self.hostname = "128.138.135.165"
         self.router_host = "http://192.168.0.1:8080/cgi-bin/menuform.cgi?"
         self.router_config = "ppp1_local_ip=192.168.0.1&ppp1_remote_ip=192.168.0.90&ppp1_override_remote_ip=enable"
