@@ -219,6 +219,7 @@ def ssh():
         printf("Copying files over from windows Unit")
         ssh.copy("Desktop/dts_data", "/media/mmcblk0p1", recursive=True)
         array_dirs, array_files = list_files("/media/mmcblk0p1/dts_data")
+        update_win_time()
         if para[0] is True:
             printf("Have already tried to update dts schedule. Will try again after time reset")
             dts_off(1)
@@ -257,7 +258,6 @@ def ssh():
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return
-        update_win_time()
         ssh.execute(["rm -rf Desktop/dts_data", "mkdir Desktop/dts_data"])
         # print(out)
         count = 0
