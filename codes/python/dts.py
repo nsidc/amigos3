@@ -5,6 +5,8 @@ from monitor import reschedule
 import traceback
 from subprocess import call
 
+para = [False]
+
 
 def read_xml(filename, count):
     """[summary]
@@ -38,6 +40,12 @@ def read_xml(filename, count):
             'Length(m), Stokes, Anti-stokes, Reverse-stokes, Reverse anti-stokes, Temp(C)')
         csvfile.write('\n\n')
     return root
+
+
+def reset_clock():
+    """Reset flag for DTS schedule update
+    """
+    para[0] = False
 
 
 def array(filename, count):
@@ -201,7 +209,6 @@ def ssh():
     """
     try:
         from gpio import dts_on, dts_off, modem_on, modem_off
-        keep_up = False
         printf("DTS data acquisition started")
         modem_on(1)
         dts_on(1)
@@ -212,6 +219,9 @@ def ssh():
         printf("Copying files over from windows Unit")
         ssh.copy("Desktop/dts_data", "/media/mmcblk0p1", recursive=True)
         array_dirs, array_files = list_files("/media/mmcblk0p1/dts_data")
+        if para[0] is True:
+            printf("Have already tried to update dts schedule. Will try again after time reset")
+            dts_off(1)
         try:
             printf("Getting the last date of file drop from DTS")
             path_win = "/".join(array_dirs[2].split("/")[3:])
@@ -222,15 +232,16 @@ def ssh():
                 d_time.write(str(dts_time))
             printf("Time stamp saved :)")
         except:
-            printf("Not DTS data available on the Window Unit. Keeping the unit on for one cycle")
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
-            keep_up = True
+            if para[0] is False:
+                printf(
+                    "Not DTS data available on the Window Unit. Keeping the unit on for one cycle per 24h")
+                traceback.print_exc(
+                    file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+                para[0] = True
     except:
         printf("Not able to turn on the windows computer to run dts")
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
-        keep_up = True
     else:
         # print(re)
         if array_files:
@@ -246,8 +257,6 @@ def ssh():
             traceback.print_exc(
                 file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return
-        if not keep_up:
-            reschedule(run="ssh")
         update_win_time()
         ssh.execute(["rm -rf Desktop/dts_data", "mkdir Desktop/dts_data"])
         # print(out)
@@ -257,9 +266,9 @@ def ssh():
         printf("All done with DTS :)")
     finally:
         modem_off(1)
-        if not keep_up:
+        if not para[0]:
+            reschedule(run="ssh")
             dts_off(1)
-            keep_up = False
 
 
 if __name__ == "__main__":

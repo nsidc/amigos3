@@ -158,13 +158,13 @@ def aquadopp_sbd():
             lastline1 = prep_sbd("20")
             lastline2 = prep_sbd("21")
             lastlinetotal = lastline1 + lastline2
-            return lastlinetotal
+            return lastline1, lastline2
         elif unit == "B":
             # When deploying box B - use these ID's when starting deployment files for two aquadopps
             lastline1 = prep_sbd("22")
             lastline2 = prep_sbd("23")
             lastlinetotal = lastline1 + lastline2
-            return lastlinetotal
+            return lastline1, lastline2
         elif unit == "C":
             # When deploying box C - use these ID's when starting deployment files for four aquadopps
             lastline1 = prep_sbd("20")
@@ -173,7 +173,7 @@ def aquadopp_sbd():
             # lastline4 = prep_sbd("27")
             lastlinetotal1 = lastline1 + lastline2
             # lastlinetotal2 = lastline3 + lastline4
-            return lastlinetotal1  # lastlinetotal2
+            return lastline1,lastline2  # lastlinetotal2
     except:
         import traceback
         printf("Aquadopp SBD failed to run")

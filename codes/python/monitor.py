@@ -35,7 +35,7 @@ def is_need_update(dts_time):
     Returns:
         [Bool/Str] -- True if time has diverge since last file drop/ a time object of the newly datetime of files dropped on the window unit
     """
-    printf("Checking if dts time has diverge")
+    printf("Checking if dts time has diverged")
     dts_time = dts_time.split("H")
     day = "-".join(dts_time[0:3])
     times = ":".join(dts_time[3:])
@@ -76,7 +76,7 @@ def update_dts_time(jobs):
         printf("DTS Times are updated to {0}".format(d_times))
         return False
     except:
-        printf("Error updating dts time")
+        printf("Error updating dts schedule time")
         traceback.print_exc(
             file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
@@ -85,7 +85,7 @@ def timing(device, dur):
     """Update durration of a job
     Arguments:
         device {[string]} -- task name
-        dur {float} -- durection
+        dur {float} -- duration
     """
     for item, array in track.items():
         if item == device:

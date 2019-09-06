@@ -2,14 +2,13 @@ from serial import Serial as ser
 from time import sleep
 from execp import printf
 import os
-from time import sleep
 from monitor import reschedule
-import traceback
 from subprocess import call, Popen, PIPE
 import traceback
 
 
 class dial():
+
     def __init__(self, *args, **kwargs):
         self.username = "amigos3"
         self.pwd = "zaehoD1a"
@@ -47,11 +46,11 @@ class dial():
         ftp = None
         from ftplib import FTP
         try:
-            ftp = FTP(self.hostname, timeout=5*60)
+            ftp = FTP(self.hostname, timeout=5 * 60)
         except:
             printf("FTP connection failed. Trying once more :(")
             try:
-                ftp = FTP(self.hostname, timeout=5*60)
+                ftp = FTP(self.hostname, timeout=5 * 60)
             except:
                 pass
         try:
@@ -106,7 +105,7 @@ class dial():
                 file_name = file_name.replace("\n", '')
                 folder_name = folder_name.replace("\n", '')
             newname = folder_name.split("/")
-            time_now = time_now+newname[-1]+unit
+            time_now = time_now + newname[-1] + unit
             newname[-1] = time_now
             try:
                 folder_name = "/".join(newname)
@@ -114,12 +113,12 @@ class dial():
                 self.update_log(file_name)
                 return None
             printf("zipping file ")
-            p = Popen("tar czf {0} {1}".format(folder_name+".tar.gz", file_name),
+            p = Popen("tar czf {0} {1}".format(folder_name + ".tar.gz", file_name),
                       stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
             out = p.communicate()
             # print(out)
             sleep(2)
-            return folder_name+".tar.gz"
+            return folder_name + ".tar.gz"
         except:
             printf("zipping failed :(")
             traceback.print_exc(
@@ -206,15 +205,15 @@ class dial():
         if push:
             printf("Making record of dial out files")
             for index, fil in enumerate(files):
-                file_path = self.default_path+fil
+                file_path = self.default_path + fil
                 if os.path.exists(file_path):
                     if os.path.isdir(file_path):
                         files = self.list_files(file_path)
                         for inde, item in enumerate(files):
-                            with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
+                            with open(self.default_path + "logs/dialout_list.log", "a+") as listd:
                                 listd.write(item + "\n")
                     else:
-                        with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
+                        with open(self.default_path + "logs/dialout_list.log", "a+") as listd:
                             listd.write(file_path + "\n")
                 else:
                     printf("The file {0} is nonexistent. Skipping".format(
@@ -224,18 +223,18 @@ class dial():
         printf("Updating dial out files record")
         in_waiting = ""
         pop = ""
-        with open(self.default_path+"logs/dialout_list.log", "r") as listd:
+        with open(self.default_path + "logs/dialout_list.log", "r") as listd:
             in_waiting = listd.readlines()
         from copy import deepcopy
         for index, item in enumerate(in_waiting):
             if item.find(files) != -1:
                 new_waiting = deepcopy(in_waiting)
                 pop = new_waiting.pop(index)
-                with open(self.default_path+"logs/dialout_list.log", "w+") as listd:
+                with open(self.default_path + "logs/dialout_list.log", "w+") as listd:
                     listd.write("")
                 for inde, ite in enumerate(new_waiting):
                     if ite not in ["", " ", None, " \n", "\n"]:
-                        with open(self.default_path+"logs/dialout_list.log", "a+") as listd:
+                        with open(self.default_path + "logs/dialout_list.log", "a+") as listd:
                             listd.write(ite)
                 index = 0
                 break
@@ -274,8 +273,8 @@ class dial():
             name {[type]} -- the name of the current file that is been sent
         """
         next_in = "Nothing"
-        if index+1 < len(filename):
-            next_in = filename[index+1]
+        if index + 1 < len(filename):
+            next_in = filename[index + 1]
             if next_in.find(".log") != -1 or next_in.find(".jpg") != -1 or next_in.find(".csv") != -1:
                 next_in = next_in.split("/")[-1]
         printf("Preparing {0} to be sent. Next in queue {1} ...".format(
@@ -292,7 +291,7 @@ class dial():
         from monitor import timing
         start = timer()
         try:
-            with open(self.default_path+"logs/dialout_list.log", "r") as listd:
+            with open(self.default_path + "logs/dialout_list.log", "r") as listd:
                 in_waiting = listd.readlines()
         except:
             return False
@@ -300,7 +299,7 @@ class dial():
             if self.count > 3:
                 from monitor import backup
                 printf("Dial out has failed 3 time consecutively. Giving up and backing of files")
-                with open(self.default_path+"logs/dialout_list.log", "w+") as listd:
+                with open(self.default_path + "logs/dialout_list.log", "w+") as listd:
                     listd.write("")
                 for fil in in_waiting:
                     if fil.find("\n") != -1:
@@ -321,9 +320,9 @@ class dial():
             Bool -- True if success false otherwise
         """
         in_waiting = []
-        self.count = self.count+1
+        self.count = self.count + 1
         try:
-            with open(self.default_path+"logs/dialout_list.log", "r") as listd:
+            with open(self.default_path + "logs/dialout_list.log", "r") as listd:
                 in_waiting = listd.readlines()
         except:
             return False
@@ -376,7 +375,7 @@ class dial():
                 printf("Start sending  files ...")
                 self.update_log(filename, push=True)
                 for index, name in enumerate(filename):
-                    file_path = self.default_path+name
+                    file_path = self.default_path + name
                     if os.path.isdir(file_path):
                         self.print_queue(filename, index, name)
                         printf("This file is a directory")
@@ -385,12 +384,12 @@ class dial():
                         self.send_dir(files)
                     else:
                         self.print_queue(filename, index, name)
-                        resp = self.send(self.default_path+name)
+                        resp = self.send(self.default_path + name)
 
                         if resp:
                             self.clean_up(resp, file_path)
                             self.update_log(file_path)
-            self.count = self.count+1
+            self.count = self.count + 1
             self.send_fails()
             self.count = 0
             from execp import welcome
@@ -402,7 +401,7 @@ class dial():
             reschedule(start=True)
             get_stat()
             end = timer()
-            timing("Out", end-start)
+            timing("Out", end - start)
             printf("All Done with dial out session")
 
         except:
@@ -434,7 +433,7 @@ class dial():
             router_on(1)
             modem_on(1)
             sleep(10)
-            reply = post(self.router_host+self.router_config, auth=self.router_auth)
+            reply = post(self.router_host + self.router_config, auth=self.router_auth)
             if reply.status_code != 200:
                 printf(
                     "Failed to configure the router ip6600. Exiting now, will try again shortly!")
@@ -442,7 +441,7 @@ class dial():
                 return
 
             sleep(2)
-            reply = post(self.router_host+self.router_confirm, auth=self.router_auth)
+            reply = post(self.router_host + self.router_confirm, auth=self.router_auth)
             if reply.status_code != 200:
                 printf(
                     "Could not save the dial in conjuration. Exiting now, will try again shortly!")
@@ -460,13 +459,13 @@ class dial():
                     pass
                 sleep(60)
                 time_out = time_out + update - i
-                i = i+1
+                i = i + 1
             with open("/media/mmcblk0p1/logs/dialin", "w+") as d:
                 d.write("")
             printf("Dial in section timeout")
             reschedule(run="In")
             end = timer()
-            timing("In", end-start)
+            timing("In", end - start)
         except Exception as err:
             printf("Dial out session failed with {0}".format(err))
             traceback.print_exc(
@@ -479,11 +478,12 @@ class dial():
 
 
 class sbd():
+
     def __init__(self):
         self.port = ser('/dev/ttyS1')
         self.port.baudrate = 9600
         self.port.open()
-        self.port.timeout = 20
+        self.port.timeout = 60
 
     def SBD(self):
         from gpio import disable_serial, iridium_off, sbd_off, iridium_on, sbd_on, enable_serial
@@ -498,19 +498,19 @@ class sbd():
             enable_serial()
             sleep(10)
             self.solar_SBD()
-            sleep(60)
+            sleep(20)
             self.cr_SBD()
-            sleep(60)
+            sleep(20)
             self.aquadopp_SBD()
-            sleep(60)
+            sleep(20)
             self.vaisala_SBD()
-            sleep(60)
+            sleep(20)
             self.seabird_SBD()
-            sleep(60)
+            sleep(20)
             self.gps_sb()
-            printf("All Done with SBD")
+            printf("All Done with SBD sessions")
             end = timer()
-            timing("SBD", end-start)
+            timing("SBD", end - start)
             reschedule(run="SBD")
         except:
             reschedule(re="SBD")
@@ -577,7 +577,11 @@ class sbd():
         try:
             from seabird import seabird_sbd
             seabird = seabird_sbd()
-            self.iridium_send(seabird)
+            if isinstance(seabird, (list, tuple)):
+                for index, item in enumerate(seabird):
+                    self.iridium_send(item)
+            else:
+                self.iridium_send(seabird)
             printf("Done with Sea Bird SBD")
         except:
             self.p_err("Sea Bird ")
@@ -588,7 +592,7 @@ class sbd():
         try:
             from aquadopp import aquadopp_sbd
             aquadopp = aquadopp_sbd()
-            if isinstance(aquadopp_sbd, list):
+            if isinstance(aquadopp, (list, tuple)):
                 for index, item in enumerate(aquadopp):
                     self.iridium_send(item)
             else:
@@ -609,6 +613,30 @@ class sbd():
             return True
         return False
 
+    def sbd_split(self, msg):
+        """Split message longer than 120 char into small chuncks of messages.
+        
+        Arguments:
+            msg {str} -- Message to split
+        
+        Returns:
+            list -- A list of all chunck of message 
+        """
+        length = 100
+        sbd_msg = []
+        label = msg.split(":[")
+        # printf(str(label))
+        # printf(msg)
+        new_msg = label[1]
+        cnt = 0
+        while len(new_msg) > length:
+            sbd_msg.append(label[0] + "_{0}:".format(cnt) + new_msg[0:101])
+            new_msg = new_msg[101:]
+            cnt = cnt + 1
+        sbd_msg.append(label[0] + "_{0}:".format(cnt) + new_msg)
+        printf("Got {0} chunk(s) to send".format(len(sbd_msg)))
+        return sbd_msg
+
     def iridium_talk(self, comment):
         """Execute a command to the iridium
 
@@ -618,13 +646,57 @@ class sbd():
         Returns:
             [str] -- rebply from the iridium
         """
-        self.port.write(comment+"\r\n")
-        sleep(10)
-        response = self.port.read(self.port.inWaiting())
-        if not self.reply(response):
-            sleep(60)
+        response = ""
+        try:
+            self.port.flushInput()
+            self.port.write(comment + "\r\n")
+            sleep(10)
             response = self.port.read(self.port.inWaiting())
+            if not self.reply(response) or len(response) < 5:
+                sleep(10)
+                response = self.port.read(self.port.inWaiting())
+        except:
+            printf("Unable to talk to establish connection with irredium")
+            traceback.print_exc(
+                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         return response
+
+    def iridium_send_list(self, msg_list):
+        """Send a list of messages
+        
+        Arguments:
+            msg_list {list} -- A list of message to be sent. Can be a tuple
+        
+        Returns:
+            Bool -- Return true on successful run
+        """
+        if not isinstance(msg_list, list):
+            printf("The message to send is not a list")
+        else:
+            for inde, message in enumerate(msg_list):
+                self.port.flushInput()
+                data = self.iridium_talk("AT")
+                printf("Sending {0} bytes".format(len(message)))
+                commands = ["AT", "AT&K0", "AT+SBDWT={0}".format(message), "AT+SBDIX"]
+                for index, item in enumerate(commands):
+                    data = self.iridium_talk(item)
+                    # print(data)
+                    if index < len(commands) and not self.reply(data):
+                        printf("Iridium did not response to {0} command".format(item))
+                        printf(
+                            "Could also be a bad reply. Iridium says {0}".format(data))
+                    elif index == len(commands) - 1:
+                        ans = data.split("BDIX:")[1].split(",")
+                        # print(ans)
+                        if int(ans[0]) != 0:
+                            printf(
+                                "No service available")
+                        else:
+                            message = str(message)
+                            printf("Successfully send {0} bytes".format(len(message)))
+                        index = 0
+
+        return True
 
     def iridium_send(self, message):
         """Send message through the iridium
@@ -639,17 +711,20 @@ class sbd():
         self.port.flushInput()
         data = self.iridium_talk("AT")
         printf("Sending {0} bytes".format(len(message)))
-        if len(message) > 255:
-            printf("SBD message too long. Sending only the first 255 bytes")
-            message = message[0:253]
+        if len(message) > 115:
+            printf("Spliting message in small chunks")
+            message = self.sbd_split(message)
+            # printf(str(message))
+            self.iridium_send_list(message)
+            return
         commands = ["AT", "AT&K0", "AT+SBDWT={0}".format(message), "AT+SBDIX"]
         for index, item in enumerate(commands):
             data = self.iridium_talk(item)
             # print(data)
             if index < len(commands) and not self.reply(data):
-                printf("Iridium did not response to {0} command".format(item))
+                printf("Receive bad reply from iridium. Will skip to next SBD")
                 return False
-            elif index == len(commands)-1:
+            elif index == len(commands) - 1:
                 ans = data.split("BDIX:")[1].split(",")
                 # print(ans)
                 if int(ans[0]) != 0:
@@ -660,7 +735,6 @@ class sbd():
                     printf("Successfully send {0} bytes".format(len(message)))
                 index = 0
                 return True
-
         return True
 
     def read(self):

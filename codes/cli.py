@@ -406,8 +406,6 @@ def dts(args):
 def iridium(args):
     from python.iridium import sbd as sb
     s = sb()
-    if args.read:
-        print(s.read_sbd())
     if args.send:
         s.SBD()
 
