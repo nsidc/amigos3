@@ -55,7 +55,7 @@ class SSH():
             command {str} -- commands; can be a list of command
 
         Returns:
-            [list] -- Result of the copy
+            [list] -- Result of the execution
         """
         from subprocess import PIPE, Popen
         from time import sleep

@@ -80,7 +80,7 @@ class gps_data():
             sleep(2)
             date_af = datetime.datetime.now()
             printf("Time updated. Before: {0}; After: {1}".format(date_now, date_af))
-            print ("Before: {0}; After: {1}".format(date_now, date_af))
+            print("Before: {0}; After: {1}".format(date_now, date_af))
 
     def update_time(self, out=False):
         """Check for time update
@@ -317,7 +317,7 @@ class gps_data():
             sat = gps_data[0].num_sats
             # print(" Altitude: {0} m\n Longitude: {1} m\n Longitude Dir: {2}\n Latitude:{3}m\n Latitude Dir: {4}\n spd_over_grnd: {6} Kmph\n Total Satellites: {5}".format(
             #     Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd))
-            return "GPS:", date_time, Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd
+            return "GPS:[", date_time, Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd
         except:
             printf("Error getting GPS Nmea")
             traceback.print_exc(

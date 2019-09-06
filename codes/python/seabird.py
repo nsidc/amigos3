@@ -143,19 +143,18 @@ def seabird_sbd():
         if unit == "A":
             lastline1 = prep_sbd("90")
             lastline2 = prep_sbd("80")
-            lastlinetotal = lastline1 + lastline2
+            return lastline1, lastline2
         elif unit == "B":
             lastline1 = prep_sbd("05")
             lastline2 = prep_sbd("09")
-            lastlinetotal = lastline1 + lastline2
+            return lastline1, lastline2
         elif unit == "C":
             lastline1 = prep_sbd("80")
             lastline2 = prep_sbd("06")
             # lastline3 = prep_sbd("06")
             # lastline4 = prep_sbd("#Enter fourth Id for seabird on C - no battery unit")
             # Seabird data is short enough to send all 4 seabird's data in one SBD message
-            lastlinetotal = lastline1 + lastline2
-        return lastlinetotal
+            return lastline1,lastline2
     except:
         import traceback
         printf("Sea Bird SBD failed to run")

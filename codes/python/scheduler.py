@@ -381,6 +381,7 @@ def run_schedule():
     summer_task = s.sched()
     winter_task = w.sched()
     monitor_task = m.sched()
+    sleep(120)
     welcome()
     printf("")
     printf("The state of the schedule so far is presented in the table below.", date=True)
@@ -402,6 +403,9 @@ def run_schedule():
             summer_time = new_sched[0]
         # get the today date (tritron time must update to uptc time)
         today = datetime.now()
+        if today.hour == 0:
+            from dts import reset_clock
+            reset_clock()
         winter_start = today.replace(
             month=winter_time['start']['month'], day=winter_time['start']['day'], hour=0, minute=0, second=0, microsecond=0)
         winter_end = today.replace(
