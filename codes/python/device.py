@@ -145,6 +145,8 @@ def sorting():
 
 
 def is_on():
+    """Device is on
+    """
     is_on_array, is_off_array = sorting()
     for i in range(len(is_on_array)):
         print(is_on_array[i])
@@ -153,6 +155,8 @@ def is_on():
 
 
 def is_off():
+    """Device is off
+    """
     is_on_array, is_off_array = sorting()
     for j in range(len(is_off_array)):
         print(is_off_array[j])
