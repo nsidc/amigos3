@@ -11,5 +11,5 @@ install:
   - conda info -a
   - make env
   - make submodules
-test:
+script:
   - make test
