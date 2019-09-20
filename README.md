@@ -1,5 +1,7 @@
 # AMIGOS III operations command line interface
 
+[![Build Status](https://travis-ci.com/wallinb/amigos3.svg?branch=master)](https://travis-ci.com/wallinb/amigos3)
+
 ## Development
 
 ### Getting started
