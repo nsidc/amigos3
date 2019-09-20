@@ -29,3 +29,12 @@ test: lint  # run unit tests
 
 install: env submodules # install the environment and local source
 	python setup.py develop
+
+deploy: install-ssh-key # sync the code to the amigos box
+	scp -prCB codes root@amigos:/media/mmcblk0p1
+
+serial: # Connect to triton serial console
+	picocom -b 115200 /dev/ttyUSB0
+
+install-ssh-key:
+	cat ~/.ssh/id_rsa_amigos.pub | ssh root@amigos "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
