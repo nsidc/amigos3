@@ -1,4 +1,4 @@
-name: amigos
+name: amigos-test-env
 channels:
   - conda-forge
   - nsidc
