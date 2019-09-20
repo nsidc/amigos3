@@ -22,10 +22,10 @@ submodules:  # create conda testing environment
 	git submodule init && git submodule update
 
 lint:  # check style with flake8
-	source activate amigos && flake8
+	conda activate amigos && flake8
 
 test: lint  # run unit tests
-	source activate amigos && pytest --ignore amigos/ext
+	conda activate amigos && pytest --ignore amigos/ext
 
 install: env submodules # install the environment and local source
 	python setup.py develop
