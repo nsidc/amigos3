@@ -1,4 +1,4 @@
-.PHONY: env submodules lint test install deploy seril install-ssh-key help
+.PHONY: env submodules lint test install deploy serial install-ssh-key help
 .DEFAULT_GOAL := help
 
 SHELL=/bin/bash
