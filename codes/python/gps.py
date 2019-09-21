@@ -1,14 +1,15 @@
 # !/bin/python2
-from serial import Serial as ser
-from time import sleep
-# import binascii as bina
-from gpio import gps_off, gps_on, enable_serial, disable_serial
-import subprocess
-from execp import printf
-from monitor import reschedule
-import traceback
 import datetime
 import os
+import subprocess
+import traceback
+from time import sleep
+
+from execp import printf
+# import binascii as bina
+from gpio import disable_serial, enable_serial, gps_off, gps_on
+from monitor import reschedule
+from serial import Serial as ser
 
 
 def writeFile(file_name, strings, form):
@@ -25,27 +26,33 @@ def writeFile(file_name, strings, form):
     return True
 
 
-class gps_data():
+class gps_data:
     def __init__(self, *args, **kwargs):
         self.cmd = {
             # Binex command accepted by GPS
-            'binex': 'out,,binex/{00_00,01_01,01_02,01_05,01_06,7E_00,7D_00,7F_02,7F_03,7F_04,7F_05}',
+            "binex": (
+                "out,,binex/{00_00,01_01,01_02,01_05,01_06,"
+                "7E_00,7D_00,7F_02,7F_03,7F_04,7F_05}"
+            ),
             # Nmea Command accepted by GPS
-            'nmea': 'out,,nmea/{GGA,GLL,GMP,GNS,GRS,GSA,GST,GSV,HDT,RMC,ROT,VTG,ZDA,UID,P_ATT}',
-            'GPGGA': 'out,,nmea/GGA',
-            'GPVTG': 'out,,nmea/VTG'
+            "nmea": (
+                "out,,nmea/{GGA,GLL,GMP,GNS,GRS,GSA,GST,GSV,"
+                "HDT,RMC,ROT,VTG,ZDA,UID,P_ATT}"
+            ),
+            "GPGGA": "out,,nmea/GGA",
+            "GPVTG": "out,,nmea/VTG",
         }
         self.sequence = 1
         self.is_saved = False
         self.interval = 30
         self.timeout = 20
         try:
-            self.port = ser('/dev/ttyS0')  # set the port
+            self.port = ser("/dev/ttyS0")  # set the port
             self.port.baudrate = 115200  # set baudrate
             self.port.timeOut = None  # set port time out
-        except:
+        except Exception:
             self.port = None
-            printf('Unable to setup port ``\\_(*_*)_/``')
+            printf("Unable to setup port ``\\_(*_*)_/``")
 
     # @catch_exceptions(cancel_on_failure=True)
     def get_gpstime(self):
@@ -71,8 +78,6 @@ class gps_data():
             str_time {string} -- New time
             date_now {String} -- Old time
         """
-        # subprocess.call(
-        #     'bash /media/mmcblk0p1/codes/bash/set_time "{0}"'.format(str_time), shell=True)
         if len(str_time) < 4:
             pass
         else:
@@ -92,12 +97,11 @@ class gps_data():
         try:
             str_time = self.get_gpstime()
             date_now = datetime.datetime.now()
-            date_time_obj = datetime.datetime.strptime(
-                str_time, '%Y-%m-%d %H:%M:%S')
-            diff = str(date_time_obj-date_now)
+            date_time_obj = datetime.datetime.strptime(str_time, "%Y-%m-%d %H:%M:%S")
+            diff = str(date_time_obj - date_now)
             diff_split = diff.split(":")
             if diff.find("-") != -1:
-                diff = str(date_now-date_time_obj)
+                diff = str(date_now - date_time_obj)
                 diff_split = diff.split(":")
                 if diff.find("day") != -1:
                     self.update(str_time, date_now)
@@ -107,10 +111,9 @@ class gps_data():
                 print("Time difference is less than 1 minutes. No time update needed")
                 printf("Time difference is less than 1 minutes. No time update needed")
                 return
-        except:
+        except Exception:
             printf("Unable to update GPS time")
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         finally:
             if out:
                 gps_off(1)
@@ -125,7 +128,8 @@ class gps_data():
         """
         from monitor import timing
         from timeit import default_timer as timer
-        printf('GPS data acquisition started')
+
+        printf("GPS data acquisition started")
         try:
             # try opening the port
             start = timer()
@@ -133,61 +137,71 @@ class gps_data():
             enable_serial()
             gps_on(bit=1)
             sleep(60)
-        except:
+        except Exception:
             reschedule(re="get_binex")
             self.port = None
-            printf('An error occurred ``\\_(*_*)_/``')
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            printf("An error occurred ``\\_(*_*)_/``")
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             reschedule(re="get_binex")
 
         else:
             self.port.flushInput()
             self.sequence = 1
             printf("Collecting GPS binex data ...")
-            while self.sequence <= self.timeout*60/self.interval:
-                self.port.write(self.cmd['binex']+'\r')
+            while self.sequence <= self.timeout * 60 / self.interval:
+                self.port.write(self.cmd["binex"] + "\r")
                 sleep(2)
                 data = self.port.read(self.port.inWaiting())
-                writeFile(
-                    '/media/mmcblk0p1/logs/gps_binex_temp.log', data, 'w+')
+                writeFile("/media/mmcblk0p1/logs/gps_binex_temp.log", data, "w+")
                 try:
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
-                except:
-                    writeFile(
-                        '/media/mmcblk0p1/logs/gps_binex.log', '', 'a+')
+                        (
+                            "cat /media/mmcblk0p1/logs/gps_binex_temp.log"
+                            " >> /media/mmcblk0p1/logs/gps_binex.log"
+                        ),
+                        shell=True,
+                    )
+                except Exception:
+                    writeFile("/media/mmcblk0p1/logs/gps_binex.log", "", "a+")
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
+                        (
+                            "cat /media/mmcblk0p1/logs/gps_binex_temp.log"
+                            " >> /media/mmcblk0p1/logs/gps_binex.log"
+                        ),
+                        shell=True,
+                    )
                     printf("An error occurred during file dumping ``\\_(*_*)_/``")
                     traceback.print_exc(
-                        file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+                        file=open("/media/mmcblk0p1/logs/system.log", "a+")
+                    )
                 sleep(2)
                 if self.port.inWaiting() != 0:
                     data = self.port.read(self.port.inWaiting())
-                    writeFile(
-                        '/media/mmcblk0p1/logs/gps_binex_temp.log', data, 'w+')
+                    writeFile("/media/mmcblk0p1/logs/gps_binex_temp.log", data, "w+")
                     sleep(1)
                     subprocess.call(
-                        "cat /media/mmcblk0p1/logs/gps_binex_temp.log >> /media/mmcblk0p1/logs/gps_binex.log", shell=True)
-                sleep(self.interval-5)
-                self.sequence = self.sequence+1
+                        (
+                            "cat /media/mmcblk0p1/logs/gps_binex_temp.log"
+                            " >> /media/mmcblk0p1/logs/gps_binex.log"
+                        ),
+                        shell=True,
+                    )
+                sleep(self.interval - 5)
+                self.sequence = self.sequence + 1
             printf("Updating Tritron time")
             self.update_time()
             printf("Getting quick gps data for sbd")
             quick = self.quick_gps_data()
-            writeFile(
-                '/media/mmcblk0p1/logs/gps_nmea.log', str(quick)+"\n", 'a+')
+            writeFile("/media/mmcblk0p1/logs/gps_nmea.log", str(quick) + "\n", "a+")
             end = timer()
-            timing("get_binex", end-start)
+            timing("get_binex", end - start)
             printf("All done with gps")
             reschedule(run="get_binex")
         finally:
             # At every exit close the port, and turn off the GPS
             if self.port:
                 self.port.close()
-            subprocess.call(
-                "rm /media/mmcblk0p1/logs/gps_binex_temp.log", shell=True)
+            subprocess.call("rm /media/mmcblk0p1/logs/gps_binex_temp.log", shell=True)
             gps_off(bit=1)
             disable_serial()
 
@@ -198,15 +212,15 @@ class gps_data():
             [str] -- last GPS SBD data saved
         """
         try:
-            with open('/media/mmcblk0p1/logs/gps_nmea.log', 'r') as quick:
+            with open("/media/mmcblk0p1/logs/gps_nmea.log", "r") as quick:
                 q_data = quick.readlines()
                 from monitor import backup
-                backup('/media/mmcblk0p1/logs/gps_nmea.log')
+
+                backup("/media/mmcblk0p1/logs/gps_nmea.log")
                 return q_data[-1]
-        except:
+        except Exception:
             printf("GSP SBD failed to run")
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return ""
 
     def get_nmea(self, out=False):
@@ -222,17 +236,15 @@ class gps_data():
             gps_on(bit=1)
             sleep(90)
             self.port.flushInput()
-        except:
+        except Exception:
             self.port = None
-            printf('An error occurred ``\\_(*_*)_/``')
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            printf("An error occurred ``\\_(*_*)_/``")
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
-            self.port.write(self.cmd['nmea'] + "\r")
+            self.port.write(self.cmd["nmea"] + "\r")
             sleep(2)
             data = self.port.read(self.port.inWaiting())
-            writeFile(
-                '/media/mmcblk0p1/logs/gps_nmea.log', data, 'a+')
+            writeFile("/media/mmcblk0p1/logs/gps_nmea.log", data, "a+")
             sleep(2)
             return data.split("\n")
         finally:
@@ -253,16 +265,15 @@ class gps_data():
             gps_on(bit=1)
             sleep(30)
             self.port.flushInput()
-        except:
+        except Exception:
             self.port = None
-            printf('Unable to open port ``\\_(*_*)_/``')
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            printf("Unable to open port ``\\_(*_*)_/``")
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         else:
-            self.port.write(self.cmd['GPGGA']+"\r")
+            self.port.write(self.cmd["GPGGA"] + "\r")
             sleep(2)
             GPGGA = self.port.readline()
-            self.port.write(self.cmd['GPVTG']+"\r")
+            self.port.write(self.cmd["GPVTG"] + "\r")
             sleep(2)
             GPVTG = self.port.readline()
             return GPGGA, GPVTG
@@ -282,6 +293,7 @@ class gps_data():
         Return  GPGGA_parser, GPVTG_parser
         """
         import pynmea2 as nmea2
+
         GPGGA_parser = None
         GPVTG_parser = None
         try:
@@ -291,10 +303,9 @@ class gps_data():
                 GPGGA_parser = nmea2.parse(GPGGA)  # parser the data
                 GPVTG_parser = nmea2.parse(GPVTG)
             # print(GPGGA_parser, GPVTG_parser)
-        except:
+        except Exception:
             printf("Cant not parser GPS data to Nmea")
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         return GPGGA_parser, GPVTG_parser
 
     def quick_gps_data(self):
@@ -315,13 +326,20 @@ class gps_data():
             # retrive latitude direction
             spd_over_grnd = gps_data[1].spd_over_grnd_kmph
             sat = gps_data[0].num_sats
-            # print(" Altitude: {0} m\n Longitude: {1} m\n Longitude Dir: {2}\n Latitude:{3}m\n Latitude Dir: {4}\n spd_over_grnd: {6} Kmph\n Total Satellites: {5}".format(
-            #     Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd))
-            return "GPS:[", date_time, Altitude, Longitude, Longitude_Dir, Latitude, Latitude_Dir, sat, spd_over_grnd
-        except:
+            return (
+                "GPS:[",
+                date_time,
+                Altitude,
+                Longitude,
+                Longitude_Dir,
+                Latitude,
+                Latitude_Dir,
+                sat,
+                spd_over_grnd,
+            )
+        except Exception:
             printf("Error getting GPS Nmea")
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return 'GPS""'
 
 

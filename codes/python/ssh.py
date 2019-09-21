@@ -1,4 +1,4 @@
-class SSH():
+class SSH:
     def __init__(self, username, hostname):
         """Init
 
@@ -24,26 +24,55 @@ class SSH():
             [list] -- Result of the copy
         """
         from subprocess import PIPE, Popen
+
         out = None
         if not from_host:
             if not recursive:
-                p = Popen("scp {0}@{1}:{2} {3}".format(self.username, self.hosname, filename, dest),
-                          stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                p = Popen(
+                    "scp {0}@{1}:{2} {3}".format(
+                        self.username, self.hosname, filename, dest
+                    ),
+                    stdin=PIPE,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    shell=True,
+                )
                 out = p.communicate()
                 recursive = False
                 return out
-            p = Popen("scp -r {0}@{1}:{2} {3}".format(self.username, self.hosname, filename, dest),
-                      stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            p = Popen(
+                "scp -r {0}@{1}:{2} {3}".format(
+                    self.username, self.hosname, filename, dest
+                ),
+                stdin=PIPE,
+                stdout=PIPE,
+                stderr=PIPE,
+                shell=True,
+            )
             out = p.communicate()
         else:
             if not recursive:
-                p = Popen("scp {3} {0}@{1}:{2}".format(self.username, self.hosname, filename, dest),
-                          stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                p = Popen(
+                    "scp {3} {0}@{1}:{2}".format(
+                        self.username, self.hosname, filename, dest
+                    ),
+                    stdin=PIPE,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    shell=True,
+                )
                 out = p.communicate()
                 recursive = False
                 return out
-            p = Popen("scp -r  {3} {0}@{1}:{2} {3}".format(self.username, self.hosname, filename, dest),
-                      stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            p = Popen(
+                "scp -r  {3} {0}@{1}:{2} {3}".format(
+                    self.username, self.hosname, filename, dest
+                ),
+                stdin=PIPE,
+                stdout=PIPE,
+                stderr=PIPE,
+                shell=True,
+            )
             out = p.communicate()
 
         return out
@@ -59,15 +88,26 @@ class SSH():
         """
         from subprocess import PIPE, Popen
         from time import sleep
-        outt = ''
+
+        outt = ""
         if isinstance(commands, list):
             for index, command in enumerate(commands):
-                p = Popen("ssh {0}@{1} {2}".format(self.username, self.hosname, command),
-                          stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                p = Popen(
+                    "ssh {0}@{1} {2}".format(self.username, self.hosname, command),
+                    stdin=PIPE,
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    shell=True,
+                )
                 outt = outt + str(p.communicate())
                 sleep(1)
             return outt
-        p = Popen("ssh {0}@{1} {2}".format(self.username, self.hosname, commands),
-                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        p = Popen(
+            "ssh {0}@{1} {2}".format(self.username, self.hosname, commands),
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=PIPE,
+            shell=True,
+        )
         out = p.communicate()
         return out
