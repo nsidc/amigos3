@@ -615,7 +615,7 @@ def put_to_inactive_sleep(jobs):
             all_off(1)
             sleep(2)
             call(
-                "bash /media/mmcblk0p1/codes/bash/sleep {0}".format(time_interval - 1),
+                "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(time_interval - 1),
                 shell=True,
             )
     return next_job_name
@@ -659,7 +659,7 @@ def put_to_power_sleep():
                     all_off(1)
                     call("rm /media/mmcblk0p1/logs/sleep.log", shell=True)
                     call(
-                        "bash /media/mmcblk0p1/codes/bash/sleep {0}".format(59),
+                        "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(59),
                         shell=True,
                     )
                 else:
@@ -673,7 +673,7 @@ def put_to_power_sleep():
                     )
                     all_off(1)
                     call(
-                        "bash /media/mmcblk0p1/codes/bash/sleep {0}".format(30),
+                        "bash /media/mmcblk0p1/amigos/bash/sleep {0}".format(30),
                         shell=True,
                     )
             voltage = get_battery_voltage()

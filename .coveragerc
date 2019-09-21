@@ -4,4 +4,4 @@ source = codes
 omit = 
     **/test_*.py
     setup.py
-    codes/python/argparse.py
+    amigos/python/argparse.py

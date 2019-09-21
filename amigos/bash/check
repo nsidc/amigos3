@@ -13,11 +13,11 @@ while [ $i -le 3 ]; do
         echo "none" >/dev/null
 
     else
-        export LD_LIBRARY_PATH=/media/mmcblk0p1/codes/thumb/
+        export LD_LIBRARY_PATH=/media/mmcblk0p1/amigos/thumb/
         sleep 1
         time_now="$(date)"
         echo "${time_now:0:19} ${time_now:24}: Restarting Scheduler" >>/media/mmcblk0p1/logs/system.log
-        python /media/mmcblk0p1/codes/amigos.py &
+        python /media/mmcblk0p1/amigos/amigos.py &
         sleep 1
         power up the router
         # amigos power -m_on &
