@@ -13,4 +13,4 @@ install:
 script:
   - make test
 after_success:
-  - conda activate amigos-test-env && codecov
+  - make codecov
