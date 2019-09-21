@@ -16,7 +16,7 @@ test: lint  # run unit tests
 	source activate amigos-test-env && pytest --ignore ./amigos/ext --cov ./
 
 install: env submodules # install the environment and local source
-	python setup.py develop
+	source activate amigos-test-env && python setup.py develop
 
 deploy: install-ssh-key # sync the code to the amigos box
 	scp -prCB amigos root@amigos:/media/mmcblk0p1
