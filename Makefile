@@ -10,16 +10,19 @@ submodules:  # create conda testing environment
 	git submodule init && git submodule update
 
 lint:  # check style with flake8
-	source activate amigos-test-env && flake8 --exclude ./codes/ext,./codes/python/argparse.py
+	source activate amigos-test-env && flake8 --exclude ./amigos/ext,./amigos/python/argparse.py
 
 test: lint  # run unit tests
-	source activate amigos-test-env && pytest --ignore ./codes/ext --cov ./
+	source activate amigos-test-env && pytest --ignore ./amigos/ext --cov ./
+
+codecov:  # run codecov
+	source activate amigos-test-env && codecov
 
 install: env submodules # install the environment and local source
-	python setup.py develop
+	source activate amigos-test-env && python setup.py develop
 
 deploy: install-ssh-key # sync the code to the amigos box
-	scp -prCB codes root@amigos:/media/mmcblk0p1
+	scp -prCB amigos root@amigos:/media/mmcblk0p1
 
 serial: # Connect to triton serial console
 	picocom -b 115200 /dev/ttyUSB0

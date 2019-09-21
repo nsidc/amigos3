@@ -40,6 +40,7 @@ dependencies:
   - py=1.8.0=py_0
   - pycodestyle=2.5.0=py_0
   - pycparser=2.19=py27_1
+  - pyfakefs=3.6=py_0
   - pyflakes=2.1.1=py_0
   - pyopenssl=19.0.0=py27_0
   - pyparsing=2.4.0=py_0
