@@ -11,6 +11,7 @@ install:
   - conda info -a
   - make env
   - make submodules
+  - make install
 script:
   - make test
 after_success:
