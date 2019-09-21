@@ -13,7 +13,7 @@ lint:  # check style with flake8
 	source activate amigos-test-env && flake8 --exclude ./codes/ext,./codes/python/argparse.py
 
 test: lint  # run unit tests
-	source activate amigos-test-env && pytest --ignore ./codes/ext
+	source activate amigos-test-env && pytest --ignore ./codes/ext --cov ./
 
 install: env submodules # install the environment and local source
 	python setup.py develop

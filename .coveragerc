@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = codes
+omit = 
+    **/test_*.py
+    setup.py
+    codes/python/argparse.py
