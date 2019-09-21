@@ -71,7 +71,7 @@ class ptz_client:
         if service is not None and service != "getstatus":
 
             with open(
-                "/media/mmcblk0p1/codes/onvif/soap_{0}.xml".format(service), "r"
+                "/media/mmcblk0p1/amigos/onvif/soap_{0}.xml".format(service), "r"
             ) as soap:
                 self.msg = soap.read()  # open the file
             # calculate the value of the pan  [-1 to 1]
@@ -96,7 +96,7 @@ class ptz_client:
         # for the function get status
         else:
             with open(
-                "/media/mmcblk0p1/codes/onvif/soap_{0}.xml".format(service), "r"
+                "/media/mmcblk0p1/amigos/onvif/soap_{0}.xml".format(service), "r"
             ) as soap:
                 self.msg = soap.read()
 
