@@ -13,3 +13,4 @@ install:
   - make submodules
 script:
   - make test
+  - codecov

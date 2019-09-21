@@ -1,0 +1,5 @@
+[run]
+branch = True
+omit = 
+    ./codes/ext
+    ./codes/python/argparse.py
