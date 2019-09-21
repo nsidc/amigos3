@@ -9,9 +9,8 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - make env
-  - make submodules
+  - make install
 script:
   - make test
 after_success:
-  - codecov
+  - make codecov

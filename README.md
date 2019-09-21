@@ -1,6 +1,7 @@
 # AMIGOS III operations command line interface
 
 [![Build Status](https://travis-ci.com/wallinb/amigos3.svg?branch=master)](https://travis-ci.com/wallinb/amigos3)
+[![codecov](https://codecov.io/gh/wallinb/amigos3/branch/master/graph/badge.svg)](https://codecov.io/gh/wallinb/amigos3)
 
 ## Development
 

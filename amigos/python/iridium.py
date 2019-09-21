@@ -1,20 +1,24 @@
-from serial import Serial as ser
-from time import sleep
-from execp import printf
 import os
-from monitor import reschedule
-from subprocess import call, Popen, PIPE
 import traceback
+from subprocess import PIPE, Popen, call
+from time import sleep
+
+from execp import printf
+from monitor import reschedule
+from serial import Serial as ser
 
 
-class dial():
-
+class dial:
     def __init__(self, *args, **kwargs):
         self.username = "amigos3"
         self.pwd = "zaehoD1a"
         self.hostname = "128.138.135.165"
         self.router_host = "http://192.168.0.1:8080/cgi-bin/menuform.cgi?"
-        self.router_config = "ppp1_local_ip=192.168.0.1&ppp1_remote_ip=192.168.0.90&ppp1_override_remote_ip=enable"
+        self.router_config = (
+            "ppp1_local_ip=192.168.0.1&"
+            "ppp1_remote_ip=192.168.0.90&"
+            "ppp1_override_remote_ip=enable"
+        )
         self.router_confirm = "form=form_activate_config"
         self.router_auth = ("admin", "")
         self.default_path = "/media/mmcblk0p1/"
@@ -45,17 +49,18 @@ class dial():
         """
         ftp = None
         from ftplib import FTP
+
         try:
             ftp = FTP(self.hostname, timeout=5 * 60)
-        except:
+        except Exception:
             printf("FTP connection failed. Trying once more :(")
             try:
                 ftp = FTP(self.hostname, timeout=5 * 60)
-            except:
+            except Exception:
                 pass
         try:
             welcome = ftp.getwelcome()
-        except:
+        except Exception:
             # reschedule(re="Out")
             printf("Can not connect to server 128.138.135.165. No more try")
             if ftp is not None:
@@ -65,10 +70,10 @@ class dial():
             printf("Server sent a greeting :)")
             greeting = None
             try:
-                welcome = welcome[welcome.find("*****"): welcome.find(" *** ")]
+                welcome = welcome[welcome.find("*****") : welcome.find(" *** ")]  # noqa
                 greeting = []
                 greeting = greeting.append(welcome)
-            except:
+            except Exception:
                 # reschedule(re="Out")
                 printf("Server sent no greetting")
             if greeting is not None:
@@ -91,38 +96,52 @@ class dial():
         try:
             folder_name = file_name
             from execp import amigos_Unit
+
             unit = amigos_Unit()
             if file_name.find(".log") != -1:
-                folder_name = folder_name.replace(".log", '')
+                folder_name = folder_name.replace(".log", "")
             elif file_name.find(".jpg") != -1:
-                folder_name = folder_name.replace(".jpg", '')
+                folder_name = folder_name.replace(".jpg", "")
             import datetime
+
             time_now = datetime.datetime.now()
-            time_now = str(time_now.year) + "_" + str(time_now.month) + "_" + \
-                str(time_now.day) + "_" + str(time_now.hour) + \
-                "_" + str(time_now.minute) + "_"
+            time_now = (
+                str(time_now.year)
+                + "_"
+                + str(time_now.month)
+                + "_"
+                + str(time_now.day)
+                + "_"
+                + str(time_now.hour)
+                + "_"
+                + str(time_now.minute)
+                + "_"
+            )
             if file_name.find("\n") != -1:
-                file_name = file_name.replace("\n", '')
-                folder_name = folder_name.replace("\n", '')
+                file_name = file_name.replace("\n", "")
+                folder_name = folder_name.replace("\n", "")
             newname = folder_name.split("/")
             time_now = time_now + newname[-1] + unit
             newname[-1] = time_now
             try:
                 folder_name = "/".join(newname)
-            except:
+            except Exception:
                 self.update_log(file_name)
                 return None
             printf("zipping file ")
-            p = Popen("tar czf {0} {1}".format(folder_name + ".tar.gz", file_name),
-                      stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-            out = p.communicate()
-            # print(out)
+            p = Popen(
+                "tar czf {0} {1}".format(folder_name + ".tar.gz", file_name),
+                stdin=PIPE,
+                stdout=PIPE,
+                stderr=PIPE,
+                shell=True,
+            )
+            p.communicate()
             sleep(2)
             return folder_name + ".tar.gz"
-        except:
+        except Exception:
             printf("zipping failed :(")
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return None
 
     def send(self, path_file, own=False):
@@ -154,8 +173,11 @@ class dial():
             ftp.login(user=self.username, passwd=self.pwd)
             printf("Login successfully :)")
             printf("Starting {0} tranfer now!".format(path_file.split("/")[-1]))
-            response = ftp.storbinary("STOR " + path_file.split("/")
-                                      [-1], open(path_file, 'rb'), blocksize=1000)
+            response = ftp.storbinary(
+                "STOR " + path_file.split("/")[-1],
+                open(path_file, "rb"),
+                blocksize=1000,
+            )
             ftp.quit()
             if response.find("successfully") == -1:
                 printf("Failed to transfere files :(")
@@ -164,14 +186,14 @@ class dial():
             printf(response.replace("\n", ""))
             printf("Backing up files now ...")
             from monitor import backup
+
             backup(path_file, own)
             return True
-        except:
+        except Exception:
             # reschedule(re="Out")
             printf("Dial out failed :(")
             self.clean_up(True, path_file)
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return False
 
     def clean_up(self, resp, name):
@@ -187,7 +209,7 @@ class dial():
             else:
                 printf("Unknown error occurred. Dial out exit too soon :(")
                 return
-        except:
+        except Exception:
             pass
 
     def update_log(self, files, push=False):
@@ -197,7 +219,8 @@ class dial():
             files {string or list} -- List of file to keep track of
 
         Keyword Arguments:
-            push {bool} -- Generate a new list of files to keep track off (default: {False})
+            push {bool} -- Generate a new list of files to keep track off
+                (default: {False})
 
         Returns:
             bool -- True of success and false otherwise
@@ -210,31 +233,40 @@ class dial():
                     if os.path.isdir(file_path):
                         files = self.list_files(file_path)
                         for inde, item in enumerate(files):
-                            with open(self.default_path + "logs/dialout_list.log", "a+") as listd:
+                            with open(
+                                self.default_path + "logs/dialout_list.log", "a+"
+                            ) as listd:
                                 listd.write(item + "\n")
                     else:
-                        with open(self.default_path + "logs/dialout_list.log", "a+") as listd:
+                        with open(
+                            self.default_path + "logs/dialout_list.log", "a+"
+                        ) as listd:
                             listd.write(file_path + "\n")
                 else:
-                    printf("The file {0} is nonexistent. Skipping".format(
-                        file_path.split("/")[-1]))
+                    printf(
+                        "The file {0} is nonexistent. Skipping".format(
+                            file_path.split("/")[-1]
+                        )
+                    )
             push = False
             return True
         printf("Updating dial out files record")
         in_waiting = ""
-        pop = ""
         with open(self.default_path + "logs/dialout_list.log", "r") as listd:
             in_waiting = listd.readlines()
         from copy import deepcopy
+
         for index, item in enumerate(in_waiting):
             if item.find(files) != -1:
                 new_waiting = deepcopy(in_waiting)
-                pop = new_waiting.pop(index)
+                new_waiting.pop(index)
                 with open(self.default_path + "logs/dialout_list.log", "w+") as listd:
                     listd.write("")
                 for inde, ite in enumerate(new_waiting):
                     if ite not in ["", " ", None, " \n", "\n"]:
-                        with open(self.default_path + "logs/dialout_list.log", "a+") as listd:
+                        with open(
+                            self.default_path + "logs/dialout_list.log", "a+"
+                        ) as listd:
                             listd.write(ite)
                 index = 0
                 break
@@ -275,30 +307,39 @@ class dial():
         next_in = "Nothing"
         if index + 1 < len(filename):
             next_in = filename[index + 1]
-            if next_in.find(".log") != -1 or next_in.find(".jpg") != -1 or next_in.find(".csv") != -1:
+            if (
+                next_in.find(".log") != -1
+                or next_in.find(".jpg") != -1
+                or next_in.find(".csv") != -1
+            ):
                 next_in = next_in.split("/")[-1]
-        printf("Preparing {0} to be sent. Next in queue {1} ...".format(
-            name.split("/")[-1], next_in))
+        printf(
+            "Preparing {0} to be sent. Next in queue {1} ...".format(
+                name.split("/")[-1], next_in
+            )
+        )
 
     def send_fails(self):
         """send fails dial out files. Similar to send_leftover but do recursively
 
         Returns:
-            Bool -- Return True if some tasks that fails has been sent or false otherwise
+            Bool -- Return True if some tasks that fails has been sent else false
         """
         in_waiting = None
-        from timeit import default_timer as timer
-        from monitor import timing
-        start = timer()
+
         try:
             with open(self.default_path + "logs/dialout_list.log", "r") as listd:
                 in_waiting = listd.readlines()
-        except:
+        except Exception:
             return False
         while in_waiting:
             if self.count > 3:
                 from monitor import backup
-                printf("Dial out has failed 3 time consecutively. Giving up and backing of files")
+
+                printf(
+                    "Dial out has failed 3 time consecutively. "
+                    "Giving up and backing of files"
+                )
                 with open(self.default_path + "logs/dialout_list.log", "w+") as listd:
                     listd.write("")
                 for fil in in_waiting:
@@ -308,7 +349,10 @@ class dial():
                 break
             if in_waiting not in ["", " ", None, " \n", "\n"]:
                 printf(
-                    "(*_*) Sending files that fails previously. {0} tries".format(self.count))
+                    "(*_*) Sending files that fails previously. {0} tries".format(
+                        self.count
+                    )
+                )
                 self.send_leftover()
             else:
                 return False
@@ -324,7 +368,7 @@ class dial():
         try:
             with open(self.default_path + "logs/dialout_list.log", "r") as listd:
                 in_waiting = listd.readlines()
-        except:
+        except Exception:
             return False
         if in_waiting:
             if in_waiting[0] in ["", " ", None, " \n", "\n"] and len(in_waiting) < 2:
@@ -355,9 +399,17 @@ class dial():
         out. Support list  (default: {None})
         """
         printf("Starting dial out session")
-        from gpio import iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
+        from gpio import (
+            iridium_off,
+            iridium_on,
+            router_off,
+            router_on,
+            modem_off,
+            modem_on,
+        )
         from monitor import timing
         from timeit import default_timer as timer
+
         start = timer()
         iridium_on(1)
         router_on(1)
@@ -365,8 +417,8 @@ class dial():
         sleep(30)
         try:
             files_to_send = ["logs/gps_binex.log", "picture", "dts", "logs/system.log"]
-            if filename != None:
-                if isinstance(filename, basestring):
+            if filename is not None:
+                if isinstance(filename, basestring):  # noqa
                     printf("Sending requested file {0} ...".format(filename))
                     self.send(filename, own=True)
             if not self.send_leftover():
@@ -393,24 +445,28 @@ class dial():
             self.send_fails()
             self.count = 0
             from execp import welcome
+
             welcome()
             printf(
-                "The state of the schedule so far is presented in the table below.", date=True)
+                "The state of the schedule so far is presented in the table below.",
+                date=True,
+            )
             reschedule(run="Out")
             from monitor import get_stat
+
             reschedule(start=True)
             get_stat()
             end = timer()
             timing("Out", end - start)
             printf("All Done with dial out session")
 
-        except:
+        except Exception:
             # reschedule(re="Out")
             printf("Dial out failed ")
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         finally:
             from gpio import is_on_checker
+
             if is_on_checker(1, 7):
                 iridium_off(1)
                 router_off(1)
@@ -424,9 +480,17 @@ class dial():
         """
         try:
             from requests import post
-            from gpio import iridium_off, iridium_on, router_off, router_on, modem_off, modem_on
+            from gpio import (
+                iridium_off,
+                iridium_on,
+                router_off,
+                router_on,
+                modem_off,
+                modem_on,
+            )
             from monitor import timing
             from timeit import default_timer as timer
+
             printf("Started dial in section")
             start = timer()
             iridium_on(1)
@@ -436,7 +500,9 @@ class dial():
             reply = post(self.router_host + self.router_config, auth=self.router_auth)
             if reply.status_code != 200:
                 printf(
-                    "Failed to configure the router ip6600. Exiting now, will try again shortly!")
+                    "Failed to configure the router ip6600. "
+                    "Exiting now, will try again shortly!"
+                )
                 reschedule(re="In")
                 return
 
@@ -444,7 +510,9 @@ class dial():
             reply = post(self.router_host + self.router_confirm, auth=self.router_auth)
             if reply.status_code != 200:
                 printf(
-                    "Could not save the dial in conjuration. Exiting now, will try again shortly!")
+                    "Could not save the dial in conjuration. "
+                    "Exiting now, will try again shortly!"
+                )
                 reschedule(re="In")
                 return
             update = 0
@@ -455,7 +523,7 @@ class dial():
                         update = int(d.read())
                     if update != update:
                         printf("{0} extra minutes was added by a user".format(update))
-                except:
+                except Exception:
                     pass
                 sleep(60)
                 time_out = time_out + update - i
@@ -468,8 +536,7 @@ class dial():
             timing("In", end - start)
         except Exception as err:
             printf("Dial out session failed with {0}".format(err))
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             reschedule(re="In")
         finally:
             iridium_off(1)
@@ -477,18 +544,25 @@ class dial():
             modem_off(1)
 
 
-class sbd():
-
+class sbd:
     def __init__(self):
-        self.port = ser('/dev/ttyS1')
+        self.port = ser("/dev/ttyS1")
         self.port.baudrate = 9600
         self.port.open()
         self.port.timeout = 60
 
     def SBD(self):
-        from gpio import disable_serial, iridium_off, sbd_off, iridium_on, sbd_on, enable_serial
+        from gpio import (
+            disable_serial,
+            iridium_off,
+            sbd_off,
+            iridium_on,
+            sbd_on,
+            enable_serial,
+        )
         from monitor import timing
         from timeit import default_timer as timer
+
         try:
             start = timer()
             printf("Starting SBD session")
@@ -512,7 +586,7 @@ class sbd():
             end = timer()
             timing("SBD", end - start)
             reschedule(run="SBD")
-        except:
+        except Exception:
             reschedule(re="SBD")
         finally:
             disable_serial()
@@ -521,19 +595,19 @@ class sbd():
 
     def p_err(self, device):
         printf("{0} SBD failed ".format(device))
-        traceback.print_exc(
-            file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+        traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
 
     def solar_SBD(self):
         # collect array of solar data from other scripts
         printf("Sending Solar SBD")
         try:
             from solar import solar_live
+
             solarclass = solar_live()
             solar = solarclass.solar_sbd()
             self.iridium_send(solar)
             printf("Done with Solar SBD")
-        except:
+        except Exception:
             self.p_err("Solar SBD ")
 
     def vaisala_SBD(self):
@@ -541,11 +615,12 @@ class sbd():
         printf("Sending Vaisala SBD")
         try:
             from vaisala import Average_Reading
+
             vaisala_class = Average_Reading()
             vaisala = vaisala_class.vaisala_sbd()
             self.iridium_send(vaisala)
             printf("Done with Vaisala SBD")
-        except:
+        except Exception:
             self.p_err("Vaisala")
 
     def cr_SBD(self):
@@ -553,22 +628,24 @@ class sbd():
         printf("Sending CR1000X SBD")
         try:
             from cr1000x import cr1000x
+
             crclass = cr1000x()
             cr = crclass.cr_sbd()
             self.iridium_send(cr)
             printf("Done with CR100x SBD")
 
-        except:
+        except Exception:
             self.p_err("CR1000X SBD")
 
     def gps_sb(self):
         printf("Started GPS SBD")
         try:
             from gps import gps_data
+
             gps = gps_data()
             to_send = gps.gps_sbd()
             self.iridium_send(to_send)
-        except:
+        except Exception:
             self.p_err("GPS SBD")
 
     def seabird_SBD(self):
@@ -576,6 +653,7 @@ class sbd():
         printf("Sending Sea Bird SBD")
         try:
             from seabird import seabird_sbd
+
             seabird = seabird_sbd()
             if isinstance(seabird, (list, tuple)):
                 for index, item in enumerate(seabird):
@@ -583,7 +661,7 @@ class sbd():
             else:
                 self.iridium_send(seabird)
             printf("Done with Sea Bird SBD")
-        except:
+        except Exception:
             self.p_err("Sea Bird ")
 
     def aquadopp_SBD(self):
@@ -591,13 +669,14 @@ class sbd():
         printf("Sending Aquadopp SBD")
         try:
             from aquadopp import aquadopp_sbd
+
             aquadopp = aquadopp_sbd()
             if isinstance(aquadopp, (list, tuple)):
                 for index, item in enumerate(aquadopp):
                     self.iridium_send(item)
             else:
                 self.iridium_send(aquadopp)
-        except:
+        except Exception:
             self.p_err("Aquadopp")
 
     def reply(self, resp):
@@ -615,12 +694,12 @@ class sbd():
 
     def sbd_split(self, msg):
         """Split message longer than 120 char into small chuncks of messages.
-        
+
         Arguments:
             msg {str} -- Message to split
-        
+
         Returns:
-            list -- A list of all chunck of message 
+            list -- A list of all chunck of message
         """
         length = 100
         sbd_msg = []
@@ -655,18 +734,17 @@ class sbd():
             if not self.reply(response) or len(response) < 5:
                 sleep(10)
                 response = self.port.read(self.port.inWaiting())
-        except:
+        except Exception:
             printf("Unable to talk to establish connection with irredium")
-            traceback.print_exc(
-                file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         return response
 
     def iridium_send_list(self, msg_list):
         """Send a list of messages
-        
+
         Arguments:
             msg_list {list} -- A list of message to be sent. Can be a tuple
-        
+
         Returns:
             Bool -- Return true on successful run
         """
@@ -684,13 +762,13 @@ class sbd():
                     if index < len(commands) and not self.reply(data):
                         printf("Iridium did not response to {0} command".format(item))
                         printf(
-                            "Could also be a bad reply. Iridium says {0}".format(data))
+                            "Could also be a bad reply. Iridium says {0}".format(data)
+                        )
                     elif index == len(commands) - 1:
                         ans = data.split("BDIX:")[1].split(",")
                         # print(ans)
                         if int(ans[0]) != 0:
-                            printf(
-                                "No service available")
+                            printf("No service available")
                         else:
                             message = str(message)
                             printf("Successfully send {0} bytes".format(len(message)))
@@ -728,8 +806,7 @@ class sbd():
                 ans = data.split("BDIX:")[1].split(",")
                 # print(ans)
                 if int(ans[0]) != 0:
-                    printf(
-                        "No service available")
+                    printf("No service available")
                 else:
                     message = str(message)
                     printf("Successfully send {0} bytes".format(len(message)))
@@ -739,12 +816,12 @@ class sbd():
 
     def read(self):
         try:
-            port = ser('/dev/ttyS1')
+            port = ser("/dev/ttyS1")
             port.baudrate = 9600
             port.timeout = 60
             port.open()
-        except:
-            printf('Unable to open port')
+        except Exception:
+            printf("Unable to open port")
             return None
         rev = port.read(port.inWaiting())
         return rev
