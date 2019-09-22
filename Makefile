@@ -21,7 +21,7 @@ codecov:  # run codecov
 install: env submodules # install the environment and local source
 	source activate amigos-test-env && python setup.py develop
 
-deploy: install-ssh-key # sync the code to the amigos box
+deploy: # sync the code to the amigos box
 	scp -prCB amigos root@amigos:/media/mmcblk0p1
 
 serial: # Connect to triton serial console
