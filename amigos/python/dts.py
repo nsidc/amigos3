@@ -214,9 +214,9 @@ def update_win_time():
     """Update windows unit time
     """
     import datetime
+    from ssh import SSH
 
     time_now = str(datetime.datetime.now()).split(".")[0]
-    from ssh import SSH
 
     printf("Updating Windows unit time")
     ssh = SSH("admin", "192.168.0.50")
@@ -227,10 +227,10 @@ def ssh():
     """Entry point of DTS files retrival and execution plus time update on windows unit
     """
     try:
-        from gpio import dts_on, dts_off, modem_on, modem_off
+        from gpio import dts_on, dts_off, hub_on, hub_off
 
         printf("DTS data acquisition started")
-        modem_on(1)
+        hub_on(1)
         dts_on(1)
         sleep(15 * 60)
         count = 0
@@ -269,7 +269,6 @@ def ssh():
         printf("Not able to turn on the windows computer to run dts")
         traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
     else:
-        # print(re)
         if array_files:
             printf("Start processing files from Channel 1 only")
         try:
@@ -283,13 +282,12 @@ def ssh():
             traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
             return
         ssh.execute(["rm -rf Desktop/dts_data", "mkdir Desktop/dts_data"])
-        # print(out)
         count = 0
         call("rm -rf /media/mmcblk0p1/dts_data", shell=True)
         printf("Removed copied files from Win unit and Tritron")
         printf("All done with DTS :)")
     finally:
-        modem_off(1)
+        hub_off(1)
         if not para[0]:
             reschedule(run="ssh")
             dts_off(1)
