@@ -223,6 +223,7 @@ def ssh():
         if para[0] is True:
             printf("Have already tried to update dts schedule. Will try again after time reset")
             dts_off(1)
+            modem_off(1)
         try:
             printf("Getting the last date of file drop from DTS")
             path_win = "/".join(array_dirs[2].split("/")[3:])
@@ -265,10 +266,10 @@ def ssh():
         printf("Removed copied files from Win unit and Tritron")
         printf("All done with DTS :)")
     finally:
-        modem_off(1)
         if not para[0]:
             reschedule(run="ssh")
             dts_off(1)
+            modem_off(1)
 
 
 if __name__ == "__main__":
