@@ -21,9 +21,9 @@ def __toggle(bit):
     subprocess.call("echo {0} > /sys/class/gpio/pwr_ctl/index".format(bit), shell=True)
 
 
-def modem_on(bit):
+def hub_on(bit):
     """
-    Turn modem module power on after toggling the bit
+    Turn hub module power on after toggling the bit
     """
     if bit:
         with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
@@ -39,9 +39,9 @@ def modem_on(bit):
         __update_bit(bit_string[0] + "," + bit_str + "," + bit_string[2])
 
 
-def modem_off(bit):
+def hub_off(bit):
     """
-    Turn modem module power off after toggling the bit
+    Turn hub module power off after toggling the bit
     """
     if bit:
         with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
