@@ -29,7 +29,7 @@ class SSH:
         if not from_host:
             if not recursive:
                 p = Popen(
-                    "scp {0}@{1}:{2} {3}".format(
+                    "scp -i id_rsa_windows {0}@{1}:{2} {3}".format(
                         self.username, self.hosname, filename, dest
                     ),
                     stdin=PIPE,
@@ -41,7 +41,7 @@ class SSH:
                 recursive = False
                 return out
             p = Popen(
-                "scp -r {0}@{1}:{2} {3}".format(
+                "scp -i id_rsa_windows -r {0}@{1}:{2} {3}".format(
                     self.username, self.hosname, filename, dest
                 ),
                 stdin=PIPE,
@@ -53,7 +53,7 @@ class SSH:
         else:
             if not recursive:
                 p = Popen(
-                    "scp {3} {0}@{1}:{2}".format(
+                    "scp -i id_rsa_windows {3} {0}@{1}:{2}".format(
                         self.username, self.hosname, filename, dest
                     ),
                     stdin=PIPE,
@@ -65,7 +65,7 @@ class SSH:
                 recursive = False
                 return out
             p = Popen(
-                "scp -r  {3} {0}@{1}:{2} {3}".format(
+                "scp -i id_rsa_windows -r  {3} {0}@{1}:{2} {3}".format(
                     self.username, self.hosname, filename, dest
                 ),
                 stdin=PIPE,
@@ -93,7 +93,9 @@ class SSH:
         if isinstance(commands, list):
             for index, command in enumerate(commands):
                 p = Popen(
-                    "ssh {0}@{1} {2}".format(self.username, self.hosname, command),
+                    "ssh -i /root/id_rsa_windows {0}@{1} {2}".format(
+                        self.username, self.hosname, command
+                    ),
                     stdin=PIPE,
                     stdout=PIPE,
                     stderr=PIPE,
@@ -103,7 +105,9 @@ class SSH:
                 sleep(1)
             return outt
         p = Popen(
-            "ssh {0}@{1} {2}".format(self.username, self.hosname, commands),
+            "ssh -i id_rsa_windows {0}@{1} {2}".format(
+                self.username, self.hosname, commands
+            ),
             stdin=PIPE,
             stdout=PIPE,
             stderr=PIPE,
