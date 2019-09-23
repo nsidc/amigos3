@@ -100,14 +100,14 @@ class summer:
         self.sched_summer.every().day.at("19:20").do(di.In)
 
     def dts(self):
-        from dts import ssh
+        import dts
 
-        self.sched_summer.every().day.at("03:05").do(ssh)
-        self.sched_summer.every().day.at("07:05").do(ssh)
-        self.sched_summer.every().day.at("11:05").do(ssh)
-        self.sched_summer.every().day.at("15:05").do(ssh)
-        self.sched_summer.every().day.at("19:05").do(ssh)
-        self.sched_summer.every().day.at("23:05").do(ssh)
+        self.sched_summer.every().day.at("03:05").do(dts.acquire)
+        self.sched_summer.every().day.at("07:05").do(dts.acquire)
+        self.sched_summer.every().day.at("11:05").do(dts.acquire)
+        self.sched_summer.every().day.at("15:05").do(dts.acquire)
+        self.sched_summer.every().day.at("19:05").do(dts.acquire)
+        self.sched_summer.every().day.at("23:05").do(dts.acquire)
 
     def sbd(self):
         # box A
@@ -206,9 +206,9 @@ class winter:
         self.sched_winter.every().day.at("19:20").do(di.In)
 
     def dts(self):
-        from dts import ssh
+        import dts
 
-        self.sched_winter.every().day.at("21:05").do(ssh)
+        self.sched_winter.every().day.at("21:05").do(dts.acquire)
 
     def sbd(self):
         ss = sb()
