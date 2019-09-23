@@ -1,6 +1,5 @@
 import os
 import shutil
-from subprocess import call
 from time import sleep
 
 from execp import printf
