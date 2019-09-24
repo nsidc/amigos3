@@ -1,7 +1,7 @@
 [run]
 branch = True
-source = codes
+source = honcho
 omit = 
     **/test_*.py
     setup.py
-    amigos/python/argparse.py
+    honcho/core/argparse.py
