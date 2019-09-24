@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
     name="amigos",
-    version="0.1.0",
+    version="0.1.3",
     description="AMIGOS III operations program",
     author="Bruce Wallin, coovi meha",
     author_email="bruce.wallin@nsidc.org, coovi.meha@colorado.edu",
