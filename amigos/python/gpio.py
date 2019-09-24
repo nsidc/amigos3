@@ -1,5 +1,8 @@
 import subprocess as subprocess
 
+INDEX_DEVICE = "/sys/class/gpio/pwr_ctl/index"
+DATA_DEVICE = "/sys/class/gpio/pwr_ctl/data"
+
 GPIO = {
     'sbd': {'index': 0, 'mask': int('0b00000001', 2)},
     'gps': {'index': 0, 'mask': int('0b00000010', 2)},
@@ -29,13 +32,13 @@ GPIO = {
 
 
 def set_index(index):
-    with open("/sys/class/gpio/pwr_ctl/index", "wb") as f:
+    with open(INDEX_DEVICE, "wb") as f:
         f.write(hex(index))
 
 
 def get_value(index):
     set_index(index)
-    with open("/sys/class/gpio/pwr_ctl/data", "rb") as f:
+    with open(DATA_DEVICE, "rb") as f:
         return int(f.read().strip(), 16)
 
 
@@ -44,7 +47,7 @@ def set_mask(index, mask):
     new_value = value | mask
 
     set_index(index)
-    with open("/sys/class/gpio/pwr_ctl/index", "wb") as f:
+    with open(DATA_DEVICE, "wb") as f:
         f.write(hex(new_value))
 
 
@@ -53,7 +56,7 @@ def unset_mask(index, mask):
     new_value = value & ~mask
 
     set_index(index)
-    with open("/sys/class/gpio/pwr_ctl/index", "wb") as f:
+    with open(DATA_DEVICE, "wb") as f:
         f.write(hex(new_value))
 
 
@@ -107,15 +110,15 @@ def imm_off():
 
 def all_off():
     for index in range(3):
-        set_mask(index, 0)
+        unset_mask(index, 255)
 
 
-def shutdown(bit):
+def shutdown():
     all_off()
     subprocess.call("shutdown -h now", shell=True)
 
 
-def reboot(bit):
+def reboot():
     all_off()
     subprocess.call("reboot", shell=True)
 
