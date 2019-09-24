@@ -352,7 +352,7 @@ def camera(args):
     from honcho.core.camera import ptz_client
 
     ptz = ptz_client()
-    if set(args.pan, args.tilt, args.zoom) != {None}:
+    if set([args.pan, args.tilt, args.zoom]) != set([None]):
         ptz.send(typeof="absolute", pan=args.pan, tilt=args.tilt, zoom=args.zoom)
     if args.snapshot:
         ptz.snapShot()
