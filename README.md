@@ -1,4 +1,4 @@
-# AMIGOS III operations command line interface
+# The AMIGOS III operations system and command line interface
 
 [![Build Status](https://travis-ci.com/wallinb/amigos3.svg?branch=master)](https://travis-ci.com/wallinb/amigos3)
 [![codecov](https://codecov.io/gh/wallinb/amigos3/branch/master/graph/badge.svg)](https://codecov.io/gh/wallinb/amigos3)
@@ -28,7 +28,7 @@ Dependencies in the development environment are managed with [Conda](https://doc
 1. Activate the environment
 
     ```
-    $ conda activate amigos
+    $ conda activate amigos-test-env
     ```
 
 1. Install amigos CLI commands (local to source directory)
@@ -44,30 +44,3 @@ Due to poor support for Python 2.6, tests are run in a separate Python 2.7 envir
 ```
 make test
 ```
-
-Hard way:
-
-1. from the repository directory, run
-
-
-    ```
-    $ conda env create -f environment-testing.yml
-    ```
-
-    This will create a 'amigos' environment with the correct version of python and dependencies for the project.
-
-1. Activate the environment
-
-    ```
-    $ conda activate amigos-testing
-    ```
-
-1. Run tests
-
-    ```
-    $ pytest --ignore amigos/ext
-    ```
-
-### Deployment
-
-TODO
