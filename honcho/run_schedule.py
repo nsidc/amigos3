@@ -1,8 +1,9 @@
-from python.scheduler import signals, run_schedule
-import traceback
-from python.gpio import all_off
-from python.execp import printf
 import sys
+import traceback
+
+from honcho.core.execp import printf
+from honcho.core.gpio import all_off
+from honcho.core.scheduler import run_schedule, signals
 
 try:
     # s.all_off(1)
