@@ -4,8 +4,8 @@ import shutil
 from bisect import bisect
 from time import sleep
 
-import amigos.logs as logs
-from amigos.util import ensure_dirs
+import honcho.logs as logs
+from honcho.util import ensure_dirs
 
 DTS_PULL_DELAY = 60 * 5
 DTS_WIN_DATA_DIR = 'Desktop/dts_data'

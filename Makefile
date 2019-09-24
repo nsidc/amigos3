@@ -26,7 +26,7 @@ clean:
 
 deploy: clean env submodules# sync the code to the amigos box
 	ssh root@amigos "rm -rf /media/mmcblk0p1/*"
-	scp -prCB amigos root@amigos:/media/mmcblk0p1
+	scp -prCB honcho root@amigos:/media/mmcblk0p1
 
 serial: # Connect to triton serial console
 	picocom -b 115200 /dev/ttyUSB0
