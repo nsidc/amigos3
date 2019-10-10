@@ -187,6 +187,24 @@ def add_power_parser(subparsers):
 
     group = power.add_mutually_exclusive_group()
     group.add_argument(
+        "--win-on",
+        help="Windows box on",
+        action="append_const",
+        default=[],
+        const=gpio.win_on,
+        dest='callbacks',
+    )
+    group.add_argument(
+        "--win-off",
+        help="Windows box off",
+        action="append_const",
+        default=[],
+        const=gpio.win_off,
+        dest='callbacks',
+    )
+
+    group = power.add_mutually_exclusive_group()
+    group.add_argument(
         "--dts-on",
         help="dts on",
         action="append_const",
@@ -300,12 +318,12 @@ def add_sbd_parser(subparsers):
     group.add_argument("--read", help="read sbd", action="store_true")
 
 
-def add_dial_parser(subparsers):
-    dial = subparsers.add_parser('dial')
+def add_iridium_parser(subparsers):
+    iridium = subparsers.add_parser('iridium')
 
-    group = dial.add_mutually_exclusive_group()
-    group.add_argument("--out", help="dial out files through", action="store_true")
-    dial.add_argument("--in", help="Configure for dial in", action="store_true")
+    group = iridium.add_mutually_exclusive_group()
+    group.add_argument("--dial-out", help="dial out files through", action="store_true")
+    group.add_argument("--dial-in", help="Configure for dial in", action="store_true")
 
 
 def add_gps_parser(subparsers):
@@ -403,8 +421,14 @@ def sleep_mode(args):
         print("Sleep mode is disactivated. Please remember to reactivate it")
 
 
-# def dial(args):
-#     raise NotImplementedError
+def iridium(args):
+    from honcho.core.iridium import dial
+
+    d = dial()
+    if args.dial_in:  # noqa
+        d.In(time_out=60 * 6)
+    elif args.dial_out:
+        d.Out()
 
 
 def weather(args):
@@ -421,6 +445,7 @@ def build_parser():
     add_sleep_parser(subparsers)
     add_cr1000x_parser(subparsers)
     add_serial_parser(subparsers)
+    add_iridium_parser(subparsers)
 
     return parser
 
@@ -431,7 +456,7 @@ def main():
 
     logs.init_logging(getattr(logging, args.log_level))
 
-    if args.callbacks:
+    if getattr(args, 'callbacks', False):
         for callback in args.callbacks:
             callback()
 
@@ -441,6 +466,8 @@ def main():
         cr1000x(args)
     if args.command == 'gps':
         gps(args)
+    if args.command == 'iridium':
+        iridium(args)
 
 
 if __name__ == "__main__":
