@@ -17,7 +17,7 @@ def read_aquadopp(ID):
         from gpio import imm_off, imm_on, enable_serial, disable_serial
 
         printf("Getting files from aquadopp {0}".format(ID))
-        imm_on(1)
+        imm_on()
         enable_serial()
         sleep(10)
         from serial import Serial as ser

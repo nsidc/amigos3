@@ -18,8 +18,8 @@ class cr1000x:
 
         printf("Cr1000 data acquisition started")
         start = timer()
-        hub_on(1)
-        cr1000_on(1)
+        hub_on()
+        cr1000_on()
         sleep(10)
         labels = []
         values = []
@@ -199,8 +199,8 @@ class cr1000x:
             reschedule(run="cr1000")
             printf("Cr1000 data acquisition done :)")
         finally:
-            cr1000_off(1)
-            hub_off(1)
+            cr1000_off()
+            hub_off()
 
 
 # CR1000X Live Data Reading Class
@@ -211,11 +211,11 @@ class cr1000x_live:
         from gpio import cr1000_off, cr1000_on, is_on_checker, hub_on, hub_off
 
         try:
-            hub_on(1)
+            hub_on()
             is_on = is_on_checker(0, 5)
             if not is_on:
                 # Turn on CR1000x
-                cr1000_on(1)
+                cr1000_on()
                 sleep(10)
         except Exception:
             printf("Problem with port or problem with power to the CR1000")
@@ -246,8 +246,8 @@ class cr1000x_live:
         finally:
             if not is_on:
                 # Turn off CR1000
-                cr1000_off(1)
-                hub_off(1)
+                cr1000_off()
+                hub_off()
 
     def cr_all(self):
         data = self.cr_read()
