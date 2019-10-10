@@ -1,11 +1,23 @@
 import os
+import re
+import uuid
 from collections import MutableMapping
+
+from honcho.config import UNITS
 
 
 def ensure_dirs(directories):
     for directory in directories:
         if not os.path.exists(directory):
             os.makedirs(directory)
+
+
+def unit_name():
+    mac_address = ":".join(re.findall("..", "%012x" % uuid.getnode()))
+    matches = [unit['name'] for unit in UNITS if unit['mac_address'] == mac_address]
+    assert len(matches) == 1
+
+    return matches.pop()
 
 
 class OrderedDict(dict, MutableMapping):
