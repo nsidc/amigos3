@@ -2,7 +2,7 @@
 import logging
 from time import sleep
 
-import honcho.argparse as argparse
+import honcho.ext.argparse as argparse
 import honcho.logs as logs
 from honcho.version import version
 
