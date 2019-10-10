@@ -453,7 +453,7 @@ def run_schedule():
 if __name__ == "__main__":
     try:
         signals()
-        hub_on(1)
+        hub_on()
         run_schedule()
     except Exception as err:
         printf(

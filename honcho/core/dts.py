@@ -102,13 +102,13 @@ def write(metadata, measurements, filepath):
 def acquire():
     """Entry point of DTS files retrival and execution plus time update on windows unit
     """
-    from gpio import dts_on, dts_off, hub_on, hub_off
+    from gpio import dts_on, dts_off, hub_on, hub_off, win_on, win_off
     from ssh import SSH
 
     logger.info("Turning on DTS and windows unit")
-    hub_on(1)
-    # win_on()
-    dts_on(1)
+    hub_on()
+    win_on()
+    dts_on()
 
     logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
     sleep(DTS_PULL_DELAY)
@@ -137,15 +137,14 @@ def acquire():
         metadata, measurements = parse_xml(filepath)
         measurements = process_measurements(measurements)
         write(metadata, measurements, output_filepath(filepath))
-        break
 
     logger.info("Processing DTS complete, cleaning up")
     ssh.execute("rm -rf {glob}".format(glob=win_data_glob))
     shutil.rmtree(DTS_RAW_DATA_DIR)
 
-    hub_off(1)
-    dts_off(1)
-    # win_off()
+    hub_off()
+    dts_off()
+    win_off()
 
 
 if __name__ == "__main__":
