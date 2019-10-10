@@ -24,7 +24,7 @@ install: env submodules # install the environment and local source
 clean:
 	find . -name '*.pyc' -delete
 
-deploy: clean env submodules# sync the code to the amigos box
+deploy: clean # sync the code to the amigos box
 	ssh root@amigos "rm -rf /media/mmcblk0p1/*"
 	scp -prCB honcho root@amigos:/media/mmcblk0p1
 
