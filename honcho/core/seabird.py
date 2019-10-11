@@ -1,191 +1,107 @@
-from time import sleep
+import re
+from contextlib import contextmanager
+from datetime import datetime
+from logging import getLogger
 
-from execp import printf
+from honcho.config import units
+from honcho.core.gpio import disable_serial, enable_serial, imm_off, imm_on
+from honcho.core.serial import serial_request
+from serial import Serial
+
+logger = getLogger(__name__)
 
 
-def read_seabird_samples(ID):
+def power_on(serial):
+    expected = re.escape('<PowerOn/>\r\nIMM>')
+    serial_request(serial, 'PwrOn', expected, timeout=10)
+
+
+@contextmanager
+def force_capture_line(serial):
     try:
-        from gpio import imm_off, imm_on, enable_serial, disable_serial
-
-        printf("Getting files from Sea Bird {0}".format(ID))
-        imm_on()
-        enable_serial()
-        sleep(10)
-        from serial import Serial as ser
-
-        port = ser("/dev/ttyS4")
-        port.baudrate = 9600
-        port.flushInput()
-        sleep(5)
-        port.write("PwrOn\r\n")
-        sleep(10)
-        port.write("FCL\r\n")
-        sleep(5)
-        port.write("FCL\r\n")
-        sleep(5)
-        port.write("SendWakeUpTone\r\n")
-        sleep(10)
-        print(port.read(port.inWaiting()))
-    except Exception:
-        printf(
-            "Imm could not connect to the seabird. "
-            "Line not captured, wake up tone not sent, or poor connectivity."
-        )
-    else:
-        port.write("#" + str(ID) + "DN6\r\n")
-        sleep(10)
-        seabird_raw_data = port.read(port.inWaiting())
+        expected = re.escape('ForceCaptureLine\r\n<Executed/>\r\nIMM>')
+        serial_request(serial, 'ForceCaptureLine', expected, timeout=5)
+        yield
     finally:
-        port.write("ReleaseLine\r\n")
-        port.close()
-        imm_off()
-        disable_serial()
-    return seabird_raw_data
+        expected = re.escape('ReleaseLine\r\n<Executed/>\r\nIMM>')
+        serial_request(serial, 'ReleaseLine', expected, timeout=5)
 
 
-def round_3_places(num):
-    num = str(num)
-    if num[num.find(".")] == ".":
-        num = num.split(".")
-        num[1] = num[1][0:3]
-        num = num[0] + "." + num[1]
-    else:
-        pass
-    return num
+def send_wakeup_tone(serial):
+    expected = re.escape(
+        'SendWakeUpTone\r\n' '(<Executing/>\r\n)*' '<Executed/>\r\n' 'IMM>'
+    )
+    serial_request(serial, 'SendWakeUpTone', expected, timeout=10)
 
 
-def clean_data(ID):
-    try:
-        seabird_raw_data = read_seabird_samples(ID)
-        printf("Proccessing data for Sea Bird {0}".format(ID))
-        numbers = seabird_raw_data[
-            seabird_raw_data.find("start time")
-            + 37 : seabird_raw_data.find("<Executed/>")  # noqa
-            - 1
-        ]
-        numSamples = 6
-        samples = numbers.split("\n")
-        data = []
-        seabird_list = []
-        for i in range(numSamples):
-            data.append(samples[i].split(","))
-            for j in range(3):
-                data[i][j] = float(data[i][j])
-        seabird_data = ""
-        seabird_list = []
-        totals = [0, 0, 0]
-        for i in range(numSamples):
-            totals[0] = totals[0] + data[i][0]
-            totals[1] = totals[1] + data[i][1]
-            totals[2] = totals[2] + data[i][2]
-        seabird_list.append(totals[0] / numSamples)
-        seabird_list.append(totals[1] / numSamples)
-        seabird_list.append(totals[2] / numSamples)
-        seabird_list.append(data[1][3])
-        seabird_list.append(
-            data[1][4][data[1][4].find(" ") + 1 : data[1][4].find(":")]  # noqa
-        )
-        for i in range(3):
-            seabird_list[i] = float(seabird_list[i])
-            seabird_list[i] = round_3_places(seabird_list[i])
-        for i in range(len(seabird_list)):
-            seabird_data = seabird_data + str(seabird_list[i]) + ","
-        with open(
-            "/media/mmcblk0p1/logs/seabird" + str(ID) + "_raw.log", "a+"
-        ) as rawfile:
-            rawfile.write("SB" + str(ID) + ":" + str(seabird_data) + "\n")
-    except Exception:
-        printf(
-            "Imm did not take data from the seabird unit "
-            + str(ID)
-            + ". Maybe poor connectivity."
-        )
-    return seabird_list
+def query_seabird(serial, device_id, samples=6):
+    expected = re.escape(
+        '#{0}DN{1}\r\n'.format(device_id, samples)
+        + '<RemoteReply>.*<Executed/>\r\n</RemoteReply>\r\n'
+        '<Executed/>\r\n'
+        'IMM>'
+    )
+    raw = serial_request(
+        serial, '#{0}DN{1}'.format(device_id, samples), expected, timeout=5
+    )
+
+    return raw
 
 
-def labeled_data(ID):
-    printf("Generating labels for Sea Bird {0}".format(ID))
-    seabird_data = clean_data(ID)
-    for i in range(len(seabird_data)):
-        seabird_data[i] = str(seabird_data[i])
-    labels = ["Temperature: ", "Conductivity: ", "Pressure: ", "Date: ", "Hour: "]
-    units = [" [degrees C]", " [S/m]", " [dbar]", " [Day Month Year]", ""]
-    for i in range(len(seabird_data)):
-        with open(
-            "/media/mmcblk0p1/logs/seabird" + str(ID) + "_clean.log", "a+"
-        ) as labeled_data:
-            labeled_data.write(labels[i] + seabird_data[i] + units[i] + "\n")
+def parse(raw):
+    pattern = (
+        r'#(?P<device_id>\d{2})DN(?P<samples>\d+)'
+        + re.escape('\r\n')
+        + re.escape('<RemoteReply>')
+        + '(?P<data>.*)'
+        + re.escape('<Executed/>\r\n</RemoteReply>')
+    )
+    match = re.search(pattern, raw, flags=re.DOTALL)
+
+    header, data = match.group('data').strip().split('\r\n\r\n')
+    header = [[el.strip() for el in row.split('=')] for row in header.split('\r\n')]
+    data = [[el.strip() for el in row.split(',')] for row in data.split('\r\n')]
+    for i, row in enumerate(data):
+        timestamp = datetime.strptime(' '.join(row[3:]), '%d %b %Y %H:%M:%S')
+        data[i] = [timestamp] + [float(el) for el in row[:3]]
+
+    start_time = (datetime.strptime(header['start_time'], '%d %b %Y %H:%M:%S'),)
+    metadata = {
+        'id': match.group('device_id'),
+        'samples': match.group('samples'),
+        'start_time': start_time,
+    }
+
+    return metadata, data
 
 
-def amigos_box_sort_SB():
-    try:
-        from execp import amigos_Unit
+def get_last_hour_average(device_id):
+    imm_on()
+    enable_serial()
 
-        unit = amigos_Unit()
-        from monitor import reschedule
+    with Serial('/dev/ttyS4', 9600) as serial:
+        power_on(serial)
+        with force_capture_line(serial):
+            send_wakeup_tone(serial)
+            raw = query_seabird(serial, device_id)
 
-        printf("Sea Bird data acquisition stated")
-        if unit == "A":
-            labeled_data("90")
-            labeled_data("80")
-        elif unit == "B":
-            labeled_data("05")
-            labeled_data("09")
-        elif unit == "C":
-            labeled_data("80")
-            # labeled_data("07")
-            labeled_data("06")
-            # labeled_data("#Enter fourth Id for seabird on C - no battery unit")
-        printf("Done with Sea Bird")
-        reschedule(run="amigos_box_sort_SB")
-    except Exception:
-        import traceback
+    disable_serial()
+    imm_off()
 
-        printf("Sea Bird failed to run")
-        reschedule(re="amigos_box_sort_SB")
-        traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+    metadata, data = parse(raw)
+
+    cols = zip(*data)
+    delta_mins = round(max(cols[0]) - min(cols[0]).seconds / 60.0)
+    averaged_data = [metadata['start_time'], delta_mins]
+    n = len(data)
+    for col in cols[1:]:
+        averaged_data.append(sum(col) / n)
+
+    return averaged_data
 
 
-def prep_sbd(ID):
-    with open("/media/mmcblk0p1/logs/seabird" + str(ID) + "_raw.log", "r") as rawfile:
-        lines = rawfile.readlines()
-        lastline = lines[-1]
-    from monitor import backup
+if __name__ == '__main__':
+    import pdb
 
-    backup("/media/mmcblk0p1/logs/seabird" + str(ID) + "_raw.log", sbd=True)
-    return lastline
-
-
-def seabird_sbd():
-    from execp import amigos_Unit
-
-    unit = amigos_Unit()
-    try:
-        if unit == "A":
-            lastline1 = prep_sbd("90")
-            lastline2 = prep_sbd("80")
-            return lastline1, lastline2
-        elif unit == "B":
-            lastline1 = prep_sbd("05")
-            lastline2 = prep_sbd("09")
-            return lastline1, lastline2
-        elif unit == "C":
-            lastline1 = prep_sbd("80")
-            lastline2 = prep_sbd("06")
-            # lastline3 = prep_sbd("06")
-            # lastline4 = prep_sbd(
-            #     "Enter fourth Id for seabird on C - no battery unit"
-            # )
-            # Seabird data is short enough to send
-            # all 4 seabird's data in one SBD message
-            return lastline1, lastline2
-    except Exception:
-        import traceback
-
-        printf("Sea Bird SBD failed to run")
-        traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
-        return ""
-
-
-if __name__ == "__main__":
-    labeled_data("90")
+    pdb.set_trace()
+    get_last_hour_average(units.amigos3c.device_ids[0])
