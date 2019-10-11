@@ -3,11 +3,10 @@ from contextlib import contextmanager
 from datetime import datetime
 from logging import getLogger
 
-from serial import Serial
-
 from honcho.config import units
 from honcho.core.gpio import disable_serial, enable_serial, imm_off, imm_on
 from honcho.core.serial import serial_request
+from serial import Serial
 
 logger = getLogger(__name__)
 
@@ -92,7 +91,7 @@ def get_last_hour_average(device_id):
     metadata, data = parse(raw)
 
     cols = zip(*data)
-    delta_mins = round(max(cols[0]) - min(cols[0])).seconds/60.)
+    delta_mins = round(max(cols[0]) - min(cols[0]).seconds / 60.0)
     averaged_data = [metadata['start_time'], delta_mins]
     n = len(data)
     for col in cols[1:]:
