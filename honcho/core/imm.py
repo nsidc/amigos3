@@ -15,11 +15,23 @@ def power_on(serial):
 @contextmanager
 def force_capture_line(serial):
     try:
-        expected = re.escape('ForceCaptureLine\r\n<Executed/>\r\nIMM>')
+        expected = (
+            re.escape('ForceCaptureLine\r\n')
+            + '('
+            + re.escape('<Executing/>\r\n')
+            + ')*'
+            + re.escape('<Executed/>\r\nIMM>')
+        )
         serial_request(serial, 'ForceCaptureLine', expected, timeout=5)
         yield
     finally:
-        expected = re.escape('ReleaseLine\r\n<Executed/>\r\nIMM>')
+        expected = (
+            re.escape('ReleaseLine\r\n')
+            + '('
+            + re.escape('<Executing/>\r\n')
+            + ')*'
+            + re.escape('<Executed/>\r\nIMM>')
+        )
         serial_request(serial, 'ReleaseLine', expected, timeout=5)
 
 

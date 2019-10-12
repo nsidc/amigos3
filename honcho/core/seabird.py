@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 from logging import getLogger
+from time import sleep
 
 from serial import Serial
 
@@ -57,6 +58,7 @@ def parse(raw):
 def get_data(device_id, samples=6):
     imm_on()
     enable_serial()
+    sleep(1)
 
     serial = Serial('/dev/ttyS4', 9600)
     power_on(serial)
@@ -81,7 +83,6 @@ def get_data(device_id, samples=6):
 
 
 if __name__ == '__main__':
-    import pdb
+    data = get_data(units.amigos3c.seabird_ids[0])
 
-    pdb.set_trace()
-    get_data(units.amigos3c.seabird_ids[0])
+    print(data)
