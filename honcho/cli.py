@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+import argparse
 import logging
 from time import sleep
 
-import honcho.ext.argparse as argparse
 import honcho.logs as logs
 from honcho.version import version
 
