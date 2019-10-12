@@ -5,7 +5,7 @@ import pytest
 
 
 @pytest.fixture
-def imm_mock(serial_port_mock):
+def imm_mock(serial_mock):
     def imm_listener(port):
         while 1:
             res = b""
@@ -17,23 +17,26 @@ def imm_mock(serial_port_mock):
             if res == b'PwrOn\r\n':
                 os.write(port, b'<PowerOn/>\r\nIMM>')
             elif res == b'ForceCaptureLine\r\n':
-                os.write(port, b'FCL\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'ForceCaptureLine\r\n<Executed/>\r\nIMM>')
             elif res == b'ReleaseLine\r\n':
                 os.write(port, b'ReleaseLine\r\n<Executed/>\r\nIMM>')
             elif res == b'SendWakeUpTone\r\n':
                 os.write(port, b'SendWakeUpTone\r\n<Executing/>\r\n<Executed/>\r\nIMM>')
+            else:
+                os.write(port, b'ERROR\r\n')
 
-    yield serial_port_mock(listener=imm_listener, baud=9600)
+    with serial_mock(listener=imm_listener, baud=9600) as serial:
+        yield serial
 
 
-def test_power_on(imm_mock):
+def test_power_on_smoke(imm_mock):
     imm.power_on(imm_mock)
 
 
-def test_force_capture_line(imm_serial_mock):
-    with imm.force_capture_line(imm_serial_mock):
+def test_force_capture_line_smoke(imm_mock):
+    with imm.force_capture_line(imm_mock):
         pass
 
 
-def test_send_wakeup_tone(imm_serial_mock):
-    imm.send_wakeup_tone(imm_serial_mock)
+def test_send_wakeup_tone_smoke(imm_mock):
+    imm.send_wakeup_tone(imm_mock)

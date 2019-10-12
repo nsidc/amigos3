@@ -12,12 +12,15 @@ from honcho.util import serial_request
 logger = getLogger(__name__)
 
 
-def query_aquadopp(serial, device_id):
-    expected = re.escape(
-        '!{0}SAMPLEGETLAST\r\n'.format(device_id)
-        + '<RemoteReply>.*<Executed/>\r\n</RemoteReply>\r\n'
-        '<Executed/>\r\n'
-        'IMM>'
+def query(serial, device_id):
+    expected = (
+        r'!\d{2}SAMPLEGETLAST'
+        + re.escape('\r\n')
+        + re.escape('<RemoteReply>')
+        + '.*'
+        + re.escape('<Executed/></RemoteReply>\r\n')
+        + re.escape('<Executed/>\r\n')
+        + re.escape('IMM>')
     )
 
     raw = serial_request(
@@ -27,14 +30,17 @@ def query_aquadopp(serial, device_id):
     return raw
 
 
-def parse_aquadopp(raw):
+def parse(raw):
     pattern = (
         r'!(?P<device_id>\d{2})SAMPLEGETLAST'
         + re.escape('\r\n')
         + '.*'
-        + '<SampleData (?P<metadata>.*)>'
-        + '(?P<data>.*)\r\n'
-        + '</SampleData>'
+        + re.escape('<SampleData ')
+        + '(?P<metadata>.*)'
+        + re.escape('>')
+        + '(?P<data>.*)'
+        + re.escape('\r\n')
+        + re.escape('</SampleData>')
     )
     match = re.search(pattern, raw, flags=re.DOTALL)
 
@@ -42,7 +48,7 @@ def parse_aquadopp(raw):
     data = match.group('data').strip().split()
 
     timestamp = datetime.strptime(' '.join(data[:4]), '%m %d %Y %H')
-    error, status = data[4:6]
+    error, status = [int(el) for el in data[4:6]]
     data = [timestamp] + [float(el) for el in data[6:]]
 
     metadata = {'error': error, 'status': status, 'id': match.group('device_id')}
@@ -50,7 +56,7 @@ def parse_aquadopp(raw):
     return metadata, data
 
 
-def get_aquadopp(device_id):
+def get_data(device_id):
     imm_on()
     enable_serial()
 
@@ -58,19 +64,19 @@ def get_aquadopp(device_id):
     power_on(serial)
     with force_capture_line(serial):
         send_wakeup_tone(serial)
-        raw = query_aquadopp(serial, device_id)
+        raw = query(serial, device_id)
     serial.close()
 
     disable_serial()
     imm_off()
 
-    metadata, data = parse_aquadopp(raw)
+    metadata, data = parse(raw)
 
-    return metadata, data
+    return data
 
 
 if __name__ == '__main__':
     import pdb
 
     pdb.set_trace()
-    get_aquadopp(units.amigos3a.aquadopp_ids[0])
+    get_data(units.amigos3a.aquadopp_ids[0])
