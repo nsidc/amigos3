@@ -1,6 +1,7 @@
 import os
 import pty
 import threading
+from contextlib import contextmanager
 
 from serial import Serial
 
@@ -8,20 +9,26 @@ import pytest
 
 
 @pytest.fixture
-def serial_mock(listener, baud):
+def serial_mock():
     '''
-    Mocked serial port with responses dictated by listener
+    Mocked serial port with responses dictated by listener thread
     '''
-    master, slave = pty.openpty()
-    s_name = os.ttyname(slave)
 
-    # create a separate thread that listens on the master device for commands
-    thread = threading.Thread(target=listener, args=[master])
-    thread.start()
+    @contextmanager
+    def mock(listener, baud):
+        master, slave = pty.openpty()
+        s_name = os.ttyname(slave)
 
-    # open a pySerial connection to the slave
-    serial = Serial(s_name, baud, timeout=1)
+        # create a separate thread that listens on the master device for commands
+        thread = threading.Thread(target=listener, args=[master])
+        thread.daemon = True
+        thread.start()
 
-    yield serial
+        # open a pySerial connection to the slave
+        serial = Serial(s_name, baud, timeout=1)
 
-    serial.close()
+        yield serial
+
+        serial.close()
+
+    yield mock

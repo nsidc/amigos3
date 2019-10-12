@@ -24,7 +24,7 @@ def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
     response = ''
     while time() - start_time < timeout:
         response += serial.read(serial.inWaiting())
-        if re.search(expected_regex, response):
+        if re.search(expected_regex, response, flags=re.DOTALL):
             break
         sleep(poll)
     else:
