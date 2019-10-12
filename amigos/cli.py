@@ -203,12 +203,9 @@ def args_parser():
         power.add_argument("-d_off", "--dts_off", help="dts off", action="store_true")
         power.add_argument(
             "-off",
-            "--power_off",
-            help="power down all peripherals",
+            "--shutdown",
+            help="power down all peripherals and shutdown system",
             action="store_true",
-        )
-        power.add_argument(
-            "-all_on", "--all_on", help="power up all peripherals", action="store_true"
         )
         power.add_argument("-r", "--reboot", help="reboot system", action="store_true")
         power.add_argument(
@@ -224,7 +221,7 @@ def args_parser():
             "-s_off", "--solar_off", help="power off solar sensor", action="store_true"
         )
         power.add_argument(
-            "-all_off", "--all_off", help="power off solar sensor", action="store_true"
+            "-all_off", "--all_off", help="power off all gpio", action="store_true"
         )
 
         ser = parser.add_argument_group(
@@ -310,53 +307,51 @@ def power(args):
     import python.gpio as gpio
 
     if args.weather_on:
-        gpio.weather_on(1)
+        gpio.weather_on()
     elif args.weather_off:
-        gpio.weather_off(1)
+        gpio.weather_off()
     elif args.cr1000_on:
-        gpio.cr1000_on(1)
+        gpio.cr1000_on()
     elif args.cr1000_off:
-        gpio.cr1000_off(1)
+        gpio.cr1000_off()
     elif args.router_on:
-        gpio.router_on(1)
+        gpio.router_on()
     elif args.router_off:
-        gpio.router_off(1)
+        gpio.router_off()
     elif args.iridium_on:
-        gpio.iridium_on(1)
+        gpio.iridium_on()
     elif args.iridium_off:
-        gpio.iridium_off(1)
+        gpio.iridium_off()
     elif args.imm_on:
-        gpio.imm_on(1)
+        gpio.imm_on()
     elif args.imm_off:
-        gpio.imm_off(1)
+        gpio.imm_off()
     elif args.dts_on:
-        gpio.dts_on(1)
+        gpio.dts_on()
     elif args.dts_off:
-        gpio.dts_off(1)
-    elif args.power_off:
-        gpio.power_down(1)
-    elif args.all_on:
-        gpio.power_up(1)
+        gpio.dts_off()
+    elif args.shutdown:
+        gpio.shutdown()
     elif args.hub_off:
-        gpio.hub_off(1)
+        gpio.hub_off()
     elif args.hub_on:
-        gpio.hub_on(1)
+        gpio.hub_on()
     elif args.gps_on:
-        gpio.gps_on(1)
+        gpio.gps_on()
     elif args.gps_off:
-        gpio.gps_off(1)
+        gpio.gps_off()
     elif args.reboot:
-        gpio.reboot(1)
+        gpio.reboot()
     elif args.sbd_on:
-        gpio.sbd_on(1)
+        gpio.sbd_on()
     elif args.sbd_off:
-        gpio.sbd_off(1)
+        gpio.sbd_off()
     elif args.solar_on:
         gpio.solar_on()
     elif args.solar_off:
         gpio.solar_off()
     elif args.all_off:
-        gpio.all_off(1)
+        gpio.all_off()
     else:
         print("Too few arguments. No device specified.")
 
@@ -507,7 +502,7 @@ def gps(args):
     from python.gpio import gps_off, gps_on, enable_serial, disable_serial
 
     gps = gps_data()
-    gps_on(1)
+    gps_on()
     enable_serial()
     print("This will take 30 seconds from here on")
     sleep(30)
@@ -515,7 +510,7 @@ def gps(args):
         gps.update_time()
     elif args.get_time:
         print(gps.get_gpstime())
-    gps_off(1)
+    gps_off()
     disable_serial()
 
 
