@@ -1,299 +1,153 @@
-import traceback
-from copy import deepcopy
-from subprocess import call
+import logging
+import os
+import shutil
+from bisect import bisect
 from time import sleep
 
-from execp import printf
-from monitor import reschedule
+import amigos.logs as logs
+from amigos.util import ensure_dirs
 
-para = [False]
+DTS_PULL_DELAY = 60 * 5
+DTS_WIN_DATA_DIR = 'Desktop/dts_data'
+DTS_RAW_DATA_DIR = "/media/mmcblk0p1/dts_data"
+DTS_PROCESSED_DATA_DIR = "/media/mmcblk0p1/dts"
+FULL_RESOLUTION_RANGES = [(1000, 1200), (2000, 2200)]
+
+logger = logging.getLogger(__name__)
 
 
-def read_xml(filename, count):
-    """[summary]
+def ns(tag):
+    return "{http://www.witsml.org/schemas/1series}" + tag
 
-    Arguments:
-        filename {[type]} -- [description]
-        count {[type]} -- [description]
 
-    Returns:
-        [type] -- [description]
-    """
+def output_filepath(filepath):
+    filename = os.path.basename(filepath)
+    stem = os.path.splitext(filename)[0]
+    return os.path.join(DTS_PROCESSED_DATA_DIR, stem.replace(' ', '_') + '.csv')
+
+
+def parse_xml(filename):
     import xml.etree.ElementTree as ET
 
     tree = ET.parse(filename)
     root = tree.getroot()
-    with open("/media/mmcblk0p1/dts/dts{0}.csv".format(count), "a+") as csvfile:
-        csvfile.write(filename.split("/")[-1])
-        csvfile.write("\n\n")
-        csvfile.write("Date/Time START: " + root[0][7].text)
-        csvfile.write("\n\n")
-        csvfile.write("Date/Time END: " + root[0][8].text)
-        csvfile.write("\n\n")
-        csvfile.write("Acquisition Time: " + root[0][18][0].text)
-        csvfile.write("\n\n")
-        csvfile.write("Reference Temp: " + root[0][18][1].text)
-        csvfile.write("\n\n")
-        csvfile.write("Probe Temp 1: " + root[0][18][2].text)
-        csvfile.write("\n\n")
-        csvfile.write("Probe Temp 2: " + root[0][18][3].text)
-        csvfile.write("\n\n")
-        csvfile.write(
-            "Length(m), Stokes, Anti-stokes, "
-            "Reverse-stokes, Reverse anti-stokes, Temp(C)"
-        )
-        csvfile.write("\n\n")
-    return root
+
+    log = root.find(ns('log'))
+    start_datetime = log.find(ns('startDateTimeIndex')).text
+    end_datetime = log.find(ns('endDateTimeIndex')).text
+
+    custom_data = log.find(ns('customData'))
+    acquisition_time = custom_data.find(ns('acquisitionTime')).text
+    reference_temp = custom_data.find(ns('referenceTemperature')).text
+    probe1_temp = custom_data.find(ns('probe1Temperature')).text
+    probe2_temp = custom_data.find(ns('probe2Temperature')).text
+
+    measurements = []
+    logdata = log.find(ns('logData'))
+    for entry in logdata.findall(ns('data')):
+        values = [float(el) for el in entry.text.strip().split(",")]
+        measurements.append(values)
+
+    return (
+        {
+            'start_datetime': start_datetime,
+            'end_datetime': end_datetime,
+            'acquisition_time': acquisition_time,
+            'reference_temp': reference_temp,
+            'probe1_temp': probe1_temp,
+            'probe2_temp': probe2_temp,
+        },
+        measurements,
+    )
 
 
-def reset_clock():
-    """Reset flag for DTS schedule update
-    """
-    para[0] = False
+def downsample(measurements, factor=4):
+    downsampled = []
+    for i in range(0, len(measurements), factor):
+        means = [
+            sum(values) / factor
+            for values in zip(*measurements[i : (i + factor)])  # noqa
+        ]
+        downsampled.append(means)
+
+    return downsampled
 
 
-def array(filename, count):
-    """[summary]
+def process_measurements(measurements):
+    lengths = [el[0] for el in measurements]
+    processed = []
+    prev_index = 0
+    for lower, upper in FULL_RESOLUTION_RANGES:
+        i_lower = bisect(lengths, lower)
+        # TODO: assert ranges are in increasing order and non-overlapping
+        i_upper = bisect(lengths, upper)
+        processed.extend(downsample(measurements[prev_index:i_lower]))
+        processed.extend(measurements[i_lower:i_upper])
+        prev_index = i_upper
+    processed.extend(downsample(measurements[prev_index:]))
 
-    Arguments:
-        filename {[type]} -- [description]
-        count {[type]} -- [description]
-
-    Returns:
-        [type] -- [description]
-    """
-    root = read_xml(filename, count)
-    large_array = []
-    for i in range(2, len(root[0][17])):
-        text = root[0][17][i].text
-        text = text.replace("\n", "")
-        text = text.split(",")
-        for i in range(0, len(text)):
-            text[i] = float(text[i])
-        large_array.append(text)
-    try:
-        with open("/media/mmcblk0p1/logs/dts_thresholds.log", "r") as dts_file:
-            boundaries = dts_file.readline()
-        boundaries = boundaries.split(",")
-
-        lower = boundaries[0]
-        upper = boundaries[1]
-        if lower.find(".") != -1:
-            lower = float(lower)
-        else:
-            lower = int(lower)
-        if upper.find(".") != -1:
-            upper = float(lower)
-        else:
-            upper = int(lower)
-    except Exception:
-        upper = 200
-        lower = 0
-    with open(
-        "/media/mmcblk0p1/dts/dts_quarterly{0}.csv".format(count), "a+"
-    ) as quarter:
-        for j in range(0, len(large_array)):
-            if (large_array[j][0] - lower) >= 0 and (large_array[j][0] - upper) <= 0:
-                quarter.write(str(large_array[j])[1:-2])
-                quarter.write("\n")
-    return large_array, text
+    return processed
 
 
-def average(filename, count):
-    """[summary]
+def write(metadata, measurements, filepath):
+    with open(filepath, "w") as f:
+        for k, v in metadata.iteritems():
+            f.write('# ' + str(k) + '=' + str(v) + '\n')
 
-    Arguments:
-        filename {[type]} -- [description]
-        count {[type]} -- [description]
-
-    Returns:
-        [type] -- [description]
-    """
-    try:
-        large_array, text = array(filename, count)
-        zero_array = deepcopy(large_array)
-        for h in range(0, len(large_array)):
-            for s in range(0, len(text)):
-                zero_array[h][s] = 0
-        final_array = zero_array[0 : (len(large_array) / 4)]  # noqa
-        for s in range(0, len(text)):
-            for h in range(0, (len(large_array) / 4)):
-                tem = str(
-                    (
-                        large_array[4 * h][s]
-                        + large_array[4 * h + 1][s]
-                        + large_array[4 * h + 2][s]
-                        + large_array[4 * h + 3][s]
-                    )
-                    / 4
-                )
-                try:
-                    index = tem.find(".")
-                    tem = tem[0:index] + tem[index : index + 4]  # noqa
-                    final_array[h][s] = float(tem)
-                except Exception:
-                    try:
-                        tem = str(
-                            (
-                                large_array[4 * h][s]
-                                + large_array[4 * h + 1][s]
-                                + large_array[4 * h + 2][s]
-                                + large_array[4 * h + 3][s]
-                            )
-                            / 4
-                        )
-                        tem = tem[0:index] + tem[index:]
-                        final_array[h][s] = float(tem)
-                    except Exception:
-                        printf("Failed to process dts data")
-                        traceback.print_exc(
-                            file=open("/media/mmcblk0p1/logs/system.log", "a+")
-                        )
-        return final_array
-    except Exception:
-        printf("Failed to process dts data")
-        traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
+        f.write("length,stokes,anti_stokes,reverse_stokes,reverse_anti_stokes,temp\n")
+        for row in measurements:
+            f.write(','.join([str(el) for el in row]) + '\n')
 
 
-def write(filename, count):
-    """[summary]
-
-    Arguments:
-        filename {[type]} -- [description]
-        count {[type]} -- [description]
-    """
-    final_array = average(filename, count)
-    with open("/media/mmcblk0p1/dts/dts{0}.csv".format(count), "a+") as csvfile:
-        for i in range(0, len(final_array)):
-            temp = str(final_array[i])
-            endindex = temp.find("]")
-            temp = temp[1:endindex]
-            csvfile.write(temp)
-            csvfile.write("\n")
-        csvfile.write("\n\n\n")
-
-
-def list_files(folder):
-    """List files in a directory recursively
-
-    Arguments:
-        folder {string} -- Path to the base directory
-
-    Returns:
-        [List] -- List of all file
-    """
-    import os
-
-    walker = os.walk(folder)
-    list_file = []
-    list_dirs = []
-    printf("Listing total files from channel 1 and 3")
-    for root, dirs, files in walker:
-        for name in files:
-            path = os.path.join(root, name)
-            list_file.append(path)
-        for name in dirs:
-            path = os.path.join(root, name)
-            list_dirs.append(path)
-    printf("A total of {0} found from copied folder".format(len(list_file)))
-    return list_dirs, list_file
-
-
-def get_dts_time():
-    """Read the DTS time from a log file
-
-    Returns:
-        [str] -- Time of last run of DTS
-    """
-    with open("/media/mmcblk0p1/logs/dts_time", "r") as d_time:
-        dts_time = d_time.read()
-    return dts_time
-
-
-def update_win_time():
-    """Update windows unit time
-    """
-    import datetime
-
-    time_now = str(datetime.datetime.now()).split(".")[0]
-    from ssh import SSH
-
-    printf("Updating Windows unit time")
-    ssh = SSH("admin", "192.168.0.50")
-    ssh.execute('date -s "{0}"'.format(time_now))
-
-
-def ssh():
+def acquire():
     """Entry point of DTS files retrival and execution plus time update on windows unit
     """
-    try:
-        from gpio import dts_on, dts_off, modem_on, modem_off
+    from gpio import dts_on, dts_off, hub_on, hub_off
+    from ssh import SSH
 
-        printf("DTS data acquisition started")
-        modem_on(1)
-        dts_on(1)
-        sleep(15 * 60)
-        count = 0
-        from ssh import SSH
+    logger.info("Turning on DTS and windows unit")
+    hub_on(1)
+    # win_on()
+    dts_on(1)
 
-        ssh = SSH("admin", "192.168.0.50")
-        printf("Copying files over from windows Unit")
-        ssh.copy("Desktop/dts_data", "/media/mmcblk0p1", recursive=True)
-        array_dirs, array_files = list_files("/media/mmcblk0p1/dts_data")
-        update_win_time()
-        if para[0] is True:
-            printf(
-                "Have already tried to update dts schedule. "
-                "Will try again after time reset"
-            )
-            dts_off(1)
-        try:
-            printf("Getting the last date of file drop from DTS")
-            path_win = "/".join(array_dirs[2].split("/")[3:])
-            dts_time = ssh.execute(
-                'date -r Desktop/{0} "+%YH%mH%dH%HH%MH%S"'.format(path_win)
-            )
-            dts_time = dts_time[0].replace("\n", "")
-            with open("/media/mmcblk0p1/logs/dts_time", "w+") as d_time:
-                d_time.write(str(dts_time))
-            printf("Time stamp saved :)")
-        except Exception:
-            if para[0] is False:
-                printf(
-                    "Not DTS data available on the Window Unit. "
-                    "Keeping the unit on for one cycle per 24h"
-                )
-                traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
-                para[0] = True
-    except Exception:
-        printf("Not able to turn on the windows computer to run dts")
-        traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
-    else:
-        # print(re)
-        if array_files:
-            printf("Start processing files from Channel 1 only")
-        try:
-            for index, path in enumerate(array_files):
-                if path.find("channel 1") != -1:
-                    write(path, count)
-                    count = count + 1
-            printf("Files processing is done successfully :)")
-        except Exception:
-            printf("Oouch, an error occurs while processing DTS data")
-            traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
-            return
-        ssh.execute(["rm -rf Desktop/dts_data", "mkdir Desktop/dts_data"])
-        # print(out)
-        count = 0
-        call("rm -rf /media/mmcblk0p1/dts_data", shell=True)
-        printf("Removed copied files from Win unit and Tritron")
-        printf("All done with DTS :)")
-    finally:
-        modem_off(1)
-        if not para[0]:
-            reschedule(run="ssh")
-            dts_off(1)
+    logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
+    sleep(DTS_PULL_DELAY)
+
+    logger.info("Pulling files from windows unit")
+    ssh = SSH("admin", "192.168.0.50")
+    win_data_glob = os.path.join(DTS_WIN_DATA_DIR, "*")
+
+    ensure_dirs([DTS_RAW_DATA_DIR, DTS_PROCESSED_DATA_DIR])
+
+    ssh.copy(win_data_glob, DTS_RAW_DATA_DIR, recursive=True)
+
+    filepaths = []
+    for root, _, filenames in os.walk(DTS_RAW_DATA_DIR):
+        filepaths.extend(
+            [
+                os.path.join(root, filename)
+                for filename in filenames
+                if filename.endswith('xml')
+            ]
+        )
+    logger.info("Found {0} dts files".format(len(filepaths)))
+
+    for filepath in filepaths:
+        logger.info("Processing {0}".format(filepath))
+        metadata, measurements = parse_xml(filepath)
+        measurements = process_measurements(measurements)
+        write(metadata, measurements, output_filepath(filepath))
+        break
+
+    logger.info("Processing DTS complete, cleaning up")
+    ssh.execute("rm -rf {glob}".format(glob=win_data_glob))
+    shutil.rmtree(DTS_RAW_DATA_DIR)
+
+    hub_off(1)
+    dts_off(1)
+    # win_off()
 
 
 if __name__ == "__main__":
-    ssh()
+    logs.init_logging(logging.DEBUG)
+    acquire()

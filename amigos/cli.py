@@ -169,10 +169,8 @@ def args_parser():
         power.add_argument(
             "power", help="Need one of the secondary arguments bellow", nargs="?"
         )
-        power.add_argument("-m_on", "--modem_on", help="Modem on", action="store_true")
-        power.add_argument(
-            "-m_off", "--modem_off", help="Modem off", action="store_true"
-        )
+        power.add_argument("-h_on", "--hub_on", help="Hub on", action="store_true")
+        power.add_argument("-h_off", "--hub_off", help="Hub off", action="store_true")
         power.add_argument("-g_on", "--gps_on", help="GPS on", action="store_true")
         power.add_argument("-g_off", "--gps_off", help="GPS off", action="store_true")
         power.add_argument(
@@ -339,10 +337,10 @@ def power(args):
         gpio.power_down(1)
     elif args.all_on:
         gpio.power_up(1)
-    elif args.modem_off:
-        gpio.modem_off(1)
-    elif args.modem_on:
-        gpio.modem_on(1)
+    elif args.hub_off:
+        gpio.hub_off(1)
+    elif args.hub_on:
+        gpio.hub_on(1)
     elif args.gps_on:
         gpio.gps_on(1)
     elif args.gps_off:

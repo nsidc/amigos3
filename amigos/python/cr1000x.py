@@ -13,12 +13,12 @@ class cr1000x:
             [list] -- Data values and labels
         """
         from timeit import default_timer as timer
-        from gpio import cr1000_on, modem_on
+        from gpio import cr1000_on, hub_on
         from monitor import timing
 
         printf("Cr1000 data acquisition started")
         start = timer()
-        modem_on(1)
+        hub_on(1)
         cr1000_on(1)
         sleep(10)
         labels = []
@@ -166,7 +166,7 @@ class cr1000x:
         """CR1000X
         """
         from monitor import reschedule
-        from gpio import modem_off, cr1000_off
+        from gpio import hub_off, cr1000_off
 
         try:
             labels, values = self.finddata()
@@ -200,7 +200,7 @@ class cr1000x:
             printf("Cr1000 data acquisition done :)")
         finally:
             cr1000_off(1)
-            modem_off(1)
+            hub_off(1)
 
 
 # CR1000X Live Data Reading Class
@@ -208,10 +208,10 @@ class cr1000x:
 
 class cr1000x_live:
     def cr_read(self):
-        from gpio import cr1000_off, cr1000_on, is_on_checker, modem_on, modem_off
+        from gpio import cr1000_off, cr1000_on, is_on_checker, hub_on, hub_off
 
         try:
-            modem_on(1)
+            hub_on(1)
             is_on = is_on_checker(0, 5)
             if not is_on:
                 # Turn on CR1000x
@@ -247,7 +247,7 @@ class cr1000x_live:
             if not is_on:
                 # Turn off CR1000
                 cr1000_off(1)
-                modem_off(1)
+                hub_off(1)
 
     def cr_all(self):
         data = self.cr_read()

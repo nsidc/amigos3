@@ -8,7 +8,7 @@ from datetime import datetime
 from time import sleep
 
 from execp import amigos_Unit, printf, sig_handler, terminateProcess, welcome
-from gpio import modem_on
+from gpio import hub_on
 from gps import gps_data as gps_data
 from iridium import dial
 from iridium import sbd as sb
@@ -100,14 +100,14 @@ class summer:
         self.sched_summer.every().day.at("19:20").do(di.In)
 
     def dts(self):
-        from dts import ssh
+        import dts
 
-        self.sched_summer.every().day.at("03:05").do(ssh)
-        self.sched_summer.every().day.at("07:05").do(ssh)
-        self.sched_summer.every().day.at("11:05").do(ssh)
-        self.sched_summer.every().day.at("15:05").do(ssh)
-        self.sched_summer.every().day.at("19:05").do(ssh)
-        self.sched_summer.every().day.at("23:05").do(ssh)
+        self.sched_summer.every().day.at("03:05").do(dts.acquire)
+        self.sched_summer.every().day.at("07:05").do(dts.acquire)
+        self.sched_summer.every().day.at("11:05").do(dts.acquire)
+        self.sched_summer.every().day.at("15:05").do(dts.acquire)
+        self.sched_summer.every().day.at("19:05").do(dts.acquire)
+        self.sched_summer.every().day.at("23:05").do(dts.acquire)
 
     def sbd(self):
         # box A
@@ -206,9 +206,9 @@ class winter:
         self.sched_winter.every().day.at("19:20").do(di.In)
 
     def dts(self):
-        from dts import ssh
+        import dts
 
-        self.sched_winter.every().day.at("21:05").do(ssh)
+        self.sched_winter.every().day.at("21:05").do(dts.acquire)
 
     def sbd(self):
         ss = sb()
@@ -345,7 +345,7 @@ def run_summer(winter_task, summer_task):
         printf("Started summer schedule")
     summer_task.run_pending()
     # if not is_on_checker(1, 6):
-    #     modem_on(1)
+    #     hub_on(1)
     reschedule(jobs=summer_task.jobs)
     dts_time = get_dts_time()
     if param[2] == "DTS" and dts_time not in ["\n", "", " "]:
@@ -374,7 +374,7 @@ def run_winter(winter_task, summer_task):
         printf("Started winter schedule")
     winter_task.run_pending()
     # if not is_on_checker(1, 6):
-    #     modem_on(1)
+    #     hub_on(1)
     reschedule(jobs=winter_task.jobs)
     dts_time = get_dts_time()
     if param[2] == "DTS" and dts_time not in ["\n", "", " ", None]:
@@ -453,7 +453,7 @@ def run_schedule():
 if __name__ == "__main__":
     try:
         signals()
-        modem_on(1)
+        hub_on(1)
         run_schedule()
     except Exception as err:
         printf(

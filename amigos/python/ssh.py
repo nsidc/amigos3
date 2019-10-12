@@ -1,3 +1,10 @@
+import logging
+
+KEY_FILE = '/root/.ssh/id_rsa_windows'
+
+logger = logging.getLogger(__name__)
+
+
 class SSH:
     def __init__(self, username, hostname):
         """Init
@@ -9,7 +16,7 @@ class SSH:
         self.hosname = hostname
         self.username = username
 
-    def copy(self, filename, dest, recursive=False, from_host=False):
+    def copy(self, source, dest, recursive=False):
         """copy file from/to host
 
         Arguments:
@@ -18,96 +25,38 @@ class SSH:
 
         Keyword Arguments:
             recursive {bool} -- A recursive copy  (default: {False})
-            from_host {bool} -- Direction of copy (default: {False})
 
         Returns:
             [list] -- Result of the copy
         """
-        from subprocess import PIPE, Popen
+        from subprocess import check_call
 
-        out = None
-        if not from_host:
-            if not recursive:
-                p = Popen(
-                    "scp {0}@{1}:{2} {3}".format(
-                        self.username, self.hosname, filename, dest
-                    ),
-                    stdin=PIPE,
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    shell=True,
-                )
-                out = p.communicate()
-                recursive = False
-                return out
-            p = Popen(
-                "scp -r {0}@{1}:{2} {3}".format(
-                    self.username, self.hosname, filename, dest
-                ),
-                stdin=PIPE,
-                stdout=PIPE,
-                stderr=PIPE,
-                shell=True,
-            )
-            out = p.communicate()
-        else:
-            if not recursive:
-                p = Popen(
-                    "scp {3} {0}@{1}:{2}".format(
-                        self.username, self.hosname, filename, dest
-                    ),
-                    stdin=PIPE,
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    shell=True,
-                )
-                out = p.communicate()
-                recursive = False
-                return out
-            p = Popen(
-                "scp -r  {3} {0}@{1}:{2} {3}".format(
-                    self.username, self.hosname, filename, dest
-                ),
-                stdin=PIPE,
-                stdout=PIPE,
-                stderr=PIPE,
-                shell=True,
-            )
-            out = p.communicate()
+        cmd = "scp {opts} -i {key} {user}@{host}:{source} {dest}".format(
+            opts='-r' if recursive else '',
+            key=KEY_FILE,
+            user=self.username,
+            host=self.hosname,
+            source=source,
+            dest=dest,
+        )
 
-        return out
+        logger.info('Executing {cmd}'.format(cmd=cmd))
+        check_call(cmd, shell=True)
 
-    def execute(self, commands):
+    def execute(self, command):
         """Execute a command of client
 
         Arguments:
-            command {str} -- commands; can be a list of command
+            command {str} -- command to execute remotely
 
         Returns:
-            [list] -- Result of the execution
+            out -- Result of the execution
         """
-        from subprocess import PIPE, Popen
-        from time import sleep
+        from subprocess import check_call
 
-        outt = ""
-        if isinstance(commands, list):
-            for index, command in enumerate(commands):
-                p = Popen(
-                    "ssh {0}@{1} {2}".format(self.username, self.hosname, command),
-                    stdin=PIPE,
-                    stdout=PIPE,
-                    stderr=PIPE,
-                    shell=True,
-                )
-                outt = outt + str(p.communicate())
-                sleep(1)
-            return outt
-        p = Popen(
-            "ssh {0}@{1} {2}".format(self.username, self.hosname, commands),
-            stdin=PIPE,
-            stdout=PIPE,
-            stderr=PIPE,
-            shell=True,
+        cmd = 'ssh -i {key} {user}@{host} "{command}"'.format(
+            key=KEY_FILE, user=self.username, host=self.hosname, command=command
         )
-        out = p.communicate()
-        return out
+
+        logger.info('Executing {cmd}'.format(cmd=cmd))
+        check_call(cmd, shell=True)
