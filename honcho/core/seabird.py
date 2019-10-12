@@ -8,7 +8,7 @@ def read_seabird_samples(ID):
         from gpio import imm_off, imm_on, enable_serial, disable_serial
 
         printf("Getting files from Sea Bird {0}".format(ID))
-        imm_on(1)
+        imm_on()
         enable_serial()
         sleep(10)
         from serial import Serial as ser
@@ -38,7 +38,7 @@ def read_seabird_samples(ID):
     finally:
         port.write("ReleaseLine\r\n")
         port.close()
-        imm_off(1)
+        imm_off()
         disable_serial()
     return seabird_raw_data
 

@@ -404,9 +404,9 @@ class dial:
         from timeit import default_timer as timer
 
         start = timer()
-        iridium_on(1)
-        router_on(1)
-        hub_on(1)
+        iridium_on()
+        router_on()
+        hub_on()
         sleep(30)
         try:
             files_to_send = ["logs/gps_binex.log", "picture", "dts", "logs/system.log"]
@@ -461,9 +461,9 @@ class dial:
             from gpio import is_on_checker
 
             if is_on_checker(1, 7):
-                iridium_off(1)
-                router_off(1)
-                hub_off(1)
+                iridium_off()
+                router_off()
+                hub_off()
 
     def In(self, time_out=20):
         """Execute dial in.
@@ -486,9 +486,9 @@ class dial:
 
             printf("Started dial in section")
             start = timer()
-            iridium_on(1)
-            router_on(1)
-            hub_on(1)
+            iridium_on()
+            router_on()
+            hub_on()
             sleep(10)
             reply = post(self.router_host + self.router_config, auth=self.router_auth)
             if reply.status_code != 200:

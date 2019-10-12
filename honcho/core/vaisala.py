@@ -16,7 +16,7 @@ class Average_Reading:
 
         try:
             # Turn on Weather Station
-            weather_on(1)
+            weather_on()
             sleep(20)
             # Read in the weather sensor data and write to an ascii text file
             port = serial.Serial("/dev/ttyS5")
@@ -48,7 +48,7 @@ class Average_Reading:
         finally:
             # Turn off Weather Station
             port.close()
-            weather_off(1)
+            weather_off()
 
     def clean_data(self):
         try:
@@ -198,7 +198,7 @@ class Live_Data:
             is_on = is_on_checker(0, 6)
             if not is_on:
                 # Turn on Weather Station
-                weather_on(1)
+                weather_on()
                 sleep(10)
             # Read lines from port
             port = serial.Serial("/dev/ttyS5")
@@ -222,7 +222,7 @@ class Live_Data:
             if not is_on:
                 # Turn off Weather Station
                 port.close()
-                weather_off(1)
+                weather_off()
 
     def clean_data(self):
         try:
