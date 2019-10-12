@@ -1,7 +1,6 @@
 import re
 from contextlib import contextmanager
 from logging import getLogger
-from time import sleep, time
 
 from honcho.util import serial_request
 
