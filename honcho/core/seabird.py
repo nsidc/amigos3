@@ -7,7 +7,7 @@ from serial import Serial
 from honcho.config import units
 from honcho.core.gpio import disable_serial, enable_serial, imm_off, imm_on
 from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
-from honcho.core.serial import serial_request
+from honcho.util import serial_request
 
 logger = getLogger(__name__)
 
@@ -20,7 +20,7 @@ def query_seabird(serial, device_id, samples=6):
         'IMM>'
     )
     raw = serial_request(
-        serial, '#{0}DN{1}'.format(device_id, samples), expected, timeout=5
+        serial, '#{0}DN{1}'.format(device_id, samples), expected, timeout=10
     )
 
     return raw
@@ -57,11 +57,12 @@ def get_seabird_average(device_id, samples=6):
     imm_on()
     enable_serial()
 
-    with Serial('/dev/ttyS4', 9600) as serial:
-        power_on(serial)
-        with force_capture_line(serial):
-            send_wakeup_tone(serial)
-            raw = query_seabird(serial, device_id, samples=samples)
+    serial = Serial('/dev/ttyS4', 9600)
+    power_on(serial)
+    with force_capture_line(serial):
+        send_wakeup_tone(serial)
+        raw = query_seabird(serial, device_id, samples=samples)
+    serial.close()
 
     disable_serial()
     imm_off()

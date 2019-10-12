@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-_Unit = namedtuple('Unit', ('name', 'mac_address', 'seabird_ids'))
+_Unit = namedtuple('Unit', ('name', 'mac_address', 'seabird_ids', 'aquadopp_ids'))
 
 
 units = namedtuple('UNITS', ('amigos3a', 'amigos3b', 'amigos3c'))(
