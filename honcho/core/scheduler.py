@@ -7,6 +7,7 @@ import traceback
 from datetime import datetime
 from time import sleep
 
+from camera import ptz_client as ptz
 from execp import amigos_Unit, printf, sig_handler, terminateProcess, welcome
 from gpio import hub_on
 from gps import gps_data as gps_data
@@ -15,7 +16,6 @@ from iridium import sbd as sb
 from monitor import (get_schedule_health, get_stat, has_slept,
                      put_to_inactive_sleep, put_to_power_sleep, reschedule)
 from onboard_device import get_humidity, get_temperature
-from onvif import ptz_client as ptz
 from schedule import schedule
 
 param = [False, False, None]
@@ -453,7 +453,7 @@ def run_schedule():
 if __name__ == "__main__":
     try:
         signals()
-        hub_on(1)
+        hub_on()
         run_schedule()
     except Exception as err:
         printf(

@@ -171,6 +171,14 @@ def dts_off():
     _off('dts')
 
 
+def cam_on():
+    _on('cam')
+
+
+def cam_off():
+    _off('cam')
+
+
 def win_on():
     _on('win')
 

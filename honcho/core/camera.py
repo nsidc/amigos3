@@ -246,7 +246,7 @@ class ptz_client:
             from timeit import default_timer as timer
 
             start = timer()
-            hub_on(1)
+            hub_on()
             sleep(5)
             printf("Camera moving north")
             self.send("absolute", pan=0, tilt=0, zoom=0)
@@ -282,7 +282,7 @@ class ptz_client:
             reschedule(re="move")
             traceback.print_exc(file=open("/media/mmcblk0p1/logs/system.log", "a+"))
         finally:
-            hub_off(1)
+            hub_off()
 
 
 # Test the code here

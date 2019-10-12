@@ -1,17 +1,17 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
-    name="amigos",
-    version="0.1.0",
-    description="AMIGOS III operations program",
-    author="Bruce Wallin, coovi meha",
+    name="honcho",
+    version="0.1.3",
+    description="Honcho: the AMIGOS III operations program",
+    author="Bruce Wallin, Coovi Meha",
     author_email="bruce.wallin@nsidc.org, coovi.meha@colorado.edu",
-    url="https://github.com/nsidc/amigos",
-    packages=find_packages(exclude=("tasks",)),
-    entry_points={"console_scripts": ["amigos=amigos.cli:main"]},
+    url="https://github.com/wallinb/amigos3",
+    packages=find_packages(),
+    entry_points={"console_scripts": ["honcho=honcho.cli:main"]},
     include_package_data=True,
     zip_safe=False,
 )

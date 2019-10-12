@@ -92,7 +92,7 @@ class gps_data:
         """
         if out:
             enable_serial()
-            gps_on(1)
+            gps_on()
             sleep(30)
         try:
             str_time = self.get_gpstime()
