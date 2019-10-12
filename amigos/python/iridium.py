@@ -399,21 +399,14 @@ class dial:
         out. Support list  (default: {None})
         """
         printf("Starting dial out session")
-        from gpio import (
-            iridium_off,
-            iridium_on,
-            router_off,
-            router_on,
-            modem_off,
-            modem_on,
-        )
+        from gpio import iridium_off, iridium_on, router_off, router_on, hub_off, hub_on
         from monitor import timing
         from timeit import default_timer as timer
 
         start = timer()
         iridium_on(1)
         router_on(1)
-        modem_on(1)
+        hub_on(1)
         sleep(30)
         try:
             files_to_send = ["logs/gps_binex.log", "picture", "dts", "logs/system.log"]
@@ -470,7 +463,7 @@ class dial:
             if is_on_checker(1, 7):
                 iridium_off(1)
                 router_off(1)
-                modem_off(1)
+                hub_off(1)
 
     def In(self, time_out=20):
         """Execute dial in.
@@ -485,8 +478,8 @@ class dial:
                 iridium_on,
                 router_off,
                 router_on,
-                modem_off,
-                modem_on,
+                hub_off,
+                hub_on,
             )
             from monitor import timing
             from timeit import default_timer as timer
@@ -495,7 +488,7 @@ class dial:
             start = timer()
             iridium_on(1)
             router_on(1)
-            modem_on(1)
+            hub_on(1)
             sleep(10)
             reply = post(self.router_host + self.router_config, auth=self.router_auth)
             if reply.status_code != 200:
@@ -541,7 +534,7 @@ class dial:
         finally:
             iridium_off(1)
             router_off(1)
-            modem_off(1)
+            hub_off(1)
 
 
 class sbd:
