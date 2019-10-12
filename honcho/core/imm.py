@@ -1,8 +1,9 @@
 import re
 from contextlib import contextmanager
 from logging import getLogger
+from time import sleep, time
 
-from honcho.core.serial import serial_request
+from honcho.util import serial_request
 
 logger = getLogger(__name__)
 
@@ -24,7 +25,11 @@ def force_capture_line(serial):
 
 
 def send_wakeup_tone(serial):
-    expected = re.escape(
-        'SendWakeUpTone\r\n' '(<Executing/>\r\n)*' '<Executed/>\r\n' 'IMM>'
+    expected = (
+        re.escape('SendWakeUpTone\r\n')
+        + '('
+        + re.escape('<Executing/>\r\n')
+        + ')*'
+        + re.escape('<Executed/>\r\nIMM>')
     )
     serial_request(serial, 'SendWakeUpTone', expected, timeout=10)

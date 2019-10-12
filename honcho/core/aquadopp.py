@@ -2,11 +2,12 @@ import re
 from datetime import datetime
 from logging import getLogger
 
+from serial import Serial
+
 from honcho.config import units
 from honcho.core.gpio import disable_serial, enable_serial, imm_off, imm_on
 from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
-from honcho.core.serial import serial_request
-from serial import Serial
+from honcho.util import serial_request
 
 logger = getLogger(__name__)
 
@@ -53,11 +54,12 @@ def get_aquadopp(device_id):
     imm_on()
     enable_serial()
 
-    with Serial('/dev/ttyS4', 9600) as serial:
-        power_on(serial)
-        with force_capture_line(serial):
-            send_wakeup_tone(serial)
-            raw = query_aquadopp(serial, device_id)
+    serial = Serial('/dev/ttyS4', 9600)
+    power_on(serial)
+    with force_capture_line(serial):
+        send_wakeup_tone(serial)
+        raw = query_aquadopp(serial, device_id)
+    serial.close()
 
     disable_serial()
     imm_off()
