@@ -1,527 +1,187 @@
 import subprocess as subprocess
-from time import sleep
 
-from execp import printf
+INDEX_DEVICE = "/sys/class/gpio/pwr_ctl/index"
+DATA_DEVICE = "/sys/class/gpio/pwr_ctl/data"
 
-bit_string = []
-
-
-def __update_bit(bit):
-    with open("/media/mmcblk0p1/logs/power_log.log", "w") as power_log:
-        power_log.write(bit)
-
-
-def __toggle(bit):
-    """
-    Toggle the bit of the index be used
-    index 1: Activate power  on GPIO VPROG
-    index 0: Activate power on BATLOAD GPIO
-    index 2: Activate power on GIO SPARE_E
-    """
-    subprocess.call("echo {0} > /sys/class/gpio/pwr_ctl/index".format(bit), shell=True)
-
-
-def hub_on(bit):
-    """
-    Turn hub module power on after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = str(power_log.read()).split(",")
-            bit_str = bit_string[1][0:6] + "1" + bit_string[1][7:]
-        __toggle(bit)
-        # printf(hex(int(bit_string[0], 2)))
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("Modern turned on  ___")
-        __update_bit(bit_string[0] + "," + bit_str + "," + bit_string[2])
+GPIO = {
+    'sbd': {'index': 0, 'mask': int('0b00000001', 2)},
+    'gps': {'index': 0, 'mask': int('0b00000010', 2)},
+    'imm': {'index': 0, 'mask': int('0b00000100', 2)},
+    'wxt': {'index': 0, 'mask': int('0b00001000', 2)},
+    'crx': {'index': 0, 'mask': int('0b00010000', 2)},
+    # '-': {'index': 0, 'mask': int('0b00100000', 2)},
+    'win': {'index': 0, 'mask': int('0b01000000', 2)},
+    # '-': {'index': 0, 'mask': int('0b00100000', 2)},
+    'dts': {'index': 1, 'mask': int('0b00000001', 2)},
+    'cam': {'index': 1, 'mask': int('0b00000010', 2)},
+    'rtr': {'index': 1, 'mask': int('0b00000100', 2)},
+    'hub': {'index': 1, 'mask': int('0b00001000', 2)},
+    'ird': {'index': 1, 'mask': int('0b00010000', 2)},
+    # '-': {'index': 1, 'mask': int('0b00100000', 2)},
+    # '-': {'index': 1, 'mask': int('0b01000000', 2)},
+    # '-': {'index': 1, 'mask': int('0b10000000', 2)},
+    'v5e': {'index': 2, 'mask': int('0b00000001', 2)},
+    'ser': {'index': 2, 'mask': int('0b00000010', 2)},
+    # '-': {'index': 2, 'mask': int('0b00000100', 2)},
+    'sol': {'index': 2, 'mask': int('0b00001000', 2)},
+    # '-': {'index': 2, 'mask': int('0b00010000', 2)},
+    # '-': {'index': 2, 'mask': int('0b00100000', 2)},
+    # '-': {'index': 2, 'mask': int('0b01000000', 2)},
+    # '-': {'index': 2, 'mask': int('0b10000000', 2)},
+}
 
 
-def hub_off(bit):
-    """
-    Turn hub module power off after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[1][0:6] + "0" + bit_string[1][7:]
-        __toggle(bit)
-        sleep(1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("Modern turned off  _/ _")
-        __update_bit(bit_string[0] + "," + bit_str + "," + bit_string[2])
+def set_index(index):
+    with open(INDEX_DEVICE, "wb") as f:
+        f.write(hex(index))
 
 
-def gps_on(bit):
-    """
-    Turn gps module power on after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:8] + "1" + bit_string[0][9]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("gps turned on  ___")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def get_value(index):
+    set_index(index)
+    with open(DATA_DEVICE, "rb") as f:
+        return int(f.read().strip(), 16)
 
 
-def gps_off(bit):
-    """
-    Turn gps module power off after toggling the bit
-    """
+def set_mask(index, mask):
+    value = get_value(index)
+    new_value = value | mask
 
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:8] + "0" + bit_string[0][9:]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("gps turned off  _/ _")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+    set_index(index)
+    with open(DATA_DEVICE, "wb") as f:
+        f.write(hex(new_value))
 
 
-def sbd_on(bit):
-    """
-    Turn weather module power on after toggling the bit
-    """
+def unset_mask(index, mask):
+    value = get_value(index)
+    new_value = value & ~mask
 
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:9] + "1"
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("sbd turned on  ___")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+    set_index(index)
+    with open(DATA_DEVICE, "wb") as f:
+        f.write(hex(new_value))
 
 
-def sbd_off(bit):
-    """
-    Turn weather module power on after toggling the bit
-    """
-
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:9] + "0"
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("sbd turned off  _/ _")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def _on(key):
+    set_mask(GPIO[key]['index'], GPIO[key]['mask'])
 
 
-def weather_on(bit):
-    """
-    Turn weather module power on after toggling the bit
-    """
-
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:6] + "1" + bit_string[0][7:]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("Weather station turned on  ___")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def _off(key):
+    unset_mask(GPIO[key]['index'], GPIO[key]['mask'])
 
 
-def weather_off(bit):
-    """
-    Turn weather module power off after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:6] + "0" + bit_string[0][7:]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("weather station turned off  _/ _")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def hub_on():
+    _on('hub')
 
 
-def imm_on(bit):
-    """
-    Turn IMM module power on after toggling the bit
-    """
-
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:7] + "1" + bit_string[0][8:]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("IMM  turned on  ___")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def hub_off():
+    _off('hub')
 
 
-def imm_off(bit):
-    """
-    Turn IMM module power off after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:7] + "0" + bit_string[0][8:]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("IMM turned off  _/ _")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def gps_on():
+    _on('gps')
 
 
-def power_down(bit):
-    if bit:
-        bit_string = "0b00000000,0b00000000,0b00000000"
-        __update_bit(bit_string)
-        __toggle(bit - 1)
-        subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(2)
-        __toggle(bit)
-        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(2)
-        __toggle(2)
-        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        printf("Tritron is going down now!")
-        sleep(2)
-        subprocess.call("shutdown -h now", shell=True)
+def gps_off():
+    _off('gps')
 
 
-def reboot(bit):
-    if bit:
-        bit_string = "0b00000000,0b00000000,0b00000000"
-        __update_bit(bit_string)
-        __toggle(bit - 1)
-        subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(2)
-        __toggle(bit)
-        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(2)
-        __toggle(2)
-        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        printf("Tritron is going down now for reboot!")
-        sleep(2)
-        subprocess.call("reboot", shell=True)
+def sbd_on():
+    _on('sbd')
 
 
-def all_off(bit):
-    """Turn all devices off
+def sbd_off():
+    _off('sbd')
 
-    Arguments:
-        bit {int} -- 1
-    """
-    if bit:
-        bit_string = "0b00000000,0b00000000,0b00000000"
-        __update_bit(bit_string)
-        __toggle(bit - 1)
-        subprocess.call("echo 0x0> /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(1)
-        __toggle(bit)
-        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(1)
-        __toggle(2)
-        subprocess.call("echo 0x0 > /sys/class/gpio/pwr_ctl/data", shell=True)
-        printf("Turning off all devices now!")
+
+def weather_on():
+    _on('wxt')
+
+
+def weather_off():
+    _off('wxt')
+
+
+def imm_on():
+    _on('imm')
+
+
+def imm_off():
+    _off('imm')
+
+
+def all_off():
+    for index in range(3):
+        unset_mask(index, 255)
+
+
+def shutdown():
+    all_off()
+    subprocess.call("shutdown -h now", shell=True)
+
+
+def reboot():
+    all_off()
+    subprocess.call("reboot", shell=True)
 
 
 def V5_ENA_ON():
-    """
-    Enabled 5 volt switch
-    """
-    with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-        bit_string = power_log.read().split(",")
-        bit_str = bit_string[2][0:9] + "1"
-    __toggle(2)
-    sleep(1)
-    subprocess.call(
-        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-        shell=True,
-    )
-    printf("Enabled 5 volt switch ___")
-    __update_bit(bit_string[0] + "," + bit_string[1] + "," + bit_str)
+    _on('v5e')
 
 
 def V5_ENA_OFF():
-    """
-    Disabled 5 volt switch
-    """
-    with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-        bit_string = power_log.read().split(",")
-        bit_str = bit_string[2][0:9] + "0"
-    __toggle(2)
-    sleep(1)
-    subprocess.call(
-        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-        shell=True,
-    )
-    printf("Disabled 5 volt switch _/ _")
-    __update_bit(bit_string[0] + "," + bit_string[1] + "," + bit_str)
+    _off('v5e')
 
 
 def solar_on():
-    """
-    Enabled 5 volt to solar sensor
-    """
-    with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-        bit_string = power_log.read().split(",")
-        bit_str = bit_string[2][0:6] + "1" + bit_string[2][7:]
-    __toggle(2)
-    sleep(1)
-    subprocess.call(
-        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-        shell=True,
-    )
-    printf("solar sensor turned on  ___")
-    __update_bit(bit_string[0] + "," + bit_string[1] + "," + bit_str)
+    _on('sol')
 
 
 def solar_off():
-    """
-    Disable 5 volt to solar sensor
-    """
-    with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-        bit_string = power_log.read().split(",")
-        bit_str = bit_string[2][0:6] + "0" + bit_string[2][7:]
-    __toggle(2)
-    sleep(1)
-    subprocess.call(
-        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-        shell=True,
-    )
-    printf("solar sensor turned off  _/ _")
-    __update_bit(bit_string[0] + "," + bit_string[1] + "," + bit_str)
+    _off('sol')
 
 
-def power_up(bit):
-    """Turn all device on
-
-    Arguments:
-        bit {int} -- 1
-    """
-    if bit:
-        __toggle(bit - 1)
-        subprocess.call("echo 0xFF> /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(2)
-        __toggle(bit)
-        subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
-        sleep(2)
-        __toggle(2)
-        subprocess.call("echo 0xFF > /sys/class/gpio/pwr_ctl/data", shell=True)
-        printf("All devices powered on  ___")
-        __update_bit("0b11111111,0b11111111,0b11111111")
+def cr1000_on():
+    _on('crx')
 
 
-def cr1000_on(bit):
-    """
-    Turn cr1000 module power on after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:5] + "1" + bit_string[0][6:]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("CR1000x turned on  ___")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def cr1000_off():
+    _off('crx')
 
 
-def cr1000_off(bit):
-    """
-    Turn cr1000 module power off after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:5] + "0" + bit_string[0][6:]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("CR1000x turned off  _/ _")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def router_on():
+    _on('rtr')
 
 
-def router_on(bit):
-    """
-    Turn router module power on after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = str(power_log.read()).split(",")
-            bit_str = bit_string[1][0:7] + "1" + bit_string[1][8:]
-        __toggle(bit)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("router turned on  ___")
-        __update_bit(bit_string[0] + "," + bit_str + "," + bit_string[2])
+def router_off():
+    _off('rtr')
 
 
-def router_off(bit):
-    """
-    Turn router module power off after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[1][0:7] + "0" + bit_string[1][8:]
-        __toggle(bit)
-        sleep(1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("router turned off  _/ _")
-        __update_bit(bit_string[0] + "," + bit_str + "," + bit_string[2])
+def iridium_on():
+    _on('ird')
 
 
-def iridium_on(bit):
-    """
-    Turn iridium module power on after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = str(power_log.read()).split(",")
-            bit_str = bit_string[1][0:5] + "1" + bit_string[1][6:]
-        __toggle(bit)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("iridium  turned on  ___")
-        __update_bit(bit_string[0] + "," + bit_str + "," + bit_string[2])
+def iridium_off():
+    _off('ird')
 
 
-def iridium_off(bit):
-    """
-    Turn iridium module power off after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[1][0:5] + "0" + bit_string[1][6:]
-        __toggle(bit)
-        sleep(1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("iridium turned off  _/ _")
-        __update_bit(bit_string[0] + "," + bit_str + "," + bit_string[2])
+def dts_on():
+    _on('dts')
 
 
-def dts_on(bit):
-    """
-    Turn windows/dts module power on after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:3] + "1" + bit_string[0][4:]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("Windows Unit turned on  ___")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def dts_off():
+    _off('dts')
 
 
-def dts_off(bit):
-    """
-    Turn windows/dts module power off after toggling the bit
-    """
-    if bit:
-        with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-            bit_string = power_log.read().split(",")
-            bit_str = bit_string[0][0:3] + "0" + bit_string[0][4:]
-        __toggle(bit - 1)
-        subprocess.call(
-            "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-            shell=True,
-        )
-        printf("Windows Unit turned off  _/ _")
-        __update_bit(bit_str + "," + bit_string[1] + "," + bit_string[2])
+def win_on():
+    _on('win')
+
+
+def win_off():
+    _off('win')
 
 
 def enable_serial():
-    """
-    Enable serial communication
-    """
-    with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-        bit_string = power_log.read().split(",")
-        bit_str = bit_string[2][0:8] + "1" + bit_string[2][9:]
-    __toggle(2)
-    sleep(1)
-    subprocess.call(
-        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-        shell=True,
-    )
-    printf("serial communication enable ___")
-    __update_bit(bit_string[0] + "," + bit_string[1] + "," + bit_str)
+    _on('ser')
 
 
 def disable_serial():
-    """
-    Enable serial communication
-    """
-    with open("/media/mmcblk0p1/logs/power_log.log", "r") as power_log:
-        bit_string = power_log.read().split(",")
-        bit_str = bit_string[2][0:8] + "0" + bit_string[2][9:]
-    __toggle(2)
-    sleep(1)
-    subprocess.call(
-        "echo {0} > /sys/class/gpio/pwr_ctl/data".format(hex(int(bit_str, 2))),
-        shell=True,
-    )
-    printf("serial communication disable _/ _")
-    __update_bit(bit_string[0] + "," + bit_string[1] + "," + bit_str)
-
-
-def is_on_checker(bit_index, bit_number):
-    """Check if a device is on
-
-    Arguments:
-        bit_index {int} -- index of the device from the power rail
-        bit_number {int} -- bit position of the device on the power rail.
-            Counting from left to right start from zero and add 2
-
-    Returns:
-        [type] -- [description]
-    """
-    with open("/media/mmcblk0p1/logs/power_log.log", "r") as logfile:
-        bits = logfile.read().split(",")
-        return int(bits[bit_index][bit_number])
+    _off('ser')
