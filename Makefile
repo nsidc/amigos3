@@ -10,10 +10,10 @@ submodules:  # create conda testing environment
 	git submodule init && git submodule update
 
 lint:  # check style with flake8
-	source activate amigos-test-env && flake8 --exclude ./honcho/ext
+	source activate amigos-test-env && flake8 --exclude ./honcho/ext,./backup
 
 test: lint  # run unit tests
-	source activate amigos-test-env && pytest --ignore ./honcho/ext --cov ./
+	source activate amigos-test-env && pytest --ignore ./honcho/ext --ignore ./backup --cov ./
 
 codecov:  # run codecov
 	source activate amigos-test-env && codecov

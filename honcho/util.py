@@ -1,11 +1,39 @@
 import os
+import re
 from collections import MutableMapping
+from logging import getLogger
+from time import sleep, time
+
+logger = getLogger(__name__)
 
 
 def ensure_dirs(directories):
     for directory in directories:
         if not os.path.exists(directory):
             os.makedirs(directory)
+
+
+def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
+    if not command.endswith('\r\n'):
+        command += '\r\n'
+
+    logger.debug('Sending command to {0}: {1}'.format(serial.port, command))
+    serial.write(command)
+    serial.flush()
+    start_time = time()
+    response = ''
+    while time() - start_time < timeout:
+        response += serial.read(serial.inWaiting())
+        if re.search(expected_regex, response, flags=re.DOTALL):
+            break
+        sleep(poll)
+    else:
+        logger.debug('Response collected from serial at timeout: {0}'.format(response))
+        raise Exception('Timed out waiting for expected serial response')
+
+    logger.debug('Response collected from serial: {0}'.format(response))
+
+    return response
 
 
 class OrderedDict(dict, MutableMapping):
