@@ -23,3 +23,10 @@ units = namedtuple('UNITS', ('amigos3a', 'amigos3b', 'amigos3c'))(
         aquadopp_ids=['26', '27'],
     ),
 )
+
+# Must be in order
+# 1/1 - first date assumed to be last entry
+schedule_times = [
+    {"name": "winter", "month": 5, "day": 1},
+    {"name": "summer", "month": 8, "day": 1},
+]
