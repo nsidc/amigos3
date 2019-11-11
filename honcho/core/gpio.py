@@ -1,33 +1,34 @@
 import subprocess as subprocess
+from contextlib import contextmanager
 
 INDEX_DEVICE = "/sys/class/gpio/pwr_ctl/index"
 DATA_DEVICE = "/sys/class/gpio/pwr_ctl/data"
 
 GPIO = {
-    'sbd': {'index': 0, 'mask': int('0b00000001', 2)},
-    'gps': {'index': 0, 'mask': int('0b00000010', 2)},
-    'imm': {'index': 0, 'mask': int('0b00000100', 2)},
-    'wxt': {'index': 0, 'mask': int('0b00001000', 2)},
-    'crx': {'index': 0, 'mask': int('0b00010000', 2)},
-    # '-': {'index': 0, 'mask': int('0b00100000', 2)},
-    'win': {'index': 0, 'mask': int('0b01000000', 2)},
-    # '-': {'index': 0, 'mask': int('0b00100000', 2)},
-    'dts': {'index': 1, 'mask': int('0b00000001', 2)},
-    'cam': {'index': 1, 'mask': int('0b00000010', 2)},
-    'rtr': {'index': 1, 'mask': int('0b00000100', 2)},
-    'hub': {'index': 1, 'mask': int('0b00001000', 2)},
-    'ird': {'index': 1, 'mask': int('0b00010000', 2)},
-    # '-': {'index': 1, 'mask': int('0b00100000', 2)},
-    # '-': {'index': 1, 'mask': int('0b01000000', 2)},
-    # '-': {'index': 1, 'mask': int('0b10000000', 2)},
-    'v5e': {'index': 2, 'mask': int('0b00000001', 2)},
-    'ser': {'index': 2, 'mask': int('0b00000010', 2)},
-    # '-': {'index': 2, 'mask': int('0b00000100', 2)},
-    'sol': {'index': 2, 'mask': int('0b00001000', 2)},
-    # '-': {'index': 2, 'mask': int('0b00010000', 2)},
-    # '-': {'index': 2, 'mask': int('0b00100000', 2)},
-    # '-': {'index': 2, 'mask': int('0b01000000', 2)},
-    # '-': {'index': 2, 'mask': int('0b10000000', 2)},
+    'sbd': {'index': 0, 'mask': int('0b00000001', 2), 'wait': 5},
+    'gps': {'index': 0, 'mask': int('0b00000010', 2), 'wait': 5},
+    'imm': {'index': 0, 'mask': int('0b00000100', 2), 'wait': 5},
+    'wxt': {'index': 0, 'mask': int('0b00001000', 2), 'wait': 5},
+    'crx': {'index': 0, 'mask': int('0b00010000', 2), 'wait': 5},
+    # '-': {'index': 0, 'mask': int('0b00100000', 2), 'wait': 5},
+    'win': {'index': 0, 'mask': int('0b01000000', 2), 'wait': 5},
+    # '-': {'index': 0, 'mask': int('0b00100000', 2), 'wait': 5},
+    'dts': {'index': 1, 'mask': int('0b00000001', 2), 'wait': 5},
+    'cam': {'index': 1, 'mask': int('0b00000010', 2), 'wait': 5},
+    'rtr': {'index': 1, 'mask': int('0b00000100', 2), 'wait': 5},
+    'hub': {'index': 1, 'mask': int('0b00001000', 2), 'wait': 5},
+    'ird': {'index': 1, 'mask': int('0b00010000', 2), 'wait': 5},
+    # '-': {'index': 1, 'mask': int('0b00100000', 2), 'wait': 5},
+    # '-': {'index': 1, 'mask': int('0b01000000', 2), 'wait': 5},
+    # '-': {'index': 1, 'mask': int('0b10000000', 2), 'wait': 5},
+    'v5e': {'index': 2, 'mask': int('0b00000001', 2), 'wait': 5},
+    'ser': {'index': 2, 'mask': int('0b00000010', 2), 'wait': 5},
+    # '-': {'index': 2, 'mask': int('0b00000100', 2), 'wait': 5},
+    'sol': {'index': 2, 'mask': int('0b00001000', 2), 'wait': 5},
+    # '-': {'index': 2, 'mask': int('0b00010000', 2), 'wait': 5},
+    # '-': {'index': 2, 'mask': int('0b00100000', 2), 'wait': 5},
+    # '-': {'index': 2, 'mask': int('0b01000000', 2), 'wait': 5},
+    # '-': {'index': 2, 'mask': int('0b10000000', 2), 'wait': 5},
 }
 
 
@@ -60,52 +61,72 @@ def unset_mask(index, mask):
         f.write(hex(new_value))
 
 
-def _on(key):
-    set_mask(GPIO[key]['index'], GPIO[key]['mask'])
+def turn_on(component):
+    set_mask(GPIO[component]['index'], GPIO[component]['mask'])
 
 
-def _off(key):
-    unset_mask(GPIO[key]['index'], GPIO[key]['mask'])
+def turn_off(component):
+    unset_mask(GPIO[component]['index'], GPIO[component]['mask'])
+
+
+def is_on(component):
+    index = GPIO[component]['index']
+    mask = GPIO[component]['mask']
+    set_index(index)
+    value = get_value(mask)
+    result = bool(value & mask)
+
+    return result
+
+
+@contextmanager
+def powered(component):
+    if is_on(component):
+        raise Exception('{0} requested but already powered on')
+    turn_on(component)
+    sleep(GPIO[component]['wait'])
+    yield
+    turn_off(component)
 
 
 def hub_on():
-    _on('hub')
+    turn_on('hub')
 
 
 def hub_off():
-    _off('hub')
+    turn_off('hub')
 
 
 def gps_on():
-    _on('gps')
+    turn_on('gps')
 
 
 def gps_off():
-    _off('gps')
+    turn_off('gps')
 
 
 def sbd_on():
-    _on('sbd')
+    turn_on('sbd')
 
 
 def sbd_off():
-    _off('sbd')
+    turn_off('sbd')
 
 
 def weather_on():
-    _on('wxt')
+    turn_on('wxt')
 
 
 def weather_off():
-    _off('wxt')
+    turn_off('wxt')
 
 
 def imm_on():
-    _on('imm')
+    turn_on('imm')
 
 
 def imm_off():
-    _off('imm')
+    turn_off('imm')
 
 
 def all_off():
@@ -124,72 +145,72 @@ def reboot():
 
 
 def V5_ENA_ON():
-    _on('v5e')
+    turn_on('v5e')
 
 
 def V5_ENA_OFF():
-    _off('v5e')
+    turn_off('v5e')
 
 
 def solar_on():
-    _on('sol')
+    turn_on('sol')
 
 
 def solar_off():
-    _off('sol')
+    turn_off('sol')
 
 
 def cr1000_on():
-    _on('crx')
+    turn_on('crx')
 
 
 def cr1000_off():
-    _off('crx')
+    turn_off('crx')
 
 
 def router_on():
-    _on('rtr')
+    turn_on('rtr')
 
 
 def router_off():
-    _off('rtr')
+    turn_off('rtr')
 
 
 def iridium_on():
-    _on('ird')
+    turn_on('ird')
 
 
 def iridium_off():
-    _off('ird')
+    turn_off('ird')
 
 
 def dts_on():
-    _on('dts')
+    turn_on('dts')
 
 
 def dts_off():
-    _off('dts')
+    turn_off('dts')
 
 
 def cam_on():
-    _on('cam')
+    turn_on('cam')
 
 
 def cam_off():
-    _off('cam')
+    turn_off('cam')
 
 
 def win_on():
-    _on('win')
+    turn_on('win')
 
 
 def win_off():
-    _off('win')
+    turn_off('win')
 
 
 def enable_serial():
-    _on('ser')
+    turn_on('ser')
 
 
 def disable_serial():
-    _off('ser')
+    turn_off('ser')
