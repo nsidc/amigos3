@@ -6,7 +6,7 @@ from time import sleep
 from serial import Serial
 
 from honcho.config import units
-from honcho.core.gpio import disable_serial, enable_serial, imm_off, imm_on
+from honcho.core.gpio import powered
 from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
 from honcho.util import serial_request
 
@@ -56,19 +56,13 @@ def parse(raw):
 
 
 def get_data(device_id, samples=6):
-    imm_on()
-    enable_serial()
-    sleep(1)
-
-    serial = Serial('/dev/ttyS4', 9600)
-    power_on(serial)
-    with force_capture_line(serial):
-        send_wakeup_tone(serial)
-        raw = query(serial, device_id, samples=samples)
-    serial.close()
-
-    disable_serial()
-    imm_off()
+    with powered('imm'), powered('ser'):
+        serial = Serial('/dev/ttyS4', 9600)
+        power_on(serial)
+        with force_capture_line(serial):
+            send_wakeup_tone(serial)
+            raw = query(serial, device_id, samples=samples)
+        serial.close()
 
     metadata, data = parse(raw)
 
