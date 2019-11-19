@@ -12,8 +12,10 @@ submodules:  # create conda testing environment
 lint:  # check style with flake8
 	source activate amigos-test-env && flake8 --exclude ./honcho/ext,./backup
 
-test: lint  # run unit tests
-	source activate amigos-test-env && pytest --ignore ./honcho/ext --ignore ./backup --cov ./
+test: clean lint  # run unit tests
+	source activate amigos-test-env && \
+	    PYTHONPATH="$$PYTHONPATH:./honcho/ext" \
+	    pytest --ignore ./honcho/ext --ignore ./backup --cov ./
 
 codecov:  # run codecov
 	source activate amigos-test-env && codecov
@@ -44,5 +46,5 @@ setup-system:
 	ssh root@amigos "mount / -o remount,ro"
 
 backup: # sync the amigos box sd card
-	mkdir -p backup
-	scp -prCB root@amigos:/media/mmcblk0p1 "backup/$$(date +%F_%R)"
+	mkdir -p ../backup
+	scp -prCB root@amigos:/media/mmcblk0p1 "../backup/$$(date +%F_%R)"

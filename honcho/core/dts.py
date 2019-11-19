@@ -147,6 +147,10 @@ def acquire():
     win_off()
 
 
+def collect():
+    pass
+
+
 if __name__ == "__main__":
     logs.init_logging(logging.DEBUG)
     acquire()
