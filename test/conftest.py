@@ -1,4 +1,3 @@
-import sys
 import os
 import pty
 import threading
@@ -33,3 +32,9 @@ def serial_mock():
         serial.close()
 
     yield mock
+
+
+@pytest.fixture
+def mock_fs(fs):
+    fs.add_real_directory('/dev/pts')
+    pass

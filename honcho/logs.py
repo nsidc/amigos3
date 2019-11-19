@@ -1,37 +1,39 @@
 import logging
 import os
 
-LOG_DIRECTORY = '/media/media/mmcblk0p1/logs'
-LOG_FILENAME = 'system.log'
-FORMATTER = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+from honcho.config import LOG_DIR, LOG_LEVEL, LOG_FILENAME, LOG_FORMATTER
+
+logging_initialized = False
 
 
-root_logger = logging.getLogger()
+def init_logging(log_level=LOG_LEVEL, directory=LOG_DIR):
+    global logging_initialized
+    if not logging_initialized:
+        root_logger = logging.getLogger()
+        root_logger.setLevel(log_level)
+        add_console_logging(root_logger, log_level)
+        if directory is not None:
+            add_file_logging(root_logger, log_level, directory)
 
-
-def init_logging(log_level=logging.INFO, directory=None):
-    root_logger.setLevel(log_level)
-    add_console_logging(root_logger, log_level)
-    if directory is not None:
-        add_file_logging(root_logger, directory, log_level)
+        logging_initialized = True
 
 
 def add_console_logging(logger, level):
     ch = logging.StreamHandler()
     ch.setLevel(level)
-    formatter = FORMATTER
+    formatter = LOG_FORMATTER
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
 
-def add_file_logging(
-    logger, directory=LOG_DIRECTORY, filename=LOG_FILENAME, level=logging.INFO
-):
+def add_file_logging(logger, level, directory=LOG_DIR, filename=LOG_FILENAME):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    file_handler = logging.FileHandler(os.path.join(directory, filename))
+    file_handler = logging.handlers.RotatingFileHandler(
+        os.path.join(directory, filename), maxBytes=1000000, backupCount=20
+    )
 
-    file_handler.setFormatter(FORMATTER)
+    file_handler.setFormatter(LOG_FORMATTER)
     file_handler.setLevel(level)
     logger.addHandler(file_handler)

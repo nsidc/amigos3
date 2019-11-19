@@ -1,14 +1,14 @@
 import re
 from datetime import datetime
 from logging import getLogger
-from time import sleep
+from contextlib import closing
 
 from serial import Serial
 
-from honcho.config import units
+from honcho.config import IMM_PORT, IMM_BAUD
 from honcho.core.gpio import powered
 from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
-from honcho.util import serial_request
+from honcho.util import serial_request, fail_gracefully
 
 logger = getLogger(__name__)
 
@@ -57,16 +57,15 @@ def parse(raw):
 
 def get_data(device_id, samples=6):
     with powered('imm'), powered('ser'):
-        serial = Serial('/dev/ttyS4', 9600)
-        power_on(serial)
-        with force_capture_line(serial):
-            send_wakeup_tone(serial)
-            raw = query(serial, device_id, samples=samples)
-        serial.close()
+        with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
+            power_on(serial)
+            with force_capture_line(serial):
+                send_wakeup_tone(serial)
+                raw = query(serial, device_id, samples=samples)
 
     metadata, data = parse(raw)
 
-    cols = zip(*data)
+    cols = list(zip(*data))
     delta_mins = round((max(cols[0]) - min(cols[0])).seconds / 60.0)
     averaged_data = [metadata['start_time'], delta_mins]
     n = len(data)
@@ -76,7 +75,10 @@ def get_data(device_id, samples=6):
     return averaged_data
 
 
-if __name__ == '__main__':
-    data = get_data(units.amigos3c.seabird_ids[0])
+@fail_gracefully
+def execute():
+    raise NotImplementedError
 
-    print(data)
+
+if __name__ == '__main__':
+    execute()

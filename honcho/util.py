@@ -1,8 +1,10 @@
 import os
 import re
+import traceback
 from collections import MutableMapping
 from logging import getLogger
 from time import sleep, time
+from netrc import netrc
 
 logger = getLogger(__name__)
 
@@ -101,3 +103,26 @@ class OrderedDict(dict, MutableMapping):
         for key in iterable:
             d[key] = value
         return d
+
+
+def fail_gracefully(f, reraise=False):
+    '''
+    Decorator that catches and logs any exception
+    '''
+
+    def wrapped(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception:
+            logger.error(traceback.format_exc())
+            if reraise:
+                raise
+
+    return wrapped
+
+
+def get_creds(host):
+    nrc = netrc()
+    user, _, passwd = nrc.hosts[host]
+
+    return user, passwd

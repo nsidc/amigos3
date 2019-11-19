@@ -5,7 +5,8 @@ from bisect import bisect
 from time import sleep
 
 import honcho.logs as logs
-from honcho.util import ensure_dirs
+from honcho.util import ensure_dirs, fail_gracefully
+from honcho.core.gpio import powered
 
 DTS_PULL_DELAY = 60 * 5
 DTS_WIN_DATA_DIR = 'Desktop/dts_data'
@@ -102,55 +103,47 @@ def write(metadata, measurements, filepath):
 def acquire():
     """Entry point of DTS files retrival and execution plus time update on windows unit
     """
-    from gpio import dts_on, dts_off, hub_on, hub_off, win_on, win_off
     from ssh import SSH
 
     logger.info("Turning on DTS and windows unit")
-    hub_on()
-    win_on()
-    dts_on()
+    with powered('hub'), powered('win'), powered('dts'):
+        logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
+        sleep(DTS_PULL_DELAY)
 
-    logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
-    sleep(DTS_PULL_DELAY)
+        logger.info("Pulling files from windows unit")
+        ssh = SSH("admin", "192.168.0.50")
+        win_data_glob = os.path.join(DTS_WIN_DATA_DIR, "*")
 
-    logger.info("Pulling files from windows unit")
-    ssh = SSH("admin", "192.168.0.50")
-    win_data_glob = os.path.join(DTS_WIN_DATA_DIR, "*")
+        ssh.copy(win_data_glob, DTS_RAW_DATA_DIR, recursive=True)
 
+        filepaths = []
+        for root, _, filenames in os.walk(DTS_RAW_DATA_DIR):
+            filepaths.extend(
+                [
+                    os.path.join(root, filename)
+                    for filename in filenames
+                    if filename.endswith('xml')
+                ]
+            )
+        logger.info("Found {0} dts files".format(len(filepaths)))
+
+        for filepath in filepaths:
+            logger.info("Processing {0}".format(filepath))
+            metadata, measurements = parse_xml(filepath)
+            measurements = process_measurements(measurements)
+            write(metadata, measurements, output_filepath(filepath))
+
+        logger.info("Processing DTS complete, cleaning up")
+        ssh.execute("rm -rf {glob}".format(glob=win_data_glob))
+        shutil.rmtree(DTS_RAW_DATA_DIR)
+
+
+@fail_gracefully
+def execute():
     ensure_dirs([DTS_RAW_DATA_DIR, DTS_PROCESSED_DATA_DIR])
-
-    ssh.copy(win_data_glob, DTS_RAW_DATA_DIR, recursive=True)
-
-    filepaths = []
-    for root, _, filenames in os.walk(DTS_RAW_DATA_DIR):
-        filepaths.extend(
-            [
-                os.path.join(root, filename)
-                for filename in filenames
-                if filename.endswith('xml')
-            ]
-        )
-    logger.info("Found {0} dts files".format(len(filepaths)))
-
-    for filepath in filepaths:
-        logger.info("Processing {0}".format(filepath))
-        metadata, measurements = parse_xml(filepath)
-        measurements = process_measurements(measurements)
-        write(metadata, measurements, output_filepath(filepath))
-
-    logger.info("Processing DTS complete, cleaning up")
-    ssh.execute("rm -rf {glob}".format(glob=win_data_glob))
-    shutil.rmtree(DTS_RAW_DATA_DIR)
-
-    hub_off()
-    dts_off()
-    win_off()
-
-
-def collect():
-    pass
+    logs.init_logging(logging.DEBUG)
+    acquire()
 
 
 if __name__ == "__main__":
-    logs.init_logging(logging.DEBUG)
-    acquire()
+    execute()

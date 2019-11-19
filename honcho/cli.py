@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 import argparse
 import logging
-from time import sleep
 
 import honcho.logs as logs
 from honcho.version import version
+from honcho.core.system import shutdown, reboot
+from honcho.config import GPIO
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ def init_parsers():
         "--log-level",
         help="Set logging level (DEBUG, INFO, ERROR)",
         action='store',
-        default='INFO',
+        default=None,
         choices=('DEBUG', 'INFO', 'ERROR'),
     )
     parser = argparse.ArgumentParser(parents=[common_parser])
@@ -27,43 +27,33 @@ def init_parsers():
 
 
 def add_schedule_parser(subparsers):
-    schedule = subparsers.add_parser('schedule')
-    group = schedule.add_mutually_exclusive_group()
+    import honcho.core.sched as sched
+
+    parser = subparsers.add_parser('schedule')
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
-        "-p", "--pending", help="View pending schedule", action="store_true"
+        "-r",
+        "--run",
+        help="Run schedule",
+        action="append_const",
+        default=None,
+        const=sched.execute,
+        dest='callbacks',
     )
-    group.add_argument(
-        "-s", "--summer", help="View summer schedule", action="store_true"
-    )
-    group.add_argument(
-        "-w", "--winter", help="View winter schedule", action="store_true"
-    )
-
-
-def add_weather_parser(subparsers):
-    subparsers.add_parser('weather')
-
-
-def add_cr1000x_parser(subparsers):
-    subparsers.add_parser('cr1000x')
-
-
-def add_solar_parser(subparsers):
-    subparsers.add_parser('solar')
 
 
 def add_power_parser(subparsers):
     import honcho.core.gpio as gpio
 
-    power = subparsers.add_parser('power')
+    parser = subparsers.add_parser('power')
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--hub-on",
         help="Hub on",
         action="append_const",
         default=[],
-        const=gpio.hub_on,
+        const=lambda: gpio.turn_on(GPIO.HUB),
         dest='callbacks',
     )
     group.add_argument(
@@ -71,17 +61,17 @@ def add_power_parser(subparsers):
         help="Hub off",
         action="append_const",
         default=[],
-        const=gpio.hub_off,
+        const=gpio.turn_off(GPIO.HUB),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--gps-on",
         help="GPS on",
         action="append_const",
         default=[],
-        const=gpio.gps_on,
+        const=gpio.turn_on(GPIO.GPS),
         dest='callbacks',
     )
     group.add_argument(
@@ -89,17 +79,17 @@ def add_power_parser(subparsers):
         help="GPS off",
         action="append_const",
         default=[],
-        const=gpio.gps_off,
+        const=gpio.turn_off(GPIO.GPS),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
-        "--weather-on",
+        "--wxt-on",
         help="Weather station on",
         action="append_const",
         default=[],
-        const=gpio.weather_on,
+        const=gpio.turn_on(GPIO.WXT),
         dest='callbacks',
     )
     group.add_argument(
@@ -107,17 +97,17 @@ def add_power_parser(subparsers):
         help="Weather station off",
         action="append_const",
         default=[],
-        const=gpio.weather_off,
+        const=gpio.turn_off(GPIO.WXT),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--cr1000-on",
         help="cr1000 on",
         action="append_const",
         default=[],
-        const=gpio.cr1000_on,
+        const=gpio.turn_on(GPIO.CRX),
         dest='callbacks',
     )
     group.add_argument(
@@ -125,37 +115,35 @@ def add_power_parser(subparsers):
         help="cr1000 off",
         action="append_const",
         default=[],
-        const=gpio.cr1000_off,
+        const=gpio.turn_off(GPIO.CRX),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--imm-on",
-        "--imm_on",
         help="imm on",
         action="append_const",
         default=[],
-        const=gpio.imm_on,
+        const=gpio.turn_on(GPIO.IMM),
         dest='callbacks',
     )
     group.add_argument(
         "--imm-off",
-        "--imm_off",
         help="imm off",
         action="append_const",
         default=[],
-        const=gpio.imm_off,
+        const=gpio.turn_off(GPIO.IMM),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--router-on",
         help="Router on",
         action="append_const",
         default=[],
-        const=gpio.router_on,
+        const=gpio.turn_on(GPIO.RTR),
         dest='callbacks',
     )
     group.add_argument(
@@ -163,17 +151,17 @@ def add_power_parser(subparsers):
         help="Router off",
         action="append_const",
         default=[],
-        const=gpio.router_off,
+        const=gpio.turn_off(GPIO.RTR),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--iridium-on",
         help="Iridium on",
         action="append_const",
         default=[],
-        const=gpio.iridium_on,
+        const=gpio.turn_on(GPIO.IRD),
         dest='callbacks',
     )
     group.add_argument(
@@ -181,17 +169,17 @@ def add_power_parser(subparsers):
         help="Iridium off",
         action="append_const",
         default=[],
-        const=gpio.iridium_off,
+        const=gpio.turn_off(GPIO.IRD),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--win-on",
         help="Windows box on",
         action="append_const",
         default=[],
-        const=gpio.win_on,
+        const=gpio.turn_on(GPIO.WIN),
         dest='callbacks',
     )
     group.add_argument(
@@ -199,17 +187,17 @@ def add_power_parser(subparsers):
         help="Windows box off",
         action="append_const",
         default=[],
-        const=gpio.win_off,
+        const=gpio.turn_off(GPIO.WIN),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--dts-on",
         help="dts on",
         action="append_const",
         default=[],
-        const=gpio.dts_on,
+        const=gpio.turn_on(GPIO.DTS),
         dest='callbacks',
     )
     group.add_argument(
@@ -217,17 +205,17 @@ def add_power_parser(subparsers):
         help="dts off",
         action="append_const",
         default=[],
-        const=gpio.dts_off,
+        const=gpio.turn_off(GPIO.DTS),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--sbd-on",
         help="power on serial dtx pin",
         action="append_const",
         default=[],
-        const=gpio.sbd_on,
+        const=gpio.turn_on(GPIO.SBD),
         dest='callbacks',
     )
     group.add_argument(
@@ -235,17 +223,17 @@ def add_power_parser(subparsers):
         help="power off iridium serial dtx pin",
         action="append_const",
         default=[],
-        const=gpio.sbd_off,
+        const=gpio.turn_off(GPIO.SBD),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--solar-on",
         help="power on solar sensor",
         action="append_const",
         default=[],
-        const=gpio.solar_on,
+        const=gpio.turn_on(GPIO.SOL),
         dest='callbacks',
     )
     group.add_argument(
@@ -253,17 +241,35 @@ def add_power_parser(subparsers):
         help="power off solar sensor",
         action="append_const",
         default=[],
-        const=gpio.solar_off,
+        const=gpio.turn_off(GPIO.SOL),
         dest='callbacks',
     )
 
-    group = power.add_mutually_exclusive_group()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--serial-on",
+        help="Enable serial tx",
+        action="append_const",
+        default=[],
+        const=gpio.turn_on(GPIO.SER),
+        dest='callbacks',
+    )
+    group.add_argument(
+        "--serial-off",
+        help="Disable serial tx",
+        action="append_const",
+        default=[],
+        const=gpio.turn_off(GPIO.SER),
+        dest='callbacks',
+    )
+
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--all-off",
         help="power off all gpio",
         action="append_const",
         default=[],
-        const=gpio.all_off,
+        const=gpio.all_off(),
         dest='callbacks',
     )
     group.add_argument(
@@ -271,7 +277,7 @@ def add_power_parser(subparsers):
         help="power down all peripherals and shutdown system",
         action="append_const",
         default=[],
-        const=gpio.shutdown,
+        const=shutdown,
         dest='callbacks',
     )
     group.add_argument(
@@ -279,173 +285,85 @@ def add_power_parser(subparsers):
         help="reboot system",
         action="append_const",
         default=[],
-        const=gpio.reboot,
+        const=reboot,
         dest='callbacks',
     )
 
 
-def add_serial_parser(subparsers):
-    import honcho.core.gpio as gpio
+def sbd_handler(args):
+    import honcho.core.sbd as sbd
 
-    serial = subparsers.add_parser('serial')
-
-    group = serial.add_mutually_exclusive_group()
-    group.add_argument(
-        "-e",
-        "--enable",
-        help="enable serial com",
-        action="append_const",
-        default=[],
-        const=gpio.enable_serial,
-        dest='callbacks',
-    )
-    group.add_argument(
-        "-d",
-        "--disable",
-        help="disable serial com",
-        action="append_const",
-        default=[],
-        const=gpio.disable_serial,
-        dest='callbacks',
-    )
+    if args.message:
+        sbd.send_message(args.message)
+    elif args.send_queued:
+        sbd.send_queue()
+    elif args.clear_queued:
+        sbd.clear_queue()
 
 
 def add_sbd_parser(subparsers):
-    sbd = subparsers.add_parser('sbd')
+    parser = subparsers.add_parser('sbd')
+    parser.add_defaults(handler=sbd_handler)
 
-    group = sbd.add_mutually_exclusive_group()
-    group.add_argument("--send", help="send sbd", action="store_true")
-    group.add_argument("--read", help="read sbd", action="store_true")
-
-
-def add_iridium_parser(subparsers):
-    iridium = subparsers.add_parser('iridium')
-
-    group = iridium.add_mutually_exclusive_group()
-    group.add_argument("--dial-out", help="dial out files through", action="store_true")
-    group.add_argument("--dial-in", help="Configure for dial in", action="store_true")
-
-
-def add_gps_parser(subparsers):
-    gps = subparsers.add_parser('gps')
-
-    group = gps.add_mutually_exclusive_group()
-    group.add_argument("--set-time", help="?", action="store_true")
-    group.add_argument("--get_time", help="?", action="store_true")
-
-
-def add_dts_parser(subparsers):
-    pass
-
-
-def add_sleep_parser(subparsers):
-    sleep = subparsers.add_parser('sleep')
-
-    group = sleep.add_mutually_exclusive_group()
-
-    group.add_argument("--on", help="Turn on sleepy mode", action="store_true")
-    group.add_argument("--off", help="Turn off sleepy mode", action="store_true")
-
-
-def add_camera_parser(subparsers):
-    camera = subparsers.add_parser('camera')
-
-    group = camera.add_mutually_exclusive_group()
-    camera.add_argument(
-        "-t", "--tilt", help="Set tilt", action="store", type=float, default=None
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--send", help="Send sbd message", action="store", dest='message', default=''
     )
-    camera.add_argument(
-        "-p", "--pan", help="Set pan", action="store", type=float, default=None
+    group.add_argument(
+        "--send-queued",
+        help="Send queued SBDs",
+        action="store_true",
+        dest='send_queued',
     )
-    camera.add_argument(
-        "-z", "--zoom", help="Set zoom", action="store", type=float, default=None
+    group.add_argument(
+        "--clear-queued",
+        help="Clear queued SBDs",
+        action="store_true",
+        dest='clear_queued',
     )
 
-    group = camera.add_mutually_exclusive_group()
-    group.add_argument("--snapshot", help="Take a snapshot", action="store_true")
-    group.add_argument("--status", help="Get status", action="store_true")
+
+def orders_handler(args):
+    import honcho.core.orders as orders
+
+    if args.get:
+        orders.get_orders()
+    if args.perform:
+        orders.perform_orders()
+    if args.report:
+        orders.report_results()
+    if args.cleanup:
+        orders.clean_up()
 
 
-def camera(args):
-    from honcho.core.camera import ptz_client
+def add_orders_parser(subparsers):
+    parser = subparsers.add_parser('orders')
+    parser.add_defaults(handler=orders_handler)
 
-    ptz = ptz_client()
-    if set([args.pan, args.tilt, args.zoom]) != set([None]):
-        ptz.send(typeof="absolute", pan=args.pan, tilt=args.tilt, zoom=args.zoom)
-    if args.snapshot:
-        ptz.snapShot()
-    elif args.get_status:
-        ptz.getStatus(output=True)
-
-
-def cr1000x(args):
-    from python.cr1000x import cr1000x_live
-
-    CR = cr1000x_live()
-    CR.cr_all()
-
-
-def solar(args):
-    from python.solar import solar_live
-
-    sol = solar_live()
-    sol.solar_all()
-
-
-def gps(args):
-    from python.gps import gps_data
-    from python.gpio import gps_off, gps_on, enable_serial, disable_serial
-
-    gps = gps_data()
-    gps_on()
-    enable_serial()
-    sleep(30)
-    if args.set_time:
-        gps.update_time()
-    elif args.get_time:
-        print(gps.get_gpstime())
-    gps_off()
-    disable_serial()
-
-
-def sleep_mode(args):
-    if args.on:
-        logger.info("Sleep mode is restored")
-        with open("/media/mmcblk0p1/logs/sleep_toggle", "w+") as f:
-            f.write("on")
-        print("Thanks, sleep mode is restored. See you soon ")
-    elif args.off:
-        logger.info("Sleep mode deactivated")
-        with open("/media/mmcblk0p1/logs/sleep_toggle", "w+") as f:
-            f.write("off")
-        print("Sleep mode is disactivated. Please remember to reactivate it")
-
-
-def iridium(args):
-    from honcho.core.iridium import dial
-
-    d = dial()
-    if args.dial_in:  # noqa
-        d.In(time_out=60 * 6)
-    elif args.dial_out:
-        d.Out()
-
-
-def weather(args):
-    from python.vaisala import Live_Data
-
-    Live_Readings = Live_Data()
-    Live_Readings.weather_all()
+    parser.add_argument("--get", help="Get orders", action="store_true", dest='get')
+    parser.add_argument(
+        "--perform", help="Perform orders", action="store_true", dest='perform'
+    )
+    parser.add_argument(
+        "--report-results",
+        help="Report results",
+        action="store_true",
+        dest='report_results',
+    )
+    parser.add_argument(
+        "--clean-up",
+        help="Clean up orders and results",
+        action="store_true",
+        dest='clean_up',
+    )
 
 
 def build_parser():
     parser, subparsers = init_parsers()
+    add_schedule_parser(subparsers)
     add_power_parser(subparsers)
-    add_camera_parser(subparsers)
-    add_sleep_parser(subparsers)
-    add_cr1000x_parser(subparsers)
-    add_serial_parser(subparsers)
-    add_iridium_parser(subparsers)
+    add_sbd_parser(subparsers)
+    add_orders_parser(subparsers)
 
     return parser
 
@@ -454,20 +372,14 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    logs.init_logging(getattr(logging, args.log_level))
+    logs.init_logging(getattr(logging, args.log_level, directory=None))
 
-    if getattr(args, 'callbacks', False):
+    if hasattr(args, 'callbacks'):
         for callback in args.callbacks:
             callback()
 
-    if args.command == 'camera':
-        camera(args)
-    if args.command == 'cr1000':
-        cr1000x(args)
-    if args.command == 'gps':
-        gps(args)
-    if args.command == 'iridium':
-        iridium(args)
+    if hasattr(args, 'handler'):
+        args.handler(args)
 
 
 if __name__ == "__main__":

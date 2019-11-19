@@ -1,13 +1,14 @@
 import re
 from datetime import datetime
 from logging import getLogger
+from contextlib import closing
 
 from serial import Serial
 
-from honcho.config import units
+from honcho.config import IMM_PORT, IMM_BAUD
 from honcho.core.gpio import powered
 from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
-from honcho.util import serial_request
+from honcho.util import serial_request, fail_gracefully
 
 logger = getLogger(__name__)
 
@@ -58,18 +59,21 @@ def parse(raw):
 
 def get_data(device_id):
     with powered('imm'), powered('ser'):
-        serial = Serial('/dev/ttyS4', 9600)
-        power_on(serial)
-        with force_capture_line(serial):
-            send_wakeup_tone(serial)
-            raw = query(serial, device_id)
-        serial.close()
+        with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
+            power_on(serial)
+            with force_capture_line(serial):
+                send_wakeup_tone(serial)
+                raw = query(serial, device_id)
 
     _, data = parse(raw)
 
     return data
 
 
+@fail_gracefully
+def execute():
+    raise NotImplementedError
+
+
 if __name__ == '__main__':
-    data = get_data(units.amigos3a.aquadopp_ids[0])
-    print(data)
+    execute()
