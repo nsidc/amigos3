@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from time import sleep
 
-from honcho.config import INDEX_DEVICE, DATA_DEVICE, GPIO
+from honcho.config import INDEX_DEVICE, DATA_DEVICE, GPIO_CONFIG
 
 
 def set_index(index):
@@ -34,16 +34,16 @@ def unset_mask(index, mask):
 
 
 def turn_on(component):
-    set_mask(GPIO[component]['index'], GPIO[component]['mask'])
+    set_mask(GPIO_CONFIG[component]['index'], GPIO_CONFIG[component]['mask'])
 
 
 def turn_off(component):
-    unset_mask(GPIO[component]['index'], GPIO[component]['mask'])
+    unset_mask(GPIO_CONFIG[component]['index'], GPIO_CONFIG[component]['mask'])
 
 
 def is_on(component):
-    index = GPIO[component]['index']
-    mask = GPIO[component]['mask']
+    index = GPIO_CONFIG[component]['index']
+    mask = GPIO_CONFIG[component]['mask']
     set_index(index)
     value = get_value(mask)
     result = bool(value & mask)
@@ -57,7 +57,7 @@ def powered(components):
         if is_on(component):
             raise Exception('{0} requested but already powered on')
         turn_on(component)
-        sleep(GPIO[component]['wait'])
+        sleep(GPIO_CONFIG[component]['wait'])
 
     yield
 

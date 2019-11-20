@@ -37,6 +37,9 @@ deploy: clean # sync the code to the amigos box
 serial: # Connect to triton serial console
 	sudo picocom -b 115200 /dev/ttyUSB0
 
+ssh: # Connect to triton over ssh
+	ssh root@amigos
+
 setup-system:
 	ssh root@amigos "mount / -o remount,rw"
 	# Install laptop ssh key

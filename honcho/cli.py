@@ -61,7 +61,7 @@ def add_power_parser(subparsers):
         help="Hub off",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.HUB),
+        const=lambda: gpio.turn_off(GPIO.HUB),
         dest='callbacks',
     )
 
@@ -71,7 +71,7 @@ def add_power_parser(subparsers):
         help="GPS on",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.GPS),
+        const=lambda: gpio.turn_on(GPIO.GPS),
         dest='callbacks',
     )
     group.add_argument(
@@ -79,7 +79,7 @@ def add_power_parser(subparsers):
         help="GPS off",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.GPS),
+        const=lambda: gpio.turn_off(GPIO.GPS),
         dest='callbacks',
     )
 
@@ -89,7 +89,7 @@ def add_power_parser(subparsers):
         help="Weather station on",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.WXT),
+        const=lambda: gpio.turn_on(GPIO.WXT),
         dest='callbacks',
     )
     group.add_argument(
@@ -97,7 +97,7 @@ def add_power_parser(subparsers):
         help="Weather station off",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.WXT),
+        const=lambda: gpio.turn_off(GPIO.WXT),
         dest='callbacks',
     )
 
@@ -107,7 +107,7 @@ def add_power_parser(subparsers):
         help="cr1000 on",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.CRX),
+        const=lambda: gpio.turn_on(GPIO.CRX),
         dest='callbacks',
     )
     group.add_argument(
@@ -115,7 +115,7 @@ def add_power_parser(subparsers):
         help="cr1000 off",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.CRX),
+        const=lambda: gpio.turn_off(GPIO.CRX),
         dest='callbacks',
     )
 
@@ -125,7 +125,7 @@ def add_power_parser(subparsers):
         help="imm on",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.IMM),
+        const=lambda: gpio.turn_on(GPIO.IMM),
         dest='callbacks',
     )
     group.add_argument(
@@ -133,7 +133,7 @@ def add_power_parser(subparsers):
         help="imm off",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.IMM),
+        const=lambda: gpio.turn_off(GPIO.IMM),
         dest='callbacks',
     )
 
@@ -143,7 +143,7 @@ def add_power_parser(subparsers):
         help="Router on",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.RTR),
+        const=lambda: gpio.turn_on(GPIO.RTR),
         dest='callbacks',
     )
     group.add_argument(
@@ -151,7 +151,7 @@ def add_power_parser(subparsers):
         help="Router off",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.RTR),
+        const=lambda: gpio.turn_off(GPIO.RTR),
         dest='callbacks',
     )
 
@@ -161,7 +161,7 @@ def add_power_parser(subparsers):
         help="Iridium on",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.IRD),
+        const=lambda: gpio.turn_on(GPIO.IRD),
         dest='callbacks',
     )
     group.add_argument(
@@ -169,7 +169,7 @@ def add_power_parser(subparsers):
         help="Iridium off",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.IRD),
+        const=lambda: gpio.turn_off(GPIO.IRD),
         dest='callbacks',
     )
 
@@ -179,7 +179,7 @@ def add_power_parser(subparsers):
         help="Windows box on",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.WIN),
+        const=lambda: gpio.turn_on(GPIO.WIN),
         dest='callbacks',
     )
     group.add_argument(
@@ -187,7 +187,7 @@ def add_power_parser(subparsers):
         help="Windows box off",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.WIN),
+        const=lambda: gpio.turn_off(GPIO.WIN),
         dest='callbacks',
     )
 
@@ -197,7 +197,7 @@ def add_power_parser(subparsers):
         help="dts on",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.DTS),
+        const=lambda: gpio.turn_on(GPIO.DTS),
         dest='callbacks',
     )
     group.add_argument(
@@ -205,7 +205,7 @@ def add_power_parser(subparsers):
         help="dts off",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.DTS),
+        const=lambda: gpio.turn_off(GPIO.DTS),
         dest='callbacks',
     )
 
@@ -215,7 +215,7 @@ def add_power_parser(subparsers):
         help="power on serial dtx pin",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.SBD),
+        const=lambda: gpio.turn_on(GPIO.SBD),
         dest='callbacks',
     )
     group.add_argument(
@@ -223,7 +223,7 @@ def add_power_parser(subparsers):
         help="power off iridium serial dtx pin",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.SBD),
+        const=lambda: gpio.turn_off(GPIO.SBD),
         dest='callbacks',
     )
 
@@ -233,7 +233,7 @@ def add_power_parser(subparsers):
         help="power on solar sensor",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.SOL),
+        const=lambda: gpio.turn_on(GPIO.SOL),
         dest='callbacks',
     )
     group.add_argument(
@@ -241,7 +241,7 @@ def add_power_parser(subparsers):
         help="power off solar sensor",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.SOL),
+        const=lambda: gpio.turn_off(GPIO.SOL),
         dest='callbacks',
     )
 
@@ -251,7 +251,7 @@ def add_power_parser(subparsers):
         help="Enable serial tx",
         action="append_const",
         default=[],
-        const=gpio.turn_on(GPIO.SER),
+        const=lambda: gpio.turn_on(GPIO.SER),
         dest='callbacks',
     )
     group.add_argument(
@@ -259,7 +259,7 @@ def add_power_parser(subparsers):
         help="Disable serial tx",
         action="append_const",
         default=[],
-        const=gpio.turn_off(GPIO.SER),
+        const=lambda: gpio.turn_off(GPIO.SER),
         dest='callbacks',
     )
 
@@ -269,7 +269,7 @@ def add_power_parser(subparsers):
         help="power off all gpio",
         action="append_const",
         default=[],
-        const=gpio.all_off(),
+        const=lambda: gpio.all_off(),
         dest='callbacks',
     )
     group.add_argument(
@@ -372,7 +372,7 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    logs.init_logging(getattr(logging, args.log_level, directory=None))
+    logs.init_logging(directory=None)
 
     if hasattr(args, 'callbacks'):
         for callback in args.callbacks:
