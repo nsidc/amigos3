@@ -27,11 +27,15 @@ clean:
 	find . -name '*.pyc' -delete
 
 deploy: clean # sync the code to the amigos box
+	mkdir -p build
+	rm -rf build/*
+	cp -pr honcho build/
+	find ./build | grep .git | xargs rm -rf
 	ssh root@amigos "rm -rf /media/mmcblk0p1/*"
-	scp -prCB honcho root@amigos:/media/mmcblk0p1
+	scp -prCB build/honcho root@amigos:/media/mmcblk0p1
 
 serial: # Connect to triton serial console
-	picocom -b 115200 /dev/ttyUSB0
+	sudo picocom -b 115200 /dev/ttyUSB0
 
 setup-system:
 	ssh root@amigos "mount / -o remount,rw"
