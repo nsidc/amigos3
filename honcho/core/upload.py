@@ -14,7 +14,7 @@ logger = getLogger(__name__)
 @fail_gracefully
 def execute():
     ensure_dirs([STAGED_UPLOAD_DIR])
-    with powered('iridium'), powered('hub'):
+    with powered(['ird', 'hub']):
         with closing(FTP(FTP_HOST, timeout=FTP_TIMEOUT)) as ftp:
             ftp.login(*get_creds(FTP_HOST))
             filenames = os.listdir(STAGED_UPLOAD_DIR)

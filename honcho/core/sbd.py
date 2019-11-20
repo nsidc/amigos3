@@ -108,13 +108,13 @@ def _send_queued(serial, timeout):
 
 
 def send_message(message):
-    with powered('ird'), powered('sbd'), powered('ser'):
+    with powered(['ird', 'sbd', 'ser']):
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             _send_message(serial, message)
 
 
 def send_queue(timeout=SBD_QUEUE_MAX_TIME):
-    with powered('ird'), powered('sbd'), powered('ser'):
+    with powered(['ird', 'sbd', 'ser']):
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             _send_queued(serial, timeout)
 

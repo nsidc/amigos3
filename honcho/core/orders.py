@@ -22,7 +22,7 @@ logger = getLogger(__name__)
 
 
 def get_orders():
-    with powered('iridium'), powered('hub'):
+    with powered(['ird', 'hub']):
         with closing(FTP(FTP_HOST, timeout=FTP_TIMEOUT)) as ftp:
             ftp.login(*get_creds(FTP_HOST))
             ftp.cwd(FTP_ORDERS_DIR)
@@ -74,20 +74,19 @@ def perform_orders():
 
 
 def report_results():
-    with powered('iridium'):
-        with powered('hub'):
-            with closing(FTP(FTP_HOST, timeout=FTP_TIMEOUT)) as ftp:
-                ftp.login(*get_creds(FTP_HOST))
-                ftp.cwd(FTP_RESULTS_DIR)
-                results_filenames = [
-                    el for el in os.listdir(RESULTS_DIR) if el.endswith('.out')
-                ]
-                for result_filename in results_filenames:
-                    result_filepath = os.path.abspath(
-                        os.path.join(RESULTS_DIR, result_filename)
-                    )
-                    with open(result_filepath, 'r') as fi:
-                        ftp.storlines('STOR {}'.format(result_filename), fi)
+    with powered(['ird', 'hub']):
+        with closing(FTP(FTP_HOST, timeout=FTP_TIMEOUT)) as ftp:
+            ftp.login(*get_creds(FTP_HOST))
+            ftp.cwd(FTP_RESULTS_DIR)
+            results_filenames = [
+                el for el in os.listdir(RESULTS_DIR) if el.endswith('.out')
+            ]
+            for result_filename in results_filenames:
+                result_filepath = os.path.abspath(
+                    os.path.join(RESULTS_DIR, result_filename)
+                )
+                with open(result_filepath, 'r') as fi:
+                    ftp.storlines('STOR {}'.format(result_filename), fi)
 
 
 def clean_up():

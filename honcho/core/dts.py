@@ -106,7 +106,7 @@ def acquire():
     from ssh import SSH
 
     logger.info("Turning on DTS and windows unit")
-    with powered('hub'), powered('win'), powered('dts'):
+    with powered(['hub', 'win', 'dts']):
         logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
         sleep(DTS_PULL_DELAY)
 

@@ -56,7 +56,7 @@ def parse(raw):
 
 
 def get_data(device_id, samples=6):
-    with powered('imm'), powered('ser'):
+    with powered(['imm', 'ser']):
         with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
             power_on(serial)
             with force_capture_line(serial):

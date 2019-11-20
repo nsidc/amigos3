@@ -52,13 +52,17 @@ def is_on(component):
 
 
 @contextmanager
-def powered(component):
-    if is_on(component):
-        raise Exception('{0} requested but already powered on')
-    turn_on(component)
-    sleep(GPIO[component]['wait'])
+def powered(components):
+    for component in components:
+        if is_on(component):
+            raise Exception('{0} requested but already powered on')
+        turn_on(component)
+        sleep(GPIO[component]['wait'])
+
     yield
-    turn_off(component)
+
+    for component in components:
+        turn_off(component)
 
 
 def all_off():

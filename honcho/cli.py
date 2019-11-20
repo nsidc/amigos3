@@ -26,19 +26,19 @@ def init_parsers():
     return parser, subparsers
 
 
-def add_schedule_parser(subparsers):
+def sched_handler(args):
     import honcho.core.sched as sched
 
+    if args.run:
+        sched.execute()
+
+
+def add_schedule_parser(subparsers):
     parser = subparsers.add_parser('schedule')
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "-r",
-        "--run",
-        help="Run schedule",
-        action="append_const",
-        default=None,
-        const=sched.execute,
-        dest='callbacks',
+    parser.set_defaults(handler=sched_handler)
+
+    parser.add_argument(
+        "-r", "--run", help="Run schedule", action="store_true", dest='run'
     )
 
 
@@ -303,7 +303,7 @@ def sbd_handler(args):
 
 def add_sbd_parser(subparsers):
     parser = subparsers.add_parser('sbd')
-    parser.add_defaults(handler=sbd_handler)
+    parser.set_defaults(handler=sbd_handler)
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -338,7 +338,7 @@ def orders_handler(args):
 
 def add_orders_parser(subparsers):
     parser = subparsers.add_parser('orders')
-    parser.add_defaults(handler=orders_handler)
+    parser.set_defaults(handler=orders_handler)
 
     parser.add_argument("--get", help="Get orders", action="store_true", dest='get')
     parser.add_argument(
