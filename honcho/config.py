@@ -131,7 +131,7 @@ STAGED_UPLOAD_DIR = '/media/mmcblk0p1/staged'
 # Up/downlink
 # --------------------------------------------------------------------------------
 
-MAX_SBD_LIMIT = 1960
+SBD_MAX_SIZE = 1960
 SBD_SIGNAL_WAIT = 30
 SBD_SIGNAL_TRIES = 3
 SBD_QUEUE_DIR = '/media/mmcblk0p1/sbd_queue'

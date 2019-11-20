@@ -6,7 +6,7 @@ from datetime import datetime
 from serial import Serial
 
 from honcho.config import (
-    MAX_SBD_LIMIT,
+    SBD_MAX_SIZE,
     SBD_PORT,
     SBD_BAUD,
     SBD_SIGNAL_TRIES,
@@ -26,7 +26,7 @@ def _ping_iridium(serial):
 
 
 def _check_signal(serial):
-    expected = r'+CSQ: (?P<strength>\d)' + re.escape('\r\n')
+    expected = re.escape('+CSQ: ') + r'(?P<strength>\d)' + re.escape('\r\n')
     try:
         response = serial_request(serial, 'AT+CSQ', expected, timeout=10)
     except Exception:
@@ -37,10 +37,15 @@ def _check_signal(serial):
     return strength
 
 
+def message_size(message):
+    size = len(message.encode('utf-8'))
+    return size
+
+
 def _send_message(serial, message):
-    size = len(len(message.encode('utf-8')))
-    assert size < MAX_SBD_LIMIT, "Message is too large: {0} > {1}".format(
-        size, MAX_SBD_LIMIT
+    size = message_size(message)
+    assert size <= SBD_MAX_SIZE, "Message is too large: {0} > {1}".format(
+        size, SBD_MAX_SIZE
     )
 
     for _ in xrange(SBD_SIGNAL_TRIES):
@@ -49,32 +54,36 @@ def _send_message(serial, message):
             continue
 
     # Initiate write text
-    serial_request(serial, 'AT+SBDWT', 'READY\r\n', timeout=10)
+    expected = 'READY\r\n'
+    serial_request(serial, 'AT+SBDWT', expected, timeout=10)
 
     # Submit message
     expected = r'(?P<status>\d)' + re.escape('\r\n')
     response = serial_request(serial, message, expected, timeout=10)
-    status = re.search(expected, response).groupdict()['status']
+    status = int(re.search(expected, response).groupdict()['status'])
     if status:
         raise Exception('SBD write command returned error status')
 
     # Initiate transfer to GSS
     expected = (
-        r'+SBDIX: '
-        r'(?P<mo_status>\d+), '
-        r'(?P<momsn>\d+), '
-        r'(?P<mt_status>\d+), '
-        r'(?P<mtmsn>\d+), '
-        r'(?P<mt_length>\d+), '
-        r'(?P<mt_queued>\d+)'
-    ) + re.escape('\r\n')
-    serial_request(serial, 'AT+SBDIX', re.escape('\r\n'), timeout=10)
+        re.escape('+SBDIX: ')
+        + (
+            r'(?P<mo_status>\d+), '
+            r'(?P<momsn>\d+), '
+            r'(?P<mt_status>\d+), '
+            r'(?P<mtmsn>\d+), '
+            r'(?P<mt_length>\d+), '
+            r'(?P<mt_queued>\d+)'
+        )
+        + re.escape('\r\n')
+    )
+    serial_request(serial, 'AT+SBDIX', expected, timeout=10)
 
 
 def _clear_mo_buffer(serial):
     expected = r'(?P<status>\d)' + re.escape('\r\n')
     response = serial_request(serial, 'AT+SBDD0', re.escape('\r\n'), timeout=10)
-    status = re.search(expected, response).groupdict()['status']
+    status = int(re.search(expected, response).groupdict()['status'])
     if status:
         raise Exception('SBD clear mo command returned error status')
 
