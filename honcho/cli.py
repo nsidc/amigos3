@@ -10,9 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 def init_parsers():
-    common_parser = argparse.ArgumentParser(
-        prog="honcho", version=version, add_help=False
-    )
+    common_parser = argparse.ArgumentParser(prog="honcho", add_help=False)
+
     common_parser.add_argument(
         "--log-level",
         help="Set logging level (DEBUG, INFO, ERROR)",
@@ -20,6 +19,8 @@ def init_parsers():
         default=None,
         choices=('DEBUG', 'INFO', 'ERROR'),
     )
+    common_parser.add_argument('-v', '--version', action='version', version=version)
+
     parser = argparse.ArgumentParser(parents=[common_parser])
     subparsers = parser.add_subparsers(help='Commands', dest='command')
 
