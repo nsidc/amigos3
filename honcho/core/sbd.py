@@ -2,6 +2,7 @@ import re
 import os
 from contextlib import closing
 from datetime import datetime
+from time import sleep
 
 from serial import Serial
 
@@ -10,8 +11,10 @@ from honcho.config import (
     SBD_PORT,
     SBD_BAUD,
     SBD_SIGNAL_TRIES,
+    SBD_SIGNAL_WAIT,
     SBD_QUEUE_DIR,
     SBD_QUEUE_MAX_TIME,
+    GPIO,
 )
 from honcho.core.gpio import powered
 from honcho.util import serial_request, fail_gracefully
@@ -26,13 +29,13 @@ def _ping_iridium(serial):
 
 
 def _check_signal(serial):
-    expected = re.escape('+CSQ: ') + r'(?P<strength>\d)' + re.escape('\r\n')
+    expected = re.escape('+CSQ:') + r'(?P<strength>\d)' + re.escape('\r\n')
     try:
         response = serial_request(serial, 'AT+CSQ', expected, timeout=10)
     except Exception:
         raise Exception("Iridium did not respond correctly to signal query")
 
-    strength = re.search(expected, response).groupdict()['strength']
+    strength = int(re.search(expected, response).groupdict()['strength'])
 
     return strength
 
@@ -50,8 +53,15 @@ def _send_message(serial, message):
 
     for _ in xrange(SBD_SIGNAL_TRIES):
         signal = _check_signal(serial)
-        if signal < 4:
-            continue
+        if signal >= 4:
+            break
+        sleep(SBD_SIGNAL_WAIT)
+    else:
+        raise Exception(
+            'Signal strength still too low after {0} tries, aborting'.format(
+                SBD_SIGNAL_TRIES
+            )
+        )
 
     # Initiate write text
     expected = 'READY\r\n'
@@ -77,7 +87,10 @@ def _send_message(serial, message):
         )
         + re.escape('\r\n')
     )
-    serial_request(serial, 'AT+SBDIX', expected, timeout=10)
+    response = serial_request(serial, 'AT+SBDIX', expected, timeout=10)
+    status = int(re.search(expected, response).groupdict()['mo_status'])
+    if status:
+        raise Exception('SBD transfer command returned error status')
 
 
 def _clear_mo_buffer(serial):
@@ -108,13 +121,13 @@ def _send_queued(serial, timeout):
 
 
 def send_message(message):
-    with powered(['ird', 'sbd', 'ser']):
+    with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             _send_message(serial, message)
 
 
 def send_queue(timeout=SBD_QUEUE_MAX_TIME):
-    with powered(['ird', 'sbd', 'ser']):
+    with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             _send_queued(serial, timeout)
 

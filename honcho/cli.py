@@ -43,10 +43,10 @@ def add_schedule_parser(subparsers):
     )
 
 
-def add_power_parser(subparsers):
+def add_gpio_parser(subparsers):
     import honcho.core.gpio as gpio
 
-    parser = subparsers.add_parser('power')
+    parser = subparsers.add_parser('gpio')
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -273,6 +273,12 @@ def add_power_parser(subparsers):
         const=lambda: gpio.all_off(),
         dest='callbacks',
     )
+
+
+def add_system_parser(subparsers):
+    parser = subparsers.add_parser('system')
+
+    group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--shutdown",
         help="power down all peripherals and shutdown system",
@@ -288,6 +294,55 @@ def add_power_parser(subparsers):
         default=[],
         const=reboot,
         dest='callbacks',
+    )
+
+
+def onboard_handler(args):
+    import honcho.core.onboard as onboard
+
+    if args.voltage:
+        print('Voltage: {0}'.format(onboard.get_voltage()))
+
+    if args.current:
+        print('Current: {0}'.format(onboard.get_current()))
+
+    if args.temperature:
+        print('Temperature: {0}'.format(onboard.get_temperature()))
+
+    if args.humidity:
+        print('Humidity: {0}'.format(onboard.get_humidity()))
+
+
+def add_onboard_parser(subparsers):
+    parser = subparsers.add_parser('onboard')
+    parser.set_defaults(handler=onboard_handler)
+
+    parser.add_argument(
+        "-v",
+        "--voltage",
+        help="Check supply voltage",
+        action="store_true",
+        dest='voltage',
+    )
+
+    parser.add_argument(
+        "-c",
+        "--current",
+        help="Check supply current",
+        action="store_true",
+        dest='current',
+    )
+
+    parser.add_argument(
+        "-t",
+        "--temperature",
+        help="Check temperature",
+        action="store_true",
+        dest='temperature',
+    )
+
+    parser.add_argument(
+        "-H", "--humidity", help="Check humidity", action="store_true", dest='humidity',
     )
 
 
@@ -362,9 +417,11 @@ def add_orders_parser(subparsers):
 def build_parser():
     parser, subparsers = init_parsers()
     add_schedule_parser(subparsers)
-    add_power_parser(subparsers)
+    add_gpio_parser(subparsers)
+    add_system_parser(subparsers)
     add_sbd_parser(subparsers)
     add_orders_parser(subparsers)
+    add_onboard_parser(subparsers)
 
     return parser
 

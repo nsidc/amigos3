@@ -77,8 +77,14 @@ SCHEDULE_SLEEP = 30
 # GPIO
 # --------------------------------------------------------------------------------
 
-INDEX_DEVICE = "/sys/class/gpio/pwr_ctl/index"
-DATA_DEVICE = "/sys/class/gpio/pwr_ctl/data"
+POWER_INDEX_DEVICE = "/sys/class/gpio/pwr_ctl/index"
+POWER_DATA_DEVICE = "/sys/class/gpio/pwr_ctl/data"
+
+SUPPLY_INDEX_DEVICE = "/sys/class/gpio/mcp3208-gpio/index"
+SUPPLY_DATA_DEVICE = "/sys/class/gpio/mcp3208-gpio/data"
+
+HUMIDITY_DATA_DEVICE = "/sys/class/hwmon/hwmon0/device/humidity1_input"
+TEMPERATURE_DATA_DEVICE = "/sys/class/hwmon/hwmon0/device/temp1_input"
 
 _GPIO = (
     'SBD',
@@ -132,8 +138,8 @@ STAGED_UPLOAD_DIR = '/media/mmcblk0p1/staged'
 # --------------------------------------------------------------------------------
 
 SBD_MAX_SIZE = 1960
-SBD_SIGNAL_WAIT = 30
-SBD_SIGNAL_TRIES = 3
+SBD_SIGNAL_WAIT = 10
+SBD_SIGNAL_TRIES = 6
 SBD_QUEUE_DIR = '/media/mmcblk0p1/sbd_queue'
 SBD_QUEUE_MAX_TIME = 60 * 10
 
