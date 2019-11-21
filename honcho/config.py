@@ -151,3 +151,13 @@ SBD_PORT = '/dev/ttyS1'
 SBD_BAUD = 9600
 IMM_PORT = '/dev/ttyS4'
 IMM_BAUD = 9600
+
+# --------------------------------------------------------------------------------
+# DTS
+# --------------------------------------------------------------------------------
+
+DTS_PULL_DELAY = 60 * 5
+DTS_WIN_DATA_DIR = 'Desktop/dts_data'
+DTS_RAW_DATA_DIR = "/media/mmcblk0p1/dts_data"
+DTS_PROCESSED_DATA_DIR = "/media/mmcblk0p1/dts"
+FULL_RESOLUTION_RANGES = [(1000, 1200), (2000, 2200)]

@@ -7,12 +7,14 @@ from time import sleep
 import honcho.logs as logs
 from honcho.util import ensure_dirs, fail_gracefully
 from honcho.core.gpio import powered
-
-DTS_PULL_DELAY = 60 * 5
-DTS_WIN_DATA_DIR = 'Desktop/dts_data'
-DTS_RAW_DATA_DIR = "/media/mmcblk0p1/dts_data"
-DTS_PROCESSED_DATA_DIR = "/media/mmcblk0p1/dts"
-FULL_RESOLUTION_RANGES = [(1000, 1200), (2000, 2200)]
+from honcho.config import (
+    GPIO,
+    DTS_PULL_DELAY,
+    DTS_WIN_DATA_DIR,
+    DTS_RAW_DATA_DIR,
+    DTS_PROCESSED_DATA_DIR,
+    FULL_RESOLUTION_RANGES,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +108,7 @@ def acquire():
     from ssh import SSH
 
     logger.info("Turning on DTS and windows unit")
-    with powered(['hub', 'win', 'dts']):
+    with powered([GPIO.HUB, GPIO.WIN, GPIO.DTS]):
         logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
         sleep(DTS_PULL_DELAY)
 

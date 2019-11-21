@@ -147,11 +147,11 @@ def execute():
 
     if name == SCHEDULE_NAMES.WINTER:
         load_winter_schedule(scheduler)
-    if name == SCHEDULE_NAMES.SUMMER:
+    elif name == SCHEDULE_NAMES.SUMMER:
         load_summer_schedule(scheduler)
-    if name == SCHEDULE_NAMES.TEST:
+    elif name == SCHEDULE_NAMES.TEST:
         load_test_schedule(scheduler)
-    if name == SCHEDULE_NAMES.SAFE:
+    elif name == SCHEDULE_NAMES.SAFE:
         logger.info('No schedule to run in safe mode')
     else:
         raise Exception('No schedule: {0}'.format(name))
