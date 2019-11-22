@@ -161,3 +161,14 @@ DTS_WIN_DATA_DIR = 'Desktop/dts_data'
 DTS_RAW_DATA_DIR = "/media/mmcblk0p1/dts_data"
 DTS_PROCESSED_DATA_DIR = "/media/mmcblk0p1/dts"
 FULL_RESOLUTION_RANGES = [(1000, 1200), (2000, 2200)]
+
+# --------------------------------------------------------------------------------
+# Onboard sensors
+# --------------------------------------------------------------------------------
+
+
+def VOLTAGE_CONVERTER(value):
+    '''
+    Ought to be pretty accurate
+    '''
+    return 0.0063926 * value + 0.21706913

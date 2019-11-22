@@ -3,6 +3,7 @@ from honcho.config import (
     SUPPLY_DATA_DEVICE,
     HUMIDITY_DATA_DEVICE,
     TEMPERATURE_DATA_DEVICE,
+    VOLTAGE_CONVERTER,
 )
 
 
@@ -42,7 +43,7 @@ def get_raw_temperature():
 def get_voltage():
     raw = get_raw_voltage()
 
-    return raw
+    return VOLTAGE_CONVERTER(raw)
 
 
 def get_current():
