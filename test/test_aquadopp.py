@@ -2,7 +2,7 @@ import os
 import re
 from datetime import datetime
 
-import honcho.core.aquadopp as aquadopp
+import honcho.tasks.aquadopp as aquadopp
 import pytest
 
 
@@ -82,8 +82,8 @@ def test_parse(imm_mock):
 
 
 def test_get_data(imm_mock, mocker):
-    mocker.patch('honcho.core.aquadopp.Serial', lambda *args, **kwargs: imm_mock)
-    mocker.patch('honcho.core.aquadopp.powered', mocker.stub())
+    mocker.patch('honcho.tasks.aquadopp.Serial', lambda *args, **kwargs: imm_mock)
+    mocker.patch('honcho.tasks.aquadopp.powered', mocker.stub())
 
     expected_data = [
         datetime(2019, 10, 9, 15, 0, 0),

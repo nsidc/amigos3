@@ -6,13 +6,12 @@ from datetime import datetime
 import pytest
 
 from honcho.config import SBD_MAX_SIZE
-from honcho.core.sbd import (
-    send_message,
-    message_size,
+from honcho.core.iridium import message_size
+from honcho.tasks.sbd import (
+    send,
     queue_sbd,
     send_queue,
     clear_queue,
-    _ping_iridium,
 )
 
 
@@ -41,15 +40,9 @@ def sbd_mock(serial_mock, mocker):
         yield serial
 
 
-def test_smoke_ping_iridium(sbd_mock, mocker):
-    mocker.patch('honcho.core.sbd.powered', mocker.stub())
-
-    _ping_iridium(sbd_mock)
-
-
 def test_send_message(sbd_mock, mocker):
-    mocker.patch('honcho.core.sbd.Serial', lambda *args, **kwargs: sbd_mock)
-    mocker.patch('honcho.core.sbd.powered', mocker.stub())
+    mocker.patch('honcho.tasks.sbd.Serial', lambda *args, **kwargs: sbd_mock)
+    mocker.patch('honcho.tasks.sbd.powered', mocker.stub())
 
     digits_size = message_size(string.digits)
 
@@ -57,20 +50,20 @@ def test_send_message(sbd_mock, mocker):
     multiples = int(ceil(SBD_MAX_SIZE // digits_size))
     message = (string.digits * multiples)[:SBD_MAX_SIZE]
     assert message_size(message) <= SBD_MAX_SIZE
-    send_message(message)
+    send(message)
 
     # Too big, raise exception
     multiples = int(ceil(SBD_MAX_SIZE // digits_size) + 1)
     message = string.digits * multiples
     assert message_size(message) > SBD_MAX_SIZE
     with pytest.raises(Exception):
-        send_message(message)
+        send(message)
 
 
 def test_queue_sbd(tmpdir, sbd_mock, mocker):
-    mocker.patch('honcho.core.sbd.Serial', lambda *args, **kwargs: sbd_mock)
-    mocker.patch('honcho.core.sbd.powered', mocker.stub())
-    mocker.patch('honcho.core.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    mocker.patch('honcho.tasks.sbd.Serial', lambda *args, **kwargs: sbd_mock)
+    mocker.patch('honcho.tasks.sbd.powered', mocker.stub())
+    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_DIR', str(tmpdir))
 
     tag, message = 'test', 'message'
 
@@ -89,11 +82,10 @@ def test_queue_sbd(tmpdir, sbd_mock, mocker):
 
 
 def test_send_queue(tmpdir, sbd_mock, mocker):
-    mocker.patch('honcho.core.sbd.Serial', lambda *args, **kwargs: sbd_mock)
-    mocker.patch('honcho.core.sbd.SBD_QUEUE_DIR', str(tmpdir))
-    mocker.patch('honcho.core.sbd.powered', mocker.stub())
-    send_message = mocker.MagicMock()
-    mocker.patch('honcho.core.sbd.send_message', send_message)
+    mocker.patch('honcho.tasks.sbd.Serial', lambda *args, **kwargs: sbd_mock)
+    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    send = mocker.MagicMock()
+    mocker.patch('honcho.tasks.sbd.send', send)
 
     tag, message = 'test', 'message'
     filename = datetime.now().isoformat()
@@ -102,14 +94,14 @@ def test_send_queue(tmpdir, sbd_mock, mocker):
     filepath = tmpdir.join(tag).join(filename)
     filepath.write(message)
 
-    send_queue()
+    send_queue(sbd_mock)
 
-    assert send_message.called_once_with(message)
+    assert send.called_once_with(message)
     assert not filepath.exists()
 
 
 def test_clear_queue(tmpdir, sbd_mock, mocker):
-    mocker.patch('honcho.core.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_DIR', str(tmpdir))
 
     tag, message = 'test', 'message'
     filename = datetime.now().isoformat()

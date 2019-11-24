@@ -1,30 +1,19 @@
 import logging
 import re
-import os
-from contextlib import closing
-from datetime import datetime
 from time import sleep
-
-from serial import Serial
 
 from honcho.config import (
     SBD_MAX_SIZE,
-    SBD_PORT,
-    SBD_BAUD,
     SBD_SIGNAL_TRIES,
     SBD_SIGNAL_WAIT,
-    SBD_QUEUE_DIR,
-    SBD_QUEUE_MAX_TIME,
-    GPIO,
 )
-from honcho.core.gpio import powered
-from honcho.util import serial_request, fail_gracefully, ensure_dirs
+from honcho.util import serial_request
 
 
 logger = logging.getLogger(__name__)
 
 
-def _ping_iridium(serial):
+def ping(serial):
     expected = re.escape('OK\r\n')
     try:
         logging.debug('Pinging iridium')
@@ -36,7 +25,7 @@ def _ping_iridium(serial):
         logging.debug('Iridium ping ok')
 
 
-def _check_signal(serial):
+def check_signal(serial):
     expected = re.escape('+CSQ:') + r'(?P<strength>\d)' + re.escape('\r\n')
     try:
         logging.debug('Checking signal')
@@ -56,14 +45,14 @@ def message_size(message):
     return size
 
 
-def _send_message(serial, message):
+def send_sbd(serial, message):
     size = message_size(message)
     assert size <= SBD_MAX_SIZE, "Message is too large: {0} > {1}".format(
         size, SBD_MAX_SIZE
     )
 
     for _ in xrange(SBD_SIGNAL_TRIES):
-        signal = _check_signal(serial)
+        signal = check_signal(serial)
         if signal >= 4:
             break
         sleep(SBD_SIGNAL_WAIT)
@@ -104,70 +93,10 @@ def _send_message(serial, message):
         raise Exception('SBD transfer command returned error status')
 
 
-def _clear_mo_buffer(serial):
+def clear_mo_buffer(serial):
     logging.debug('Clearing MO buffer')
     expected = r'(?P<status>\d)' + re.escape('\r\n')
     response = serial_request(serial, 'AT+SBDD0', re.escape('\r\n'), timeout=10)
     status = int(re.search(expected, response).groupdict()['status'])
     if status:
         raise Exception('SBD clear mo command returned error status')
-
-
-def _build_queue():
-    queue = []
-    for dirpath, _, filenames in os.walk(SBD_QUEUE_DIR):
-        queue.extend([os.path.join(dirpath, filename) for filename in filenames])
-
-    queue = sorted(queue, key=lambda x: os.path.split(x)[-1])
-
-    return queue
-
-
-def _send_queued(serial, timeout):
-    queue = _build_queue()
-    for filepath in queue:
-        logging.debug('Sending queued: {0}'.format(filepath))
-        with open(filepath, 'r') as f:
-            tag = os.path.split(filepath)[-2]
-            _send_message(serial=serial, message=tag + ',' + f.read())
-            os.remove(filepath)
-
-
-def send_message(message):
-    logging.info('Sending sbd message')
-    with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
-        with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
-            _send_message(serial, message)
-
-
-def send_queue(timeout=SBD_QUEUE_MAX_TIME):
-    logging.info('Sending queued sbds')
-    with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
-        with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
-            _send_queued(serial, timeout)
-
-
-def queue_sbd(tag, message):
-    logging.debug('Queuing {0} message'.format(tag))
-    directory = os.path.join(SBD_QUEUE_DIR, tag)
-    ensure_dirs([directory])
-    filename = datetime.now().isoformat()
-    filepath = os.path.join(directory, filename)
-    with open(filepath, 'w') as f:
-        f.write(tag + ',' + message)
-
-
-def clear_queue():
-    logging.debug('Clearing queue')
-    queue = _build_queue()
-    for filepath in queue:
-        os.remove(filepath)
-
-
-@fail_gracefully
-def execute():
-    send_queue()
-
-
-if __name__ == '__main__':
-    execute()

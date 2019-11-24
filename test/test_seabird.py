@@ -2,7 +2,7 @@ import os
 import re
 from datetime import datetime
 
-import honcho.core.seabird as seabird
+import honcho.tasks.seabird as seabird
 import pytest
 
 
@@ -77,8 +77,8 @@ def test_parse(imm_mock):
 
 
 def test_get_data(imm_mock, mocker):
-    mocker.patch('honcho.core.seabird.Serial', lambda *args, **kwargs: imm_mock)
-    mocker.patch('honcho.core.seabird.powered', mocker.stub())
+    mocker.patch('honcho.tasks.seabird.Serial', lambda *args, **kwargs: imm_mock)
+    mocker.patch('honcho.tasks.seabird.powered', mocker.stub())
 
     expected_data = [
         datetime(2019, 10, 9, 14, 50, 1),

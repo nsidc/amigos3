@@ -7,8 +7,8 @@ from serial import Serial
 
 from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS, DATA_LOG
 from honcho.core.gpio import powered
+from honcho.tasks.sbd import queue_sbd
 from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
-from honcho.core.sbd import queue_sbd
 from honcho.util import (
     serial_request,
     fail_gracefully,
@@ -19,19 +19,16 @@ from honcho.util import (
 logger = getLogger(__name__)
 
 
-def query(serial, device_id):
+def query(serial, device_id, samples=6):
     expected = (
-        r'!\d{2}SAMPLEGETLAST'
+        '#{0}DN{1}'.format(device_id, samples)
         + re.escape('\r\n')
         + re.escape('<RemoteReply>')
         + '.*'
-        + re.escape('<Executed/></RemoteReply>\r\n')
-        + re.escape('<Executed/>\r\n')
-        + re.escape('IMM>')
+        + re.escape('<Executed/>\r\n</RemoteReply>\r\n<Executed/>\r\nIMM>')
     )
-
     raw = serial_request(
-        serial, '!{0}SAMPLEGETLAST'.format(device_id), expected, timeout=5
+        serial, '#{0}DN{1}'.format(device_id, samples), expected, timeout=10
     )
 
     return raw
@@ -39,41 +36,49 @@ def query(serial, device_id):
 
 def parse(raw):
     pattern = (
-        r'!(?P<device_id>\d{2})SAMPLEGETLAST'
+        r'#(?P<device_id>\d{2})DN(?P<samples>\d+)'
         + re.escape('\r\n')
-        + '.*'
-        + re.escape('<SampleData ')
-        + '(?P<metadata>.*)'
-        + re.escape('>')
+        + re.escape('<RemoteReply>')
         + '(?P<data>.*)'
-        + re.escape('\r\n')
-        + re.escape('</SampleData>')
+        + re.escape('<Executed/>\r\n</RemoteReply>')
     )
     match = re.search(pattern, raw, flags=re.DOTALL)
 
-    # header = dict([el.split('=') for el in match.group('metadata').strip().split()])
-    data = match.group('data').strip().split()
+    header, data = match.group('data').strip().split('\r\n\r\n')
+    header = dict([el.strip() for el in row.split('=')] for row in header.split('\r\n'))
+    data = [[el.strip() for el in row.split(',')] for row in data.split('\r\n')]
+    for i, row in enumerate(data):
+        timestamp = datetime.strptime(' '.join(row[3:-1]), '%d %b %Y %H:%M:%S')
+        data[i] = [timestamp] + [float(el) for el in row[:3]]
 
-    timestamp = datetime.strptime(' '.join(data[:4]), '%m %d %Y %H')
-    error, status = [int(el) for el in data[4:6]]
-    data = [timestamp] + [float(el) for el in data[6:]]
-
-    metadata = {'error': error, 'status': status, 'id': match.group('device_id')}
+    start_time = datetime.strptime(header['start time'], '%d %b %Y %H:%M:%S')
+    metadata = {
+        'id': match.group('device_id'),
+        'samples': int(match.group('samples')),
+        'start_time': start_time,
+    }
 
     return metadata, data
 
 
-def get_data(device_id):
+def get_data(device_id, samples=6):
     with powered(['imm', 'ser']):
         with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
             power_on(serial)
             with force_capture_line(serial):
                 send_wakeup_tone(serial)
-                raw = query(serial, device_id)
+                raw = query(serial, device_id, samples=samples)
 
-    _, data = parse(raw)
+    metadata, data = parse(raw)
 
-    return data
+    cols = list(zip(*data))
+    delta_mins = round((max(cols[0]) - min(cols[0])).seconds / 60.0)
+    averaged_data = [metadata['start_time'], delta_mins]
+    n = len(data)
+    for col in cols[1:]:
+        averaged_data.append(sum(col) / n)
+
+    return averaged_data
 
 
 def log_data(s):
@@ -98,11 +103,11 @@ def deserialize(serialized):
 
 @fail_gracefully
 def execute():
-    for ID in UNIT.AQUADOPP_IDS:
+    for ID in UNIT.SEABIRD_IDS:
         data = get_data(ID)
         serialized = serialize(data)
         log_data(serialized)
-        queue_sbd(DATA_TAGS.AQD, serialized)
+        queue_sbd(DATA_TAGS.SBD, serialized)
 
 
 if __name__ == '__main__':

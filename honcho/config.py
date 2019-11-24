@@ -80,6 +80,66 @@ SCHEDULE_START_TIMES = {
 # Time to wait in between schedule tasks/checks
 SCHEDULE_SLEEP = 30
 
+
+SCHEDULES = {
+    SCHEDULE_NAMES.WINTER: (
+        ('hour', ":49", 'monitor'),
+        ('day', "23:10", 'binex'),
+        ('day', "20:10", 'camera'),
+        ('hour', ":57", 'vaisala'),
+        ('hour', ":50", 'seabird'),
+        ('hour', ":52", 'aquadopp'),
+        ('hour', ":55", 'cr1000x'),
+        ('hour', ":56", 'solar'),
+        ('day', "21:05", 'dts'),
+        ('day', "06:10", 'upload'),
+        ('day', "12:10", 'upload'),
+        ('day', "18:10", 'upload'),
+        ('day', "00:10", 'upload'),
+        ('day', "00:00", 'orders'),
+    ),
+    SCHEDULE_NAMES.SUMMER: (
+        ('hour', ":49", 'monitor'),
+        ('day', "05:10", 'binex'),
+        ('day', "11:10", 'binex'),
+        ('day', "17:10", 'binex'),
+        ('day', "23:10", 'binex'),
+        ('day', "04:10", 'camera'),
+        ('day', "12:10", 'camera'),
+        ('day', "20:10", 'camera'),
+        ('hour', ":57", 'vaisala'),
+        ('hour', ":50", 'seabird'),
+        ('hour', ":52", 'aquadopp'),
+        ('hour', ":55", 'cr1000x'),
+        ('hour', ":56", 'solar'),
+        ('day', "03:05", 'dts'),
+        ('day', "07:05", 'dts'),
+        ('day', "11:05", 'dts'),
+        ('day', "15:05", 'dts'),
+        ('day', "19:05", 'dts'),
+        ('day', "23:05", 'dts'),
+        ('day', "06:10", 'upload'),
+        ('day', "12:10", 'upload'),
+        ('day', "18:10", 'upload'),
+        ('day', "00:10", 'upload'),
+        ('day', "00:00", 'orders'),
+    ),
+    SCHEDULE_NAMES.TEST: (
+        ('day', "00:00", 'monitor'),
+        ('day', "01:00", 'binex'),
+        ('day', "02:00", 'vaisala'),
+        ('day', "03:00", 'camera'),
+        ('day', "04:00", 'seabird'),
+        ('day', "05:00", 'aquadopp'),
+        ('day', "06:00", 'cr1000x'),
+        ('day', "07:00", 'solar'),
+        ('day', "08:00", 'dts'),
+        ('day', "09:00", 'upload'),
+        ('day', "10:00", 'orders'),
+    ),
+}
+
+
 # --------------------------------------------------------------------------------
 # GPIO
 # --------------------------------------------------------------------------------
