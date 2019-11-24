@@ -5,11 +5,11 @@ from math import ceil
 import pytest
 
 from honcho.config import SBD_MAX_SIZE
-from honcho.core.sbd import send_message, message_size
+from honcho.core.sbd import send_message, message_size, queue_sbd
 
 
 @pytest.fixture
-def sbd_mock(serial_mock):
+def sbd_mock(serial_mock, mocker):
     def sbd_listener(port):
         while 1:
             res = b""
@@ -21,7 +21,7 @@ def sbd_mock(serial_mock):
             if res == b'AT\r\n':
                 os.write(port, b'OK\r\n')
             elif res == b'AT+CSQ\r\n':
-                os.write(port, b'+CSQ: 5\r\n')
+                os.write(port, b'+CSQ:5\r\n')
             elif res == b'AT+SBDWT\r\n':
                 os.write(port, b'READY\r\n')
             elif res == b'AT+SBDIX\r\n':
@@ -51,3 +51,23 @@ def test_smoke_send_message(sbd_mock, mocker):
     assert message_size(message) > SBD_MAX_SIZE
     with pytest.raises(Exception):
         send_message(message)
+
+
+def test_smoke_send_queued(tmpdir, sbd_mock, mocker):
+    mocker.patch('honcho.core.sbd.Serial', lambda *args, **kwargs: sbd_mock)
+    mocker.patch('honcho.core.sbd.powered', mocker.stub())
+    mocker.patch('honcho.core.sbd.SBD_QUEUE_DIR', str(tmpdir))
+
+    tag, message = 'TEST', 'message'
+    queue_sbd(tag, message)
+
+    dirs = tmpdir.listdir()
+    assert len(dirs) == 1
+    assert dirs[0].basename == tag
+
+    files = tmpdir.join(tag).listdir()
+    assert len(files) == 1
+    # assert re.matches(pattern, files[0].basename)
+
+    sbd_file = files[0]
+    assert sbd_file.read() == '{0},{1}'.format(tag, message)

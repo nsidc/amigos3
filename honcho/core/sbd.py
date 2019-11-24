@@ -1,3 +1,4 @@
+import logging
 import re
 import os
 from contextlib import closing
@@ -17,25 +18,35 @@ from honcho.config import (
     GPIO,
 )
 from honcho.core.gpio import powered
-from honcho.util import serial_request, fail_gracefully
+from honcho.util import serial_request, fail_gracefully, ensure_dirs
+
+
+logger = logging.getLogger(__name__)
 
 
 def _ping_iridium(serial):
     expected = re.escape('OK\r\n')
     try:
+        logging.debug('Pinging iridium')
         serial_request(serial, 'AT', expected, timeout=10)
     except Exception:
+        logging.error('Ping failed')
         raise Exception("Iridium did not respond correctly to ping")
+    else:
+        logging.debug('Iridium ping ok')
 
 
 def _check_signal(serial):
     expected = re.escape('+CSQ:') + r'(?P<strength>\d)' + re.escape('\r\n')
     try:
+        logging.debug('Checking signal')
         response = serial_request(serial, 'AT+CSQ', expected, timeout=10)
     except Exception:
+        logging.error('Signal check failed')
         raise Exception("Iridium did not respond correctly to signal query")
 
     strength = int(re.search(expected, response).groupdict()['strength'])
+    logging.debug('Signal strength: {0}'.format(strength))
 
     return strength
 
@@ -94,6 +105,7 @@ def _send_message(serial, message):
 
 
 def _clear_mo_buffer(serial):
+    logging.debug('Clearing MO buffer')
     expected = r'(?P<status>\d)' + re.escape('\r\n')
     response = serial_request(serial, 'AT+SBDD0', re.escape('\r\n'), timeout=10)
     status = int(re.search(expected, response).groupdict()['status'])
@@ -114,6 +126,7 @@ def _build_queue():
 def _send_queued(serial, timeout):
     queue = _build_queue()
     for filepath in queue:
+        logging.debug('Sending queued: {0}'.format(filepath))
         with open(filepath, 'r') as f:
             tag = os.path.split(filepath)[-2]
             _send_message(serial=serial, message=tag + ',' + f.read())
@@ -121,24 +134,31 @@ def _send_queued(serial, timeout):
 
 
 def send_message(message):
+    logging.info('Sending sbd message')
     with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             _send_message(serial, message)
 
 
 def send_queue(timeout=SBD_QUEUE_MAX_TIME):
+    logging.info('Sending queued sbds')
     with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             _send_queued(serial, timeout)
 
 
 def queue_sbd(tag, message):
-    filepath = os.path.join(SBD_QUEUE_DIR, tag, datetime.now().isoformat())
+    logging.debug('Queuing {0} message'.format(tag))
+    directory = os.path.join(SBD_QUEUE_DIR, tag)
+    ensure_dirs([directory])
+    filename = datetime.now().isoformat()
+    filepath = os.path.join(directory, filename)
     with open(filepath, 'w') as f:
         f.write(tag + ',' + message)
 
 
 def clear_queue():
+    logging.debug('Clearing queue')
     queue = _build_queue()
     for filepath in queue:
         os.remove(filepath)
