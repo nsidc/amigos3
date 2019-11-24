@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime
 import traceback
 from collections import MutableMapping
 from logging import getLogger
@@ -126,3 +127,14 @@ def get_creds(host):
     user, _, passwd = nrc.hosts[host]
 
     return user, passwd
+
+
+def serialize_datetime(dt):
+    s = dt.strftime('%Y-%m-%dT%H:%M:%S')
+    return s
+
+
+def deserialize_datetime(s):
+    dt = datetime.strftime(s, '%Y-%m-%dT%H:%M:%S')
+
+    return dt

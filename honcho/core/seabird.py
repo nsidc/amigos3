@@ -5,10 +5,16 @@ from contextlib import closing
 
 from serial import Serial
 
-from honcho.config import IMM_PORT, IMM_BAUD
+from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS, DATA_LOG
 from honcho.core.gpio import powered
+from honcho.core.sbd import queue_sbd
 from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
-from honcho.util import serial_request, fail_gracefully
+from honcho.util import (
+    serial_request,
+    fail_gracefully,
+    serialize_datetime,
+    deserialize_datetime,
+)
 
 logger = getLogger(__name__)
 
@@ -75,9 +81,33 @@ def get_data(device_id, samples=6):
     return averaged_data
 
 
+def log_data(s):
+    if not s.endswith('\n'):
+        s += '\n'
+
+    with open(DATA_LOG(DATA_TAGS.AQD), 'a') as f:
+        f.write(s)
+
+
+def serialize(data):
+    serialized = serialize_datetime(data[0]) + ','.join(data)
+
+    return serialized
+
+
+def deserialize(serialized):
+    split = serialized.split(',')
+
+    return [deserialize_datetime(split[0])] + [float(el) for el in split[1:]]
+
+
 @fail_gracefully
 def execute():
-    raise NotImplementedError
+    for ID in UNIT.SEABIRD_IDS:
+        data = get_data(ID)
+        serialized = serialize(data)
+        log_data(serialized)
+        queue_sbd(DATA_TAGS.SBD, serialized)
 
 
 if __name__ == '__main__':

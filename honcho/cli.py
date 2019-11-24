@@ -414,6 +414,44 @@ def add_orders_parser(subparsers):
     )
 
 
+def aquadopp_handler(args):
+    pass
+
+
+def add_aquadopp_parser(subparsers):
+    import honcho.core.aquadopp as aquadopp
+
+    parser = subparsers.add_parser('aquadopp')
+    parser.set_defaults(handler=aquadopp_handler)
+
+    parser.add_argument(
+        "--execute",
+        help="Execute routine",
+        action="append_const",
+        dest='callbacks',
+        const=aquadopp.execute,
+    )
+
+
+def seabird_handler(args):
+    pass
+
+
+def add_seabird_parser(subparsers):
+    import honcho.core.seabird as seabird
+
+    parser = subparsers.add_parser('seabird')
+    parser.set_defaults(handler=seabird_handler)
+
+    parser.add_argument(
+        "--execute",
+        help="Execute routine",
+        action="append_const",
+        dest='callbacks',
+        const=seabird.execute,
+    )
+
+
 def build_parser():
     parser, subparsers = init_parsers()
     add_schedule_parser(subparsers)
@@ -422,6 +460,8 @@ def build_parser():
     add_sbd_parser(subparsers)
     add_orders_parser(subparsers)
     add_onboard_parser(subparsers)
+    add_aquadopp_parser(subparsers)
+    add_seabird_parser(subparsers)
 
     return parser
 

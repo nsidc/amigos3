@@ -11,10 +11,11 @@ from honcho.config import (
     GPIO,
     DTS_HOST,
     DTS_USER,
+    DATA_DIR,
+    DATA_TAGS,
     DTS_PULL_DELAY,
     DTS_WIN_DATA_DIR,
     DTS_RAW_DATA_DIR,
-    DTS_PROCESSED_DATA_DIR,
     FULL_RESOLUTION_RANGES,
 )
 
@@ -28,7 +29,7 @@ def ns(tag):
 def output_filepath(filepath):
     filename = os.path.basename(filepath)
     stem = os.path.splitext(filename)[0]
-    return os.path.join(DTS_PROCESSED_DATA_DIR, stem.replace(' ', '_') + '.csv')
+    return os.path.join(DATA_DIR(DATA_TAGS.DTS), stem.replace(' ', '_') + '.csv')
 
 
 def parse_xml(filename):
@@ -144,7 +145,7 @@ def acquire():
 
 @fail_gracefully
 def execute():
-    ensure_dirs([DTS_RAW_DATA_DIR, DTS_PROCESSED_DATA_DIR])
+    ensure_dirs([DTS_RAW_DATA_DIR, DATA_DIR(DATA_TAGS.DTS)])
     logs.init_logging(logging.DEBUG)
     acquire()
 

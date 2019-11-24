@@ -1,6 +1,8 @@
 from collections import namedtuple
 import logging
 import os
+import uuid
+import re
 
 # --------------------------------------------------------------------------------
 # GENERAL CONFIGURATION
@@ -53,7 +55,12 @@ UNITS = namedtuple('UNITS', ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC'))(
         DATA_DIR='amigos3c',
     ),
 )
-# UNIT = *mac magic*
+
+MAC_ADDRESS = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
+try:
+    UNIT = [unit for unit in UNITS if unit.MAC_ADDRESS == MAC_ADDRESS].pop()
+except Exception:
+    UNIT = UNITS.AMIGOSIIIA
 
 
 # --------------------------------------------------------------------------------
@@ -161,7 +168,6 @@ DTS_USER = "admin"
 DTS_PULL_DELAY = 60 * 5
 DTS_WIN_DATA_DIR = 'Desktop/dts_data'
 DTS_RAW_DATA_DIR = "/media/mmcblk0p1/dts_data"
-DTS_PROCESSED_DATA_DIR = "/media/mmcblk0p1/dts"
 FULL_RESOLUTION_RANGES = [(1000, 1200), (2000, 2200)]
 
 # --------------------------------------------------------------------------------
@@ -174,3 +180,23 @@ def VOLTAGE_CONVERTER(value):
     Ought to be pretty accurate
     '''
     return 0.0063926 * value + 0.21706913
+
+
+# --------------------------------------------------------------------------------
+# Data
+# --------------------------------------------------------------------------------
+
+DATA_ROOT_DIR = "/media/mmcblk0p1/data"
+DATA_TAGS = namedtuple('DATA_TAGS', 'AQD SBD DTS GPS')
+
+
+def DATA_DIR(tag):
+    data_dir = os.path.join(DATA_ROOT_DIR, tag)
+
+    return data_dir
+
+
+def DATA_LOG(tag):
+    data_dir = os.path.join(DATA_DIR(tag), tag + '.log')
+
+    return data_dir

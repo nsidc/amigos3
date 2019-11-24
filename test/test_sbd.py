@@ -1,11 +1,19 @@
 import os
 import string
 from math import ceil
+from datetime import datetime
 
 import pytest
 
 from honcho.config import SBD_MAX_SIZE
-from honcho.core.sbd import send_message, message_size, queue_sbd
+from honcho.core.sbd import (
+    send_message,
+    message_size,
+    queue_sbd,
+    send_queue,
+    clear_queue,
+    _ping_iridium,
+)
 
 
 @pytest.fixture
@@ -33,7 +41,13 @@ def sbd_mock(serial_mock, mocker):
         yield serial
 
 
-def test_smoke_send_message(sbd_mock, mocker):
+def test_smoke_ping_iridium(sbd_mock, mocker):
+    mocker.patch('honcho.core.sbd.powered', mocker.stub())
+
+    _ping_iridium(sbd_mock)
+
+
+def test_send_message(sbd_mock, mocker):
     mocker.patch('honcho.core.sbd.Serial', lambda *args, **kwargs: sbd_mock)
     mocker.patch('honcho.core.sbd.powered', mocker.stub())
 
@@ -53,12 +67,13 @@ def test_smoke_send_message(sbd_mock, mocker):
         send_message(message)
 
 
-def test_smoke_send_queued(tmpdir, sbd_mock, mocker):
+def test_queue_sbd(tmpdir, sbd_mock, mocker):
     mocker.patch('honcho.core.sbd.Serial', lambda *args, **kwargs: sbd_mock)
     mocker.patch('honcho.core.sbd.powered', mocker.stub())
     mocker.patch('honcho.core.sbd.SBD_QUEUE_DIR', str(tmpdir))
 
-    tag, message = 'TEST', 'message'
+    tag, message = 'test', 'message'
+
     queue_sbd(tag, message)
 
     dirs = tmpdir.listdir()
@@ -71,3 +86,38 @@ def test_smoke_send_queued(tmpdir, sbd_mock, mocker):
 
     sbd_file = files[0]
     assert sbd_file.read() == '{0},{1}'.format(tag, message)
+
+
+def test_send_queue(tmpdir, sbd_mock, mocker):
+    mocker.patch('honcho.core.sbd.Serial', lambda *args, **kwargs: sbd_mock)
+    mocker.patch('honcho.core.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    mocker.patch('honcho.core.sbd.powered', mocker.stub())
+    send_message = mocker.MagicMock()
+    mocker.patch('honcho.core.sbd.send_message', send_message)
+
+    tag, message = 'test', 'message'
+    filename = datetime.now().isoformat()
+    directory = tmpdir.join(tag)
+    directory.mkdir()
+    filepath = tmpdir.join(tag).join(filename)
+    filepath.write(message)
+
+    send_queue()
+
+    assert send_message.called_once_with(message)
+    assert not filepath.exists()
+
+
+def test_clear_queue(tmpdir, sbd_mock, mocker):
+    mocker.patch('honcho.core.sbd.SBD_QUEUE_DIR', str(tmpdir))
+
+    tag, message = 'test', 'message'
+    filename = datetime.now().isoformat()
+    directory = tmpdir.join(tag)
+    directory.mkdir()
+    filepath = tmpdir.join(tag).join(filename)
+    filepath.write(message)
+
+    clear_queue()
+
+    assert not filepath.exists()
