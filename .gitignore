@@ -226,3 +226,4 @@ pexpect/
 **/backup
 **/sample_data
 system/.netrc*
+.vim
