@@ -156,6 +156,8 @@ IMM_BAUD = 9600
 # DTS
 # --------------------------------------------------------------------------------
 
+DTS_HOST = "192.168.0.50"
+DTS_USER = "admin"
 DTS_PULL_DELAY = 60 * 5
 DTS_WIN_DATA_DIR = 'Desktop/dts_data'
 DTS_RAW_DATA_DIR = "/media/mmcblk0p1/dts_data"

@@ -9,6 +9,8 @@ from honcho.util import ensure_dirs, fail_gracefully
 from honcho.core.gpio import powered
 from honcho.config import (
     GPIO,
+    DTS_HOST,
+    DTS_USER,
     DTS_PULL_DELAY,
     DTS_WIN_DATA_DIR,
     DTS_RAW_DATA_DIR,
@@ -113,7 +115,7 @@ def acquire():
         sleep(DTS_PULL_DELAY)
 
         logger.info("Pulling files from windows unit")
-        ssh = SSH("admin", "192.168.0.50")
+        ssh = SSH(DTS_USER, DTS_HOST)
         win_data_glob = os.path.join(DTS_WIN_DATA_DIR, "*")
 
         ssh.copy(win_data_glob, DTS_RAW_DATA_DIR, recursive=True)
