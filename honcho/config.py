@@ -227,7 +227,7 @@ DTS_HOST = "192.168.0.50"
 DTS_USER = "admin"
 DTS_PULL_DELAY = 60 * 5
 DTS_WIN_DATA_DIR = 'Desktop/dts_data'
-DTS_RAW_DATA_DIR = "/media/mmcblk0p1/dts_data"
+DTS_RAW_DATA_DIR = "/media/mmcblk0p1/data/dts_raw"
 FULL_RESOLUTION_RANGES = [(1000, 1200), (2000, 2200)]
 
 # --------------------------------------------------------------------------------
@@ -247,7 +247,9 @@ def VOLTAGE_CONVERTER(value):
 # --------------------------------------------------------------------------------
 
 DATA_ROOT_DIR = "/media/mmcblk0p1/data"
-DATA_TAGS = namedtuple('DATA_TAGS', 'AQD SBD DTS GPS')
+
+_DATA_TAGS = ('AQD', 'SBD', 'DTS', 'GPS')
+DATA_TAGS = namedtuple('DATA_TAGS', _DATA_TAGS)(*_DATA_TAGS)
 
 
 def DATA_DIR(tag):

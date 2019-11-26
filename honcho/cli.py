@@ -347,7 +347,7 @@ def add_onboard_parser(subparsers):
 
 
 def sbd_handler(args):
-    import honcho.core.sbd as sbd
+    import honcho.tasks.sbd as sbd
 
     if args.message:
         sbd.send_message(args.message)
@@ -380,7 +380,7 @@ def add_sbd_parser(subparsers):
 
 
 def orders_handler(args):
-    import honcho.core.orders as orders
+    import honcho.tasks.orders as orders
 
     if args.get:
         orders.get_orders()
@@ -419,7 +419,7 @@ def aquadopp_handler(args):
 
 
 def add_aquadopp_parser(subparsers):
-    import honcho.core.aquadopp as aquadopp
+    import honcho.tasks.aquadopp as aquadopp
 
     parser = subparsers.add_parser('aquadopp')
     parser.set_defaults(handler=aquadopp_handler)
@@ -438,7 +438,7 @@ def seabird_handler(args):
 
 
 def add_seabird_parser(subparsers):
-    import honcho.core.seabird as seabird
+    import honcho.tasks.seabird as seabird
 
     parser = subparsers.add_parser('seabird')
     parser.set_defaults(handler=seabird_handler)
@@ -452,6 +452,25 @@ def add_seabird_parser(subparsers):
     )
 
 
+def dts_handler(args):
+    pass
+
+
+def add_dts_parser(subparsers):
+    import honcho.tasks.dts as dts
+
+    parser = subparsers.add_parser('dts')
+    parser.set_defaults(handler=dts_handler)
+
+    parser.add_argument(
+        "--execute",
+        help="Execute routine",
+        action="append_const",
+        dest='callbacks',
+        const=dts.execute,
+    )
+
+
 def build_parser():
     parser, subparsers = init_parsers()
     add_schedule_parser(subparsers)
@@ -462,6 +481,7 @@ def build_parser():
     add_onboard_parser(subparsers)
     add_aquadopp_parser(subparsers)
     add_seabird_parser(subparsers)
+    add_dts_parser(subparsers)
 
     return parser
 

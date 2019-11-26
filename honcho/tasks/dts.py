@@ -3,8 +3,8 @@ import os
 import shutil
 from bisect import bisect
 from time import sleep
+import xml.etree.ElementTree as ET
 
-import honcho.logs as logs
 from honcho.util import ensure_dirs, fail_gracefully
 from honcho.core.gpio import powered
 from honcho.config import (
@@ -18,6 +18,8 @@ from honcho.config import (
     DTS_RAW_DATA_DIR,
     FULL_RESOLUTION_RANGES,
 )
+from honcho.core.ssh import SSH
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +35,6 @@ def output_filepath(filepath):
 
 
 def parse_xml(filename):
-    import xml.etree.ElementTree as ET
-
     tree = ET.parse(filename)
     root = tree.getroot()
 
@@ -108,8 +108,6 @@ def write(metadata, measurements, filepath):
 def acquire():
     """Entry point of DTS files retrival and execution plus time update on windows unit
     """
-    from ssh import SSH
-
     logger.info("Turning on DTS and windows unit")
     with powered([GPIO.HUB, GPIO.WIN, GPIO.DTS]):
         logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
@@ -146,7 +144,6 @@ def acquire():
 @fail_gracefully
 def execute():
     ensure_dirs([DTS_RAW_DATA_DIR, DATA_DIR(DATA_TAGS.DTS)])
-    logs.init_logging(logging.DEBUG)
     acquire()
 
 
