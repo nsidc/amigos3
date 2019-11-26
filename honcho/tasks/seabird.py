@@ -5,7 +5,7 @@ from contextlib import closing
 
 from serial import Serial
 
-from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS, DATA_LOG
+from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS, DATA_LOG_FILENAME
 from honcho.core.gpio import powered
 from honcho.tasks.sbd import queue_sbd
 from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
@@ -85,7 +85,7 @@ def log_data(s):
     if not s.endswith('\n'):
         s += '\n'
 
-    with open(DATA_LOG(DATA_TAGS.AQD), 'a') as f:
+    with open(DATA_LOG_FILENAME(DATA_TAGS.AQD), 'a') as f:
         f.write(s)
 
 

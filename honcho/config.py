@@ -259,7 +259,7 @@ def DATA_DIR(tag):
     return data_dir
 
 
-def DATA_LOG(tag):
+def DATA_LOG_FILENAME(tag):
     data_dir = os.path.join(DATA_DIR(tag), tag + '.log')
 
     return data_dir
@@ -272,3 +272,4 @@ def DATA_LOG(tag):
 STAGED_UPLOAD_DIR = '/media/mmcblk0p1/staged'
 UPLOAD_CLEANUP = True
 UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.GPS, DATA_TAGS.CAM)
+DATASTORE_DIR = '/media/mmcblk0p1/datastore'
