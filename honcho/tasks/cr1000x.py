@@ -1,7 +1,8 @@
-from honcho.util import fail_gracefully
+from honcho.util import fail_gracefully, log_execution
 
 
 @fail_gracefully
+@log_execution
 def execute():
     raise NotImplementedError
 

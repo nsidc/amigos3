@@ -6,7 +6,7 @@ from datetime import datetime
 from ftplib import FTP
 from logging import getLogger
 
-from honcho.util import ensure_dirs, get_creds
+from honcho.util import ensure_dirs, get_creds, log_execution, fail_gracefully
 from honcho.core.gpio import powered
 from honcho.config import (
     FTP_HOST,
@@ -99,6 +99,8 @@ def clean_up():
         os.remove(filepath)
 
 
+@fail_gracefully
+@log_execution
 def execute():
     ensure_dirs([ORDERS_DIR, RESULTS_DIR])
     get_orders()

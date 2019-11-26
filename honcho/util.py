@@ -1,8 +1,10 @@
 import os
 import shutil
+import logging
 import re
 from datetime import datetime
 import traceback
+from inspect import getmodule
 from collections import MutableMapping
 from logging import getLogger
 from time import sleep, time
@@ -120,6 +122,42 @@ def fail_gracefully(f, reraise=False):
             logger.error(traceback.format_exc())
             if reraise:
                 raise
+
+    return wrapped
+
+
+def format_timedelta(td):
+    s = round(td.total_seconds())
+    formatted = ''
+    labels = ('hrs', 'min', 'sec')
+    n = len(labels)
+    for i, label in enumerate(labels):
+        factor = float(60 ** (n - i - 1))
+        count = s / factor
+        if count >= 1:
+            return '{0} {1:.2f}'.format(count, label)
+
+    return formatted.strip()
+
+
+def log_execution(f):
+    '''
+    Decorator that does basic logging and timing of function
+    '''
+
+    def wrapped(*args, **kwargs):
+        logger = logging.getLogger(__name__)
+
+        func_name = getmodule(f).__name__ + '.' + f.__name__
+        logger.info('Running {0}'.format(func_name))
+        start = datetime.now()
+
+        result = f(*args, **kwargs)
+
+        run_time = datetime.now() - start
+        logger.info('Finished {0} in {1}'.format(func_name, format_timedelta(run_time)))
+
+        return result
 
     return wrapped
 

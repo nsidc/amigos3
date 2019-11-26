@@ -12,6 +12,7 @@ from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
 from honcho.util import (
     serial_request,
     fail_gracefully,
+    log_execution,
     serialize_datetime,
     deserialize_datetime,
 )
@@ -102,6 +103,7 @@ def deserialize(serialized):
 
 
 @fail_gracefully
+@log_execution
 def execute():
     for ID in UNIT.SEABIRD_IDS:
         data = get_data(ID)

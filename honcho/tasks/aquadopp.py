@@ -12,6 +12,7 @@ from honcho.tasks.sbd import queue_sbd
 from honcho.util import (
     serial_request,
     fail_gracefully,
+    log_execution,
     serialize_datetime,
     deserialize_datetime,
 )
@@ -97,6 +98,7 @@ def deserialize(serialized):
 
 
 @fail_gracefully
+@log_execution
 def execute():
     for ID in UNIT.AQUADOPP_IDS:
         data = get_data(ID)

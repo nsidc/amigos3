@@ -21,6 +21,7 @@ from honcho.util import (
     get_creds,
     ensure_dirs,
     fail_gracefully,
+    log_execution,
     file_size,
     make_tarfile,
     serialize_datetime,
@@ -110,6 +111,7 @@ def archive():
 
 
 @fail_gracefully
+@log_execution
 def execute():
     ensure_dirs([STAGED_UPLOAD_DIR])
     staged_data_files = stage_data()

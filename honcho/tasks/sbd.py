@@ -14,7 +14,7 @@ from honcho.config import (
 )
 from honcho.core.gpio import powered
 from honcho.core.iridium import send_sbd
-from honcho.util import fail_gracefully, ensure_dirs
+from honcho.util import fail_gracefully, ensure_dirs, log_execution
 
 
 logger = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ def clear_queue():
 
 
 @fail_gracefully
+@log_execution
 def execute():
     logging.info('Sending queued sbds')
     with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
