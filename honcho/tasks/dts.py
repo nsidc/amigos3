@@ -16,7 +16,9 @@ from honcho.config import (
     DTS_PULL_DELAY,
     DTS_WIN_DATA_DIR,
     DTS_RAW_DATA_DIR,
-    FULL_RESOLUTION_RANGES,
+    DTS_FULL_RES_RANGES,
+    DTS_CLEANUP_LOCAL,
+    DTS_CLEANUP_REMOTE,
 )
 from honcho.core.ssh import SSH
 
@@ -83,7 +85,7 @@ def process_measurements(measurements):
     lengths = [el[0] for el in measurements]
     processed = []
     prev_index = 0
-    for lower, upper in FULL_RESOLUTION_RANGES:
+    for lower, upper in DTS_FULL_RES_RANGES:
         i_lower = bisect(lengths, lower)
         # TODO: assert ranges are in increasing order and non-overlapping
         i_upper = bisect(lengths, upper)

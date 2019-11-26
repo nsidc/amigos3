@@ -350,9 +350,9 @@ def sbd_handler(args):
     import honcho.tasks.sbd as sbd
 
     if args.message:
-        sbd.send_message(args.message)
+        sbd.send(args.message)
     elif args.send_queued:
-        sbd.send_queue()
+        sbd.execute()
     elif args.clear_queued:
         sbd.clear_queue()
 
@@ -471,6 +471,56 @@ def add_dts_parser(subparsers):
     )
 
 
+def data_handler(args):
+    import honcho.tasks.archive as archive
+
+    if args.upload_filepath:
+        archive.upload([args.upload_filepath])
+
+
+def add_data_parser(subparsers):
+    import honcho.tasks.archive as archive
+
+    parser = subparsers.add_parser('data')
+    parser.set_defaults(handler=dts_handler)
+
+    parser.add_argument(
+        "--upload", help="Upload single file", action="store", dest='upload_filepath',
+    )
+
+    parser.add_argument(
+        "--archive",
+        help="Upload all staged data and archive",
+        action="append_const",
+        dest='callbacks',
+        const=archive.execute,
+    )
+
+    parser.add_argument(
+        "--archive-data",
+        help="Rotate data into archive",
+        action="store_true",
+        dest='archive_data',
+        const=archive.archive_data,
+    )
+
+    parser.add_argument(
+        "--archive-data",
+        help="Rotate data into archive",
+        action="store_true",
+        dest='archive_data',
+        const=archive.archive_data,
+    )
+
+    parser.add_argument(
+        "--archive-logs",
+        help="Rotate logs into archive",
+        action="store_true",
+        dest='archive_logs',
+        const=archive.archive_logs,
+    )
+
+
 def build_parser():
     parser, subparsers = init_parsers()
     add_schedule_parser(subparsers)
@@ -482,6 +532,7 @@ def build_parser():
     add_aquadopp_parser(subparsers)
     add_seabird_parser(subparsers)
     add_dts_parser(subparsers)
+    add_data_parser(subparsers)
 
     return parser
 

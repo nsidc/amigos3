@@ -1,4 +1,5 @@
 import os
+import shutil
 import re
 from datetime import datetime
 import traceback
@@ -163,3 +164,9 @@ def file_size(file_path):
 def make_tarfile(output_filename, source_dir):
     with tarfile.open(output_filename, "w:gz") as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir))
+
+
+def clear_directory(directory):
+    for name in os.listdir(directory):
+        path = os.path.join(directory, name)
+        shutil.rmtree(path)

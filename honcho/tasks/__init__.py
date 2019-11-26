@@ -8,5 +8,5 @@ from . import orders  # noqa
 from . import sbd  # noqa
 from . import seabird  # noqa
 from . import solar  # noqa
-from . import upload  # noqa
+from . import archive  # noqa
 from . import vaisala  # noqa

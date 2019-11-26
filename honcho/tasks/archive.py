@@ -1,4 +1,3 @@
-import shutil
 import os
 from ftplib import FTP
 from logging import getLogger
@@ -10,6 +9,7 @@ from honcho.config import (
     GPIO,
     FTP_HOST,
     FTP_TIMEOUT,
+    FTP_CONNECT_RETRIES,
     DATA_DIR,
     DATA_TAGS,
     STAGED_UPLOAD_DIR,
@@ -24,6 +24,7 @@ from honcho.util import (
     file_size,
     make_tarfile,
     serialize_datetime,
+    clear_directory,
 )
 from honcho.core.gpio import powered
 
@@ -57,21 +58,35 @@ def stage_logs():
     return staged
 
 
-def upload(filepaths):
-    with closing(FTP(FTP_HOST, timeout=FTP_TIMEOUT)) as ftp:
-        ftp.login(*get_creds(FTP_HOST))
-        logger.debug('Logged in to {0}'.format(FTP_HOST))
-        for filepath in filepaths:
-            filename = os.path.basename(filepath)
-            with open(filepath, 'rb') as fi:
-                logger.debug(
-                    'Uploading {0} bytes: {1}'.format(file_size(filepath), filepath)
-                )
-                ftp.storbinary('STOR {0}'.format(filename), fi)
-                logger.debug('Upload successful')
+def get_session(retries=FTP_CONNECT_RETRIES):
+    logger.debug('Attempting to connect to {0}'.format(FTP_HOST))
+    for attempt in xrange(1, retries + 2):
+        try:
+            session = FTP(FTP_HOST, timeout=FTP_TIMEOUT)
+            session.login(*get_creds(FTP_HOST))
+        except Exception:
+            logger.debug('Connection failed {0}/{1}'.format(attempt, retries + 1))
+            retries -= 1
+        else:
+            break
+
+    logger.debug('Session initiated on {0} attempt')
+
+    return session
 
 
-def store_data_dir():
+def upload(filepath, session=None):
+    if session is None:
+        session = get_session()
+
+    filename = os.path.basename(filepath)
+    with open(filepath, 'rb') as fi:
+        logger.debug('Uploading {0} bytes: {1}'.format(file_size(filepath), filepath))
+        session.storbinary('STOR {0}'.format(filename), fi)
+        logger.debug('Upload successful')
+
+
+def archive_data():
     for tag in DATA_TAGS:
         path = os.path.join(DATA_DIR, tag)
         name = tag + '_' + serialize_datetime(datetime.now()) + '.tgz'
@@ -79,29 +94,36 @@ def store_data_dir():
         make_tarfile(output_filepath, path)
 
 
-def store_log():
+def archive_logs():
     name = 'LOG_' + serialize_datetime(datetime.now()) + '.tgz'
     output_filepath = os.path.join(DATASTORE_DIR, name)
     make_tarfile(output_filepath, LOG_DIR)
+
+
+def archive():
+    logger.debug('Archiving data')
+    archive_data()
+    archive_logs()
+
+    logger.debug('Cleaning up')
+    clear_directory(DATA_DIR)
 
 
 @fail_gracefully
 def execute():
     ensure_dirs([STAGED_UPLOAD_DIR])
     staged_data_files = stage_data()
-    staged_logs_files = stage_logs()
+    staged_log_files = stage_logs()
     try:
         with powered([GPIO.IRD, GPIO.HUB]):
-            upload(staged_data_files + staged_logs_files)
-    except Exception:
-        logger.error('Errors raised during upload')
-        raise
+            with closing(get_session()) as session:
+                for filepath in staged_data_files + staged_log_files:
+                    upload(filepath, session=session)
+
+                    if UPLOAD_CLEANUP:
+                        os.remove(filepath)
     finally:
-        logger.info('Rotating data to storage')
-        store_data_dir()
-        store_log()
-        shutil.rmtree(STAGED_UPLOAD_DIR)
-        shutil.rmtree(DATA_DIR)
+        archive()
 
 
 if __name__ == "__main__":

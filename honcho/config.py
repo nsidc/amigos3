@@ -92,10 +92,10 @@ SCHEDULES = {
         ('hour', ":55", 'cr1000x'),
         ('hour', ":56", 'solar'),
         ('day', "21:05", 'dts'),
-        ('day', "06:10", 'upload'),
-        ('day', "12:10", 'upload'),
-        ('day', "18:10", 'upload'),
-        ('day', "00:10", 'upload'),
+        ('day', "06:10", 'archive'),
+        ('day', "12:10", 'archive'),
+        ('day', "18:10", 'archive'),
+        ('day', "00:10", 'archive'),
         ('day', "00:00", 'orders'),
     ),
     SCHEDULE_NAMES.SUMMER: (
@@ -118,23 +118,23 @@ SCHEDULES = {
         ('day', "15:05", 'dts'),
         ('day', "19:05", 'dts'),
         ('day', "23:05", 'dts'),
-        ('day', "06:10", 'upload'),
-        ('day', "12:10", 'upload'),
-        ('day', "18:10", 'upload'),
-        ('day', "00:10", 'upload'),
+        ('day', "06:10", 'archive'),
+        ('day', "12:10", 'archive'),
+        ('day', "18:10", 'archive'),
+        ('day', "00:10", 'archive'),
         ('day', "00:00", 'orders'),
     ),
     SCHEDULE_NAMES.TEST: (
-        ('day', "00:00", 'monitor'),
-        ('day', "01:00", 'binex'),
-        ('day', "02:00", 'vaisala'),
-        ('day', "03:00", 'camera'),
+        # ('day', "00:00", 'monitor'),
+        # ('day', "01:00", 'binex'),
+        # ('day', "02:00", 'vaisala'),
+        # ('day', "03:00", 'camera'),
+        # ('day', "06:00", 'cr1000x'),
+        # ('day', "07:00", 'solar'),
         ('day', "04:00", 'seabird'),
         ('day', "05:00", 'aquadopp'),
-        ('day', "06:00", 'cr1000x'),
-        ('day', "07:00", 'solar'),
         ('day', "08:00", 'dts'),
-        ('day', "09:00", 'upload'),
+        ('day', "09:00", 'archive'),
         ('day', "10:00", 'orders'),
     ),
 }
@@ -194,6 +194,7 @@ GPIO_CONFIG = {
 
 FTP_HOST = 'restricted_ftp'
 FTP_TIMEOUT = 60
+FTP_CONNECT_RETRIES = 2
 FTP_ORDERS_DIR = 'orders'
 FTP_RESULTS_DIR = 'orders/results'
 ORDERS_DIR = '/media/mmcblk0p1/orders'
@@ -229,7 +230,7 @@ DTS_WIN_DATA_DIR = 'Desktop/dts_data'
 DTS_RAW_DATA_DIR = "/media/mmcblk0p1/data/dts_raw"
 DTS_CLEANUP_LOCAL = True
 DTS_CLEANUP_REMOTE = True
-FULL_RESOLUTION_RANGES = [(1000, 1200), (2000, 2200)]
+DTS_FULL_RES_RANGES = [(1000, 1200), (2000, 2200)]
 
 # --------------------------------------------------------------------------------
 # Onboard sensors
