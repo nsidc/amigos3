@@ -105,46 +105,51 @@ def write(metadata, measurements, filepath):
             f.write(','.join([str(el) for el in row]) + '\n')
 
 
-def acquire():
+def process_data(cleanup_local=DTS_CLEANUP_LOCAL, cleanup_remote=DTS_CLEANUP_REMOTE):
     """Entry point of DTS files retrival and execution plus time update on windows unit
     """
-    logger.info("Turning on DTS and windows unit")
-    with powered([GPIO.HUB, GPIO.WIN, GPIO.DTS]):
-        logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
-        sleep(DTS_PULL_DELAY)
+    logger.info("Pulling files from windows unit")
+    ssh = SSH(DTS_USER, DTS_HOST)
+    win_data_glob = os.path.join(DTS_WIN_DATA_DIR, "*")
 
-        logger.info("Pulling files from windows unit")
-        ssh = SSH(DTS_USER, DTS_HOST)
-        win_data_glob = os.path.join(DTS_WIN_DATA_DIR, "*")
+    ssh.copy(win_data_glob, DTS_RAW_DATA_DIR, recursive=True)
 
-        ssh.copy(win_data_glob, DTS_RAW_DATA_DIR, recursive=True)
+    filepaths = []
+    for root, _, filenames in os.walk(DTS_RAW_DATA_DIR):
+        filepaths.extend(
+            [
+                os.path.join(root, filename)
+                for filename in filenames
+                if filename.endswith('xml')
+            ]
+        )
+    logger.info("Found {0} dts files".format(len(filepaths)))
 
-        filepaths = []
-        for root, _, filenames in os.walk(DTS_RAW_DATA_DIR):
-            filepaths.extend(
-                [
-                    os.path.join(root, filename)
-                    for filename in filenames
-                    if filename.endswith('xml')
-                ]
-            )
-        logger.info("Found {0} dts files".format(len(filepaths)))
+    for filepath in filepaths:
+        logger.info("Processing {0}".format(filepath))
+        metadata, measurements = parse_xml(filepath)
+        measurements = process_measurements(measurements)
+        write(metadata, measurements, output_filepath(filepath))
 
-        for filepath in filepaths:
-            logger.info("Processing {0}".format(filepath))
-            metadata, measurements = parse_xml(filepath)
-            measurements = process_measurements(measurements)
-            write(metadata, measurements, output_filepath(filepath))
+    logger.info("Processing DTS complete")
 
-        logger.info("Processing DTS complete, cleaning up")
+    if cleanup_remote:
+        logger.info("Cleaning up remote raw DTS data")
         ssh.execute("rm -rf {glob}".format(glob=win_data_glob))
+
+    if cleanup_local:
+        logger.info("Cleaning up local raw DTS data")
         shutil.rmtree(DTS_RAW_DATA_DIR)
 
 
 @fail_gracefully
 def execute():
+    logger.info("Turning on DTS and windows unit")
     ensure_dirs([DTS_RAW_DATA_DIR, DATA_DIR(DATA_TAGS.DTS)])
-    acquire()
+    with powered([GPIO.HUB, GPIO.WIN, GPIO.DTS]):
+        logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
+        sleep(DTS_PULL_DELAY)
+        process_data()
 
 
 if __name__ == "__main__":

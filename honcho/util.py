@@ -5,6 +5,7 @@ import traceback
 from collections import MutableMapping
 from logging import getLogger
 from time import sleep, time
+import tarfile
 from netrc import netrc
 
 logger = getLogger(__name__)
@@ -138,3 +139,27 @@ def deserialize_datetime(s):
     dt = datetime.strftime(s, '%Y-%m-%dT%H:%M:%S')
 
     return dt
+
+
+def convert_bytes(num):
+    """
+    this function will convert bytes to MB.... GB... etc
+    """
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if num < 1024.0:
+            return "%3.1f %s" % (num, x)
+        num /= 1024.0
+
+
+def file_size(file_path):
+    """
+    this function will return the file size
+    """
+    if os.path.isfile(file_path):
+        file_info = os.stat(file_path)
+        return convert_bytes(file_info.st_size)
+
+
+def make_tarfile(output_filename, source_dir):
+    with tarfile.open(output_filename, "w:gz") as tar:
+        tar.add(source_dir, arcname=os.path.basename(source_dir))

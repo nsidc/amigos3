@@ -198,7 +198,6 @@ FTP_ORDERS_DIR = 'orders'
 FTP_RESULTS_DIR = 'orders/results'
 ORDERS_DIR = '/media/mmcblk0p1/orders'
 RESULTS_DIR = '/media/mmcblk0p1/orders/results'
-STAGED_UPLOAD_DIR = '/media/mmcblk0p1/staged'
 
 # --------------------------------------------------------------------------------
 # Up/downlink
@@ -228,6 +227,8 @@ DTS_USER = "admin"
 DTS_PULL_DELAY = 60 * 5
 DTS_WIN_DATA_DIR = 'Desktop/dts_data'
 DTS_RAW_DATA_DIR = "/media/mmcblk0p1/data/dts_raw"
+DTS_CLEANUP_LOCAL = True
+DTS_CLEANUP_REMOTE = True
 FULL_RESOLUTION_RANGES = [(1000, 1200), (2000, 2200)]
 
 # --------------------------------------------------------------------------------
@@ -237,7 +238,7 @@ FULL_RESOLUTION_RANGES = [(1000, 1200), (2000, 2200)]
 
 def VOLTAGE_CONVERTER(value):
     '''
-    Ought to be pretty accurate
+    Calibrated to < .01 V
     '''
     return 0.0063926 * value + 0.21706913
 
@@ -248,7 +249,7 @@ def VOLTAGE_CONVERTER(value):
 
 DATA_ROOT_DIR = "/media/mmcblk0p1/data"
 
-_DATA_TAGS = ('AQD', 'SBD', 'DTS', 'GPS')
+_DATA_TAGS = ('AQD', 'SBD', 'DTS', 'GPS', 'CAM')
 DATA_TAGS = namedtuple('DATA_TAGS', _DATA_TAGS)(*_DATA_TAGS)
 
 
@@ -262,3 +263,12 @@ def DATA_LOG(tag):
     data_dir = os.path.join(DATA_DIR(tag), tag + '.log')
 
     return data_dir
+
+
+# --------------------------------------------------------------------------------
+# Upload
+# --------------------------------------------------------------------------------
+
+STAGED_UPLOAD_DIR = '/media/mmcblk0p1/staged'
+UPLOAD_CLEANUP = True
+UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.GPS, DATA_TAGS.CAM)
