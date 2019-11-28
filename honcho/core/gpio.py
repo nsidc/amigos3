@@ -1,6 +1,5 @@
 import logging
 from contextlib import contextmanager
-from time import sleep
 
 from honcho.config import POWER_INDEX_DEVICE, POWER_DATA_DEVICE, GPIO_CONFIG
 

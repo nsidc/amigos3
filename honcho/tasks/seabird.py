@@ -6,10 +6,14 @@ from contextlib import closing
 from serial import Serial
 
 from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS
-from honcho.core.gpio import powered
-from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
+from honcho.core.imm import (
+    force_capture_line,
+    power_on,
+    send_wakeup_tone,
+    imm_components,
+)
 from honcho.tasks.sbd import queue_sbd
-from honcho.tasks.aquadopp import serialize, log_data
+from honcho.core.imm import serialize, log_data
 from honcho.util import (
     serial_request,
     fail_gracefully,
@@ -62,7 +66,7 @@ def parse(raw):
 
 
 def get_data(device_id, samples=6):
-    with powered(['imm', 'ser']):
+    with imm_components():
         with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
             power_on(serial)
             with force_capture_line(serial):

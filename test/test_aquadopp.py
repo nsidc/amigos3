@@ -83,7 +83,7 @@ def test_parse(imm_mock):
 
 def test_get_data(imm_mock, mocker):
     mocker.patch('honcho.tasks.aquadopp.Serial', lambda *args, **kwargs: imm_mock)
-    mocker.patch('honcho.tasks.aquadopp.powered', mocker.stub())
+    mocker.patch('honcho.core.imm.powered', mocker.stub())
 
     expected_data = [
         datetime(2019, 10, 9, 15, 0, 0),

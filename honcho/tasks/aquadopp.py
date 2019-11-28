@@ -5,16 +5,20 @@ from contextlib import closing
 
 from serial import Serial
 
-from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS, DATA_LOG_FILENAME
-from honcho.core.gpio import powered
-from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
+from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS
+from honcho.core.imm import (
+    force_capture_line,
+    power_on,
+    send_wakeup_tone,
+    imm_components,
+    log_data,
+    serialize,
+)
 from honcho.tasks.sbd import queue_sbd
 from honcho.util import (
     serial_request,
     fail_gracefully,
     log_execution,
-    serialize_datetime,
-    deserialize_datetime,
 )
 
 logger = getLogger(__name__)
@@ -65,7 +69,7 @@ def parse(raw):
 
 
 def get_data(device_id):
-    with powered(['imm', 'ser']):
+    with imm_components():
         with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
             power_on(serial)
             with force_capture_line(serial):
@@ -75,30 +79,6 @@ def get_data(device_id):
     _, data = parse(raw)
 
     return data
-
-
-def log_data(s, tag):
-    if not s.endswith('\n'):
-        s += '\n'
-
-    with open(DATA_LOG_FILENAME(tag), 'a') as f:
-        f.write(s)
-
-
-def serialize(data, device_id):
-    serialized = ','.join([serialize_datetime(data[0]), device_id] + data)
-
-    return serialized
-
-
-def deserialize(serialized):
-    split = serialized.split(',')
-
-    deserialized = [deserialize_datetime(split[0]), split[1]] + [
-        float(el) for el in split[2:]
-    ]
-
-    return deserialized
 
 
 @fail_gracefully

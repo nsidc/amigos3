@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def components_up():
+def sbd_components():
     with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
         logging.debug('Sleeping for 30 seconds for iridium startup')
         sleep(30)
@@ -31,7 +31,7 @@ def components_up():
 
 def send(message):
     logging.info('Sending sbd message')
-    with components_up():
+    with sbd_components():
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             send_sbd(serial, message)
 
@@ -77,7 +77,7 @@ def clear_queue():
 @log_execution
 def execute():
     logging.info('Sending queued sbds')
-    with components_up():
+    with sbd_components():
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             send_queue(serial)
 
