@@ -499,15 +499,7 @@ def add_data_parser(subparsers):
     parser.add_argument(
         "--archive-data",
         help="Rotate data into archive",
-        action="store_true",
-        dest='archive_data',
-        const=archive.archive_data,
-    )
-
-    parser.add_argument(
-        "--archive-data",
-        help="Rotate data into archive",
-        action="store_true",
+        action="append_const",
         dest='archive_data',
         const=archive.archive_data,
     )
@@ -515,7 +507,7 @@ def add_data_parser(subparsers):
     parser.add_argument(
         "--archive-logs",
         help="Rotate logs into archive",
-        action="store_true",
+        action="append_const",
         dest='archive_logs',
         const=archive.archive_logs,
     )

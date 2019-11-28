@@ -1,7 +1,8 @@
 import logging
 import os
-from contextlib import closing
+from contextlib import closing, contextmanager
 from datetime import datetime
+from time import sleep
 
 from serial import Serial
 
@@ -20,9 +21,17 @@ from honcho.util import fail_gracefully, ensure_dirs, log_execution
 logger = logging.getLogger(__name__)
 
 
+@contextmanager
+def components_up():
+    with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
+        logging.debug('Sleeping for 30 seconds for iridium startup')
+        sleep(30)
+        yield
+
+
 def send(message):
     logging.info('Sending sbd message')
-    with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
+    with components_up():
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             send_sbd(serial, message)
 
@@ -68,7 +77,7 @@ def clear_queue():
 @log_execution
 def execute():
     logging.info('Sending queued sbds')
-    with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
+    with components_up():
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             send_queue(serial)
 

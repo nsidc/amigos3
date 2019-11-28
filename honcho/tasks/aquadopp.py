@@ -77,16 +77,16 @@ def get_data(device_id):
     return data
 
 
-def log_data(s):
+def log_data(s, tag):
     if not s.endswith('\n'):
         s += '\n'
 
-    with open(DATA_LOG_FILENAME(DATA_TAGS.AQD), 'a') as f:
+    with open(DATA_LOG_FILENAME(tag), 'a') as f:
         f.write(s)
 
 
-def serialize(data):
-    serialized = serialize_datetime(data[0]) + ','.join(data)
+def serialize(data, device_id):
+    serialized = ','.join([serialize_datetime(data[0]), device_id] + data)
 
     return serialized
 
@@ -94,7 +94,11 @@ def serialize(data):
 def deserialize(serialized):
     split = serialized.split(',')
 
-    return [deserialize_datetime(split[0])] + [float(el) for el in split[1:]]
+    deserialized = [deserialize_datetime(split[0]), split[1]] + [
+        float(el) for el in split[2:]
+    ]
+
+    return deserialized
 
 
 @fail_gracefully
@@ -102,8 +106,8 @@ def deserialize(serialized):
 def execute():
     for ID in UNIT.AQUADOPP_IDS:
         data = get_data(ID)
-        serialized = serialize(data)
-        log_data(serialized)
+        serialized = serialize(data, ID)
+        log_data(serialized, DATA_TAGS.AQD)
         queue_sbd(DATA_TAGS.AQD, serialized)
 
 

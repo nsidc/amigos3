@@ -53,14 +53,22 @@ ssh-con: # Connect to triton over ssh
 # Deployment
 # --------------------------------------------------------------------------------
 
-install-win-ssh-key:
+setup-login-shell: install-ssh-key 
 	ssh root@amigos "mount / -o remount,rw"
-	# TODO
+	# Set bash shell for root
+	ssh root@amigos "sed -i 's/root:x:0:0:root:\/root:\/bin\/sh/root:x:0:0:root:\/root:\/bin\/bash/g' /etc/passwd"
+	# Install bashrc
+	scp -pCB system/.bashrc root@amigos:/root
 	ssh root@amigos "mount / -o remount,ro"
 
 install-hosts:
 	ssh root@amigos "mount / -o remount,rw"
 	scp -pCB system/hosts root@amigos:/etc/hosts
+	ssh root@amigos "mount / -o remount,ro"
+
+install-win-ssh-key:
+	ssh root@amigos "mount / -o remount,rw"
+	# TODO
 	ssh root@amigos "mount / -o remount,ro"
 
 sync-code: clean # sync the code to the amigos box
@@ -70,14 +78,6 @@ sync-code: clean # sync the code to the amigos box
 	find ./build | grep .git | xargs rm -rf
 	ssh root@amigos "rm -rf /media/mmcblk0p1/*"
 	scp -prCB build/honcho root@amigos:/media/mmcblk0p1
-
-setup-login-shell: install-ssh-key 
-	ssh root@amigos "mount / -o remount,rw"
-	# Set bash shell for root
-	ssh root@amigos "sed -i 's/root:x:0:0:root:\/root:\/bin\/sh/root:x:0:0:root:\/root:\/bin\/bash/g' /etc/passwd"
-	# Install bashrc
-	scp -pCB system/.bashrc root@amigos:/root
-	ssh root@amigos "mount / -o remount,ro"
 
 # --------------------------------------------------------------------------------
 # Deployment

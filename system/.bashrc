@@ -9,3 +9,6 @@ set -o vi
 
 alias ls='ls --color=auto'
 alias honcho='python /media/mmcblk0p1/honcho/cli.py'
+
+export PYTHONPATH="${PYTHONPATH}:/media/mmcblk0p1/:/media/mmcblk0p1/honcho/ext"
+export LOG_LEVEL=DEBUG

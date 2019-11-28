@@ -1,7 +1,10 @@
+import logging
 from contextlib import contextmanager
 from time import sleep
 
 from honcho.config import POWER_INDEX_DEVICE, POWER_DATA_DEVICE, GPIO_CONFIG
+
+logger = logging.getLogger(__name__)
 
 
 def _set_index(index):
@@ -56,12 +59,13 @@ def powered(components):
     for component in components:
         if is_on(component):
             raise Exception('{0} requested but already powered on'.format(component))
+        logger.debug('Turning on {0}'.format(component))
         turn_on(component)
-        sleep(GPIO_CONFIG[component]['wait'])
     try:
         yield
     finally:
         for component in components:
+            logger.debug('Turning off {0}'.format(component))
             turn_off(component)
 
 

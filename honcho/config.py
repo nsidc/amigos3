@@ -42,7 +42,7 @@ UNITS = namedtuple('UNITS', ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC'))(
     ),
     _UNIT(
         NAME='AMIGOSIIIB',
-        MAC_ADDRESS='',
+        MAC_ADDRESS='70:b3:d5:65:46:00',
         SEABIRD_IDS=['05', '09'],
         AQUADOPP_IDS=['22', '23'],
         DATA_DIR='amigos3b',
@@ -172,20 +172,20 @@ _GPIO = (
 GPIO = namedtuple('GPIO', _GPIO)(*_GPIO)
 
 GPIO_CONFIG = {
-    GPIO.SBD: {'index': 0, 'mask': int('0b00000001', 2), 'wait': 5},
-    GPIO.GPS: {'index': 0, 'mask': int('0b00000010', 2), 'wait': 5},
-    GPIO.IMM: {'index': 0, 'mask': int('0b00000100', 2), 'wait': 5},
-    GPIO.WXT: {'index': 0, 'mask': int('0b00001000', 2), 'wait': 5},
-    GPIO.CRX: {'index': 0, 'mask': int('0b00010000', 2), 'wait': 5},
-    GPIO.WIN: {'index': 0, 'mask': int('0b01000000', 2), 'wait': 5},
-    GPIO.DTS: {'index': 1, 'mask': int('0b00000001', 2), 'wait': 5},
-    GPIO.CAM: {'index': 1, 'mask': int('0b00000010', 2), 'wait': 5},
-    GPIO.RTR: {'index': 1, 'mask': int('0b00000100', 2), 'wait': 5},
-    GPIO.HUB: {'index': 1, 'mask': int('0b00001000', 2), 'wait': 5},
-    GPIO.IRD: {'index': 1, 'mask': int('0b00010000', 2), 'wait': 5},
-    GPIO.V5E: {'index': 2, 'mask': int('0b00000001', 2), 'wait': 5},
-    GPIO.SER: {'index': 2, 'mask': int('0b00000010', 2), 'wait': 5},
-    GPIO.SOL: {'index': 2, 'mask': int('0b00001000', 2), 'wait': 5},
+    GPIO.SBD: {'index': 0, 'mask': int('0b00000001', 2)},
+    GPIO.GPS: {'index': 0, 'mask': int('0b00000010', 2)},
+    GPIO.IMM: {'index': 0, 'mask': int('0b00000100', 2)},
+    GPIO.WXT: {'index': 0, 'mask': int('0b00001000', 2)},
+    GPIO.CRX: {'index': 0, 'mask': int('0b00010000', 2)},
+    GPIO.WIN: {'index': 0, 'mask': int('0b01000000', 2)},
+    GPIO.DTS: {'index': 1, 'mask': int('0b00000001', 2)},
+    GPIO.CAM: {'index': 1, 'mask': int('0b00000010', 2)},
+    GPIO.RTR: {'index': 1, 'mask': int('0b00000100', 2)},
+    GPIO.HUB: {'index': 1, 'mask': int('0b00001000', 2)},
+    GPIO.IRD: {'index': 1, 'mask': int('0b00010000', 2)},
+    GPIO.V5E: {'index': 2, 'mask': int('0b00000001', 2)},
+    GPIO.SER: {'index': 2, 'mask': int('0b00000010', 2)},
+    GPIO.SOL: {'index': 2, 'mask': int('0b00001000', 2)},
 }
 
 # --------------------------------------------------------------------------------

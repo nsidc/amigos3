@@ -5,16 +5,15 @@ from contextlib import closing
 
 from serial import Serial
 
-from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS, DATA_LOG_FILENAME
+from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS
 from honcho.core.gpio import powered
-from honcho.tasks.sbd import queue_sbd
 from honcho.core.imm import force_capture_line, power_on, send_wakeup_tone
+from honcho.tasks.sbd import queue_sbd
+from honcho.tasks.aquadopp import serialize, log_data
 from honcho.util import (
     serial_request,
     fail_gracefully,
     log_execution,
-    serialize_datetime,
-    deserialize_datetime,
 )
 
 logger = getLogger(__name__)
@@ -82,33 +81,13 @@ def get_data(device_id, samples=6):
     return averaged_data
 
 
-def log_data(s):
-    if not s.endswith('\n'):
-        s += '\n'
-
-    with open(DATA_LOG_FILENAME(DATA_TAGS.AQD), 'a') as f:
-        f.write(s)
-
-
-def serialize(data):
-    serialized = serialize_datetime(data[0]) + ','.join(data)
-
-    return serialized
-
-
-def deserialize(serialized):
-    split = serialized.split(',')
-
-    return [deserialize_datetime(split[0])] + [float(el) for el in split[1:]]
-
-
 @fail_gracefully
 @log_execution
 def execute():
     for ID in UNIT.SEABIRD_IDS:
         data = get_data(ID)
-        serialized = serialize(data)
-        log_data(serialized)
+        serialized = serialize(data, ID)
+        log_data(serialized, DATA_TAGS.SBD)
         queue_sbd(DATA_TAGS.SBD, serialized)
 
 

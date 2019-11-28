@@ -69,7 +69,7 @@ def send_sbd(serial, message):
 
     # Submit message
     expected = r'(?P<status>\d)' + re.escape('\r\n')
-    response = serial_request(serial, message, expected, timeout=10)
+    response = serial_request(serial, message, expected, timeout=30)
     status = int(re.search(expected, response).groupdict()['status'])
     if status:
         raise Exception('SBD write command returned error status')
@@ -87,7 +87,7 @@ def send_sbd(serial, message):
         )
         + re.escape('\r\n')
     )
-    response = serial_request(serial, 'AT+SBDIX', expected, timeout=10)
+    response = serial_request(serial, 'AT+SBDIX', expected, timeout=60)
     status = int(re.search(expected, response).groupdict()['mo_status'])
     if status:
         raise Exception('SBD transfer command returned error status')
