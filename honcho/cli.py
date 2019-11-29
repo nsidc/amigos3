@@ -4,7 +4,7 @@ import logging
 import honcho.logs as logs
 from honcho.version import version
 from honcho.core.system import shutdown, reboot
-from honcho.config import GPIO
+from honcho.config import GPIO, UNIT
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def init_parsers():
 def sched_handler(args):
     import honcho.core.sched as sched
 
-    if args.run:
+    if args.execute:
         sched.execute()
 
 
@@ -39,240 +39,43 @@ def add_schedule_parser(subparsers):
     parser.set_defaults(handler=sched_handler)
 
     parser.add_argument(
-        "-r", "--run", help="Run schedule", action="store_true", dest='run'
+        "--execute", help="Run schedule", action="store_true", dest='execute'
     )
+
+
+def gpio_handler(args):
+    import honcho.core.gpio as gpio
+
+    if args.turn_on:
+        for component in args.turn_on:
+            gpio.turn_on(component)
+    if args.turn_off:
+        for component in args.turn_off:
+            gpio.turn_off(component)
 
 
 def add_gpio_parser(subparsers):
-    import honcho.core.gpio as gpio
-
     parser = subparsers.add_parser('gpio')
+    parser.set_defaults(handler=gpio_handler)
 
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--hub-on",
-        help="Hub on",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.HUB),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--hub-off",
-        help="Hub off",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.HUB),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--gps-on",
-        help="GPS on",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.GPS),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--gps-off",
-        help="GPS off",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.GPS),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--wxt-on",
-        help="Weather station on",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.WXT),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--weather-off",
-        help="Weather station off",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.WXT),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--cr1000-on",
-        help="cr1000 on",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.CRX),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--cr1000-off",
-        help="cr1000 off",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.CRX),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--imm-on",
-        help="imm on",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.IMM),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--imm-off",
-        help="imm off",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.IMM),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--router-on",
-        help="Router on",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.RTR),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--router-off",
-        help="Router off",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.RTR),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--iridium-on",
-        help="Iridium on",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.IRD),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--iridium-off",
-        help="Iridium off",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.IRD),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--win-on",
-        help="Windows box on",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.WIN),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--win-off",
-        help="Windows box off",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.WIN),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--dts-on",
-        help="dts on",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.DTS),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--dts-off",
-        help="dts off",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.DTS),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--sbd-on",
-        help="power on serial dtx pin",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.SBD),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--sbd-off",
-        help="power off iridium serial dtx pin",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.SBD),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--solar-on",
-        help="power on solar sensor",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.SOL),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--solar-off",
-        help="power off solar sensor",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.SOL),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--serial-on",
-        help="Enable serial tx",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_on(GPIO.SER),
-        dest='callbacks',
-    )
-    group.add_argument(
-        "--serial-off",
-        help="Disable serial tx",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.turn_off(GPIO.SER),
-        dest='callbacks',
-    )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--all-off",
-        help="power off all gpio",
-        action="append_const",
-        default=[],
-        const=lambda: gpio.all_off(),
-        dest='callbacks',
-    )
+    for component in GPIO:
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument(
+            "--{0}-on".format(component),
+            help="Turn on {0}".format(component),
+            action="append_const",
+            default=[],
+            const=component,
+            dest='turn_on',
+        )
+        group.add_argument(
+            "--{0}-off".format(component),
+            help="Turn off {0}".format(component),
+            action="append_const",
+            default=[],
+            const=component,
+            dest='turn_off',
+        )
 
 
 def add_system_parser(subparsers):
@@ -415,59 +218,82 @@ def add_orders_parser(subparsers):
 
 
 def aquadopp_handler(args):
-    pass
+    import honcho.tasks.aquadopp as aquadopp
+
+    if args.execute:
+        aquadopp.execute()
 
 
 def add_aquadopp_parser(subparsers):
-    import honcho.tasks.aquadopp as aquadopp
-
     parser = subparsers.add_parser('aquadopp')
     parser.set_defaults(handler=aquadopp_handler)
 
     parser.add_argument(
         "--execute",
         help="Execute routine",
-        action="append_const",
-        dest='callbacks',
-        const=aquadopp.execute,
+        action="store_true",
+        dest='execute',
+        const='execute',
     )
 
 
 def seabird_handler(args):
-    pass
+    import honcho.tasks.seabird as seabird
+
+    if args.get:
+        if args.device_id:
+            data = seabird.get_recent_samples([args.device_id], args.samples)
+        else:
+            data = seabird.get_recent_samples(UNIT.SEABIRD_IDS, args.samples)
+
+        print('Last {0} samples from {1}'.format(args.samples, args.device_id))
+        seabird.print_samples(data)
+    if args.execute:
+        seabird.execute()
 
 
 def add_seabird_parser(subparsers):
-    import honcho.tasks.seabird as seabird
-
     parser = subparsers.add_parser('seabird')
     parser.set_defaults(handler=seabird_handler)
+    parser.set_defaults(callbacks=[])
 
     parser.add_argument(
-        "--execute",
-        help="Execute routine",
-        action="append_const",
-        dest='callbacks',
-        const=seabird.execute,
+        "--execute", help="Execute routine", action="store_true", dest='execute',
+    )
+
+    parser.add_argument(
+        "--get", help="Get sample(s)", action="store_true", dest='samples',
+    )
+    parser.add_argument(
+        "--device-id", help="Device id", action="store", dest='id',
+    )
+    parser.add_argument(
+        "--samples",
+        help="Number of samples",
+        action="store",
+        dest='samples',
+        type=int,
+        default=5,
     )
 
 
 def dts_handler(args):
-    pass
+    import honcho.tasks.dts as dts
+
+    if args.execute:
+        dts.execute()
 
 
 def add_dts_parser(subparsers):
-    import honcho.tasks.dts as dts
-
     parser = subparsers.add_parser('dts')
     parser.set_defaults(handler=dts_handler)
 
     parser.add_argument(
         "--execute",
         help="Execute routine",
-        action="append_const",
-        dest='callbacks',
-        const=dts.execute,
+        action="store_true",
+        dest='execute',
+        const='execute',
     )
 
 
@@ -476,13 +302,27 @@ def data_handler(args):
 
     if args.upload_filepath:
         archive.upload([args.upload_filepath])
+    if args.archive:
+        archive.archive()
+    if args.archive_data:
+        archive.archive_data()
+    if args.archive:
+        archive.archive_logs()
+    if args.execute:
+        archive.execute()
 
 
 def add_data_parser(subparsers):
-    import honcho.tasks.archive as archive
-
     parser = subparsers.add_parser('data')
     parser.set_defaults(handler=dts_handler)
+
+    parser.add_argument(
+        "--execute",
+        help="Execute routine",
+        action="store_true",
+        dest='execute',
+        const='execute',
+    )
 
     parser.add_argument(
         "--upload", help="Upload single file", action="store", dest='upload_filepath',
@@ -490,26 +330,26 @@ def add_data_parser(subparsers):
 
     parser.add_argument(
         "--archive",
-        help="Upload all staged data and archive",
-        action="append_const",
-        dest='callbacks',
-        const=archive.execute,
+        help="Rotate data and logs into archive",
+        action="store_true",
+        dest='archive',
+        const='archive',
     )
 
     parser.add_argument(
         "--archive-data",
         help="Rotate data into archive",
-        action="append_const",
+        action="store_true",
         dest='archive_data',
-        const=archive.archive_data,
+        const='archive_data',
     )
 
     parser.add_argument(
         "--archive-logs",
         help="Rotate logs into archive",
-        action="append_const",
+        action="store_true",
         dest='archive_logs',
-        const=archive.archive_logs,
+        const='archive_logs',
     )
 
 
