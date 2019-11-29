@@ -24,15 +24,13 @@ from honcho.util import (
 logger = getLogger(__name__)
 
 
-def query(serial, device_id):
+def query_sample(serial, device_id):
     expected = (
-        r'!\d{2}SAMPLEGETLAST'
-        + re.escape('\r\n')
-        + re.escape('<RemoteReply>')
+        re.escape('<RemoteReply>')
         + '.*'
-        + re.escape('<Executed/></RemoteReply>\r\n')
+        + re.escape('<Executed/>')
+        + re.escape('</RemoteReply>\r\n')
         + re.escape('<Executed/>\r\n')
-        + re.escape('IMM>')
     )
 
     raw = serial_request(
@@ -42,11 +40,9 @@ def query(serial, device_id):
     return raw
 
 
-def parse(raw):
+def parse_sample(raw):
     pattern = (
-        r'!(?P<device_id>\d{2})SAMPLEGETLAST'
-        + re.escape('\r\n')
-        + '.*'
+        '.*'
         + re.escape('<SampleData ')
         + '(?P<metadata>.*)'
         + re.escape('>')
@@ -63,7 +59,7 @@ def parse(raw):
     error, status = [int(el) for el in data[4:6]]
     data = [timestamp] + [float(el) for el in data[6:]]
 
-    metadata = {'error': error, 'status': status, 'id': match.group('device_id')}
+    metadata = {'error': error, 'status': status}
 
     return metadata, data
 
@@ -74,9 +70,9 @@ def get_data(device_id):
             power_on(serial)
             with force_capture_line(serial):
                 send_wakeup_tone(serial)
-                raw = query(serial, device_id)
+                raw = query_sample(serial, device_id)
 
-    _, data = parse(raw)
+    _, data = parse_sample(raw)
 
     return data
 

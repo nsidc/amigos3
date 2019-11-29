@@ -9,6 +9,8 @@ from honcho.core.gpio import powered
 
 logger = getLogger(__name__)
 
+EXPECTED = '(' + re.escape('<Executing/>\r\n') + ')*' + re.escape('<Executed/>\r\n')
+
 
 @contextmanager
 def imm_components():
@@ -18,42 +20,21 @@ def imm_components():
 
 
 def power_on(serial):
-    expected = re.escape('<PowerOn/>\r\nIMM>')
+    expected = re.escape('<PowerOn/>\r\n')
     serial_request(serial, 'PwrOn', expected, timeout=10)
 
 
 @contextmanager
 def force_capture_line(serial):
     try:
-        expected = (
-            re.escape('ForceCaptureLine\r\n')
-            + '('
-            + re.escape('<Executing/>\r\n')
-            + ')*'
-            + re.escape('<Executed/>\r\nIMM>')
-        )
-        serial_request(serial, 'ForceCaptureLine', expected, timeout=5)
+        serial_request(serial, 'ForceCaptureLine', EXPECTED, timeout=5)
         yield
     finally:
-        expected = (
-            re.escape('ReleaseLine\r\n')
-            + '('
-            + re.escape('<Executing/>\r\n')
-            + ')*'
-            + re.escape('<Executed/>\r\nIMM>')
-        )
-        serial_request(serial, 'ReleaseLine', expected, timeout=5)
+        serial_request(serial, 'ReleaseLine', EXPECTED, timeout=5)
 
 
 def send_wakeup_tone(serial):
-    expected = (
-        re.escape('SendWakeUpTone\r\n')
-        + '('
-        + re.escape('<Executing/>\r\n')
-        + ')*'
-        + re.escape('<Executed/>\r\nIMM>')
-    )
-    serial_request(serial, 'SendWakeUpTone', expected, timeout=10)
+    serial_request(serial, 'SendWakeUpTone', EXPECTED, timeout=10)
 
 
 def log_data(s, tag):

@@ -17,18 +17,17 @@ def imm_mock(serial_mock):
 
             # write back the response
             if res == b'PwrOn\r\n':
-                os.write(port, b'<PowerOn/>\r\nIMM>')
+                os.write(port, b'<PowerOn/>\r\n')
             elif res == b'ForceCaptureLine\r\n':
-                os.write(port, b'ForceCaptureLine\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'<Executed/>\r\n')
             elif res == b'ReleaseLine\r\n':
-                os.write(port, b'ReleaseLine\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'<Executed/>\r\n')
             elif res == b'SendWakeUpTone\r\n':
-                os.write(port, b'SendWakeUpTone\r\n<Executing/>\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'<Executing/>\r\n<Executed/>\r\n')
             elif re.match(r'#\d{2}DN\d+' + re.escape('\r\n'), res):
                 os.write(
                     port,
                     (
-                        b'#06DN6\r\n'
                         b'<RemoteReply>start sample number = 7770\r\n'
                         b'start time = 09 Oct 2019 14:50:01\r\n'
                         b'\r\n'
@@ -41,7 +40,28 @@ def imm_mock(serial_mock):
                         b'<Executed/>\r\n'
                         b'</RemoteReply>\r\n'
                         b'<Executed/>\r\n'
-                        b'IMM>'
+                    ),
+                )
+            elif re.match(r'#\d{2}GetSD' + re.escape('\r\n'), res):
+                os.write(
+                    port,
+                    (
+                        b'<RemoteReply>'
+                        b"<StatusData DeviceType='SBE37IMP' SerialNumber='03720050'>"
+                        b"<DateTime>2018-06-12T14:20:24</DateTime>"
+                        b"<EventSummary numEvents='18'/>"
+                        b"<Power>"
+                        b"<vMain>13.85</vMain>"
+                        b"<vLith> 3.21</vLith>"
+                        b"</Power>"
+                        b"<MemorySummary>"
+                        b"<Bytes>0</Bytes>"
+                        b"<Samples>0</Samples>"
+                        b"<SamplesFree>838860</SamplesFree>"
+                        b"<SampleLength>10</SampleLength>"
+                        b"</MemorySummary>"
+                        b"<AutonomousSampling>no, never started</AutonomousSampling>"
+                        b"</StatusData>"
                     ),
                 )
 
@@ -52,14 +72,12 @@ def imm_mock(serial_mock):
         yield serial
 
 
-def test_query_smoke(imm_mock):
-    seabird.query(imm_mock, device_id='06', samples=6)
+def test_query_samples_smoke(imm_mock):
+    seabird.query_samples(imm_mock, device_id='06', samples=6)
 
 
-def test_parse(imm_mock):
+def test_parse_samples(imm_mock):
     expected_metadata = {
-        'id': '06',
-        'samples': 6,
         'start_time': datetime(2019, 10, 9, 14, 50, 1),
     }
     expected_data = [
@@ -70,7 +88,9 @@ def test_parse(imm_mock):
         [datetime(2019, 10, 9, 15, 30, 1), 19.3569, 1.46486, -1.635],
         [datetime(2019, 10, 9, 15, 40, 1), 19.4796, 1.46918, -1.608],
     ]
-    metadata, data = seabird.parse(seabird.query(imm_mock, device_id='06', samples=6))
+    metadata, data = seabird.parse_samples(
+        seabird.query_samples(imm_mock, device_id='06', samples=6)
+    )
 
     assert metadata == expected_metadata
     assert data == expected_data

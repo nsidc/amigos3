@@ -15,13 +15,13 @@ def imm_mock(serial_mock):
 
             # write back the response
             if res == b'PwrOn\r\n':
-                os.write(port, b'<PowerOn/>\r\nIMM>')
+                os.write(port, b'<PowerOn/>\r\n')
             elif res == b'ForceCaptureLine\r\n':
-                os.write(port, b'ForceCaptureLine\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'<Executed/>\r\n')
             elif res == b'ReleaseLine\r\n':
-                os.write(port, b'ReleaseLine\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'<Executed/>\r\n')
             elif res == b'SendWakeUpTone\r\n':
-                os.write(port, b'SendWakeUpTone\r\n<Executing/>\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'<Executing/>\r\n<Executed/>\r\n')
             else:
                 os.write(port, b'ERROR\r\n')
 

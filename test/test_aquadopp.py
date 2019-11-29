@@ -17,18 +17,17 @@ def imm_mock(serial_mock):
 
             # write back the response
             if res == b'PwrOn\r\n':
-                os.write(port, b'<PowerOn/>\r\nIMM>')
+                os.write(port, b'<PowerOn/>\r\n')
             elif res == b'ForceCaptureLine\r\n':
-                os.write(port, b'ForceCaptureLine\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'<Executed/>\r\n')
             elif res == b'ReleaseLine\r\n':
-                os.write(port, b'ReleaseLine\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'<Executed/>\r\n')
             elif res == b'SendWakeUpTone\r\n':
-                os.write(port, b'SendWakeUpTone\r\n<Executing/>\r\n<Executed/>\r\nIMM>')
+                os.write(port, b'<Executing/>\r\n<Executed/>\r\n')
             elif re.match(r'!\d{2}SAMPLEGETLAST' + re.escape('\r\n'), res):
                 os.write(
                     port,
                     (
-                        b'!20SAMPLEGETLAST\r\n'
                         b'<RemoteReply><Executing/>\r\n'
                         b'<SampleData ID=\'0x00000774\' Len=\'111\' CRC=\'0xCDB08DA1\'>'
                         b'10 9 2019 15 0 0 0 48 -0.043 0.059 -0.105 159 135 155 13.1 '
@@ -36,7 +35,6 @@ def imm_mock(serial_mock):
                         b'</SampleData>\r\n'
                         b'<Executed/></RemoteReply>\r\n'
                         b'<Executed/>\r\n'
-                        b'IMM>'
                     ),
                 )
 
@@ -47,12 +45,12 @@ def imm_mock(serial_mock):
         yield serial
 
 
-def test_query_smoke(imm_mock):
-    aquadopp.query(imm_mock, device_id='20')
+def test_query_sample_smoke(imm_mock):
+    aquadopp.query_sample(imm_mock, device_id='20')
 
 
-def test_parse(imm_mock):
-    expected_metadata = {'error': 0, 'status': 0, 'id': '20'}
+def test_parse_sample(imm_mock):
+    expected_metadata = {'error': 0, 'status': 0}
     expected_data = [
         datetime(2019, 10, 9, 15, 0, 0),
         0,
@@ -75,7 +73,9 @@ def test_parse(imm_mock):
         0.073,
         323.9,
     ]
-    metadata, data = aquadopp.parse(aquadopp.query(imm_mock, device_id='20'))
+    metadata, data = aquadopp.parse_sample(
+        aquadopp.query_sample(imm_mock, device_id='20')
+    )
 
     assert metadata == expected_metadata
     assert data == expected_data
