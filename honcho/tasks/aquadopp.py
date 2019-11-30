@@ -8,12 +8,11 @@ from serial import Serial
 from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS
 from honcho.core.imm import (
     force_capture_line,
-    power_on,
-    send_wakeup_tone,
+    power,
     imm_components,
-    log_data,
-    serialize,
 )
+from honcho.core.data import log_data
+
 from honcho.tasks.sbd import queue_sbd
 from honcho.util import (
     serial_request,
@@ -69,7 +68,6 @@ def get_data(device_id):
         with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
             power_on(serial)
             with force_capture_line(serial):
-                send_wakeup_tone(serial)
                 raw = query_sample(serial, device_id)
 
     _, data = parse_sample(raw)

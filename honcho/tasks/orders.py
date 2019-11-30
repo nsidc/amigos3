@@ -37,7 +37,7 @@ def get_orders():
 
 
 def perform_orders():
-    import honcho.core.sbd as sbd
+    import honcho.tasks.sbd as sbd
 
     orders_scripts = [el for el in os.listdir(ORDERS_DIR) if el.endswith('.sh')]
     overall_start_time = datetime.now().isoformat()

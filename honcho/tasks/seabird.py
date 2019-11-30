@@ -2,25 +2,40 @@ import re
 from datetime import datetime
 from logging import getLogger
 from contextlib import closing
+from collections import namedtuple
+import time
 
 from serial import Serial
 
 from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS
 from honcho.core.imm import (
-    force_capture_line,
-    power_on,
-    send_wakeup_tone,
+    active_line,
     imm_components,
 )
 from honcho.tasks.sbd import queue_sbd
-from honcho.core.imm import serialize, log_data
+from honcho.core.data import log_data
 from honcho.util import (
     serial_request,
     fail_gracefully,
     log_execution,
+    serialize_datetime,
+    deserialize_datetime,
 )
 
 logger = getLogger(__name__)
+
+_DATA_KEYS = (
+    'TIMESTAMP',
+    'DEVICE_ID',
+    'TEMPERATURE',
+    'CONDUCTIVITY',
+    'PRESSURE',
+    'SALINITY',
+)
+_VALUE_KEYS = _DATA_KEYS[2:]
+DATA_KEYS = namedtuple('DATA_KEYS', _DATA_KEYS)(*_DATA_KEYS)
+VALUE_KEYS = namedtuple('VALUE_KEYS', _VALUE_KEYS)(*_VALUE_KEYS)
+SAMPLE = namedtuple('SAMPLE', DATA_KEYS)
 
 
 def query_samples(serial, device_id, samples=6):
@@ -47,7 +62,7 @@ def query_status(serial, device_id):
     return raw
 
 
-def parse_samples(raw):
+def parse_samples(device_id, raw):
     pattern = (
         re.escape('<RemoteReply>')
         + '(?P<data>.*)'
@@ -59,21 +74,18 @@ def parse_samples(raw):
     header = dict([el.strip() for el in row.split('=')] for row in header.split('\r\n'))
     values = [[el.strip() for el in row.split(',')] for row in values.split('\r\n')]
     samples = [
-        {
-            'timestamp': datetime.strptime(' '.join(row[3:-1]), '%d %b %Y %H:%M:%S'),
-            'temperature': row[1],
-            'conductivity': row[2],
-            'pressure': row[3],
-        }
+        SAMPLE(
+            TIMESTAMP=datetime.strptime(' '.join(row[4:-1]), '%d %b %Y %H:%M:%S'),
+            DEVICE_ID=device_id,
+            TEMPERATURE=float(row[0]),
+            CONDUCTIVITY=float(row[1]),
+            PRESSURE=float(row[2]),
+            SALINITY=float(row[3]),
+        )
         for row in values
     ]
 
-    start_time = datetime.strptime(header['start time'], '%d %b %Y %H:%M:%S')
-    metadata = {
-        'start_time': start_time,
-    }
-
-    return metadata, samples
+    return samples
 
 
 def parse_status(raw):
@@ -98,49 +110,87 @@ def parse_status(raw):
     return match.groupdict()
 
 
-def get_recent_samples(device_ids, samples=6):
-    samples_by_id = {}
+def get_recent_samples(device_ids, n=6):
+    samples = []
     with imm_components():
-        with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
-            power_on(serial)
-            with force_capture_line(serial):
-                for device_id in device_ids:
-                    raw = query_samples(serial, device_id, samples)
-                    _, samples = parse_samples(raw)
-                    samples_by_id[device_id] = samples
+        with active_line() as serial:
+            for device_id in device_ids:
+                raw = query_samples(serial, device_id, n)
+                samples.extend(parse_samples(device_id, raw))
 
-    return samples_by_id
+    return samples
+
+
+def get_averaged_samples(device_ids, n=6):
+    samples = get_recent_samples(device_ids, n)
+    averaged_samples = []
+
+    for device_id in device_ids:
+        device_samples = [sample for sample in samples if sample.DEVICE_ID == device_id]
+        timestamp = datetime.fromtimestamp(
+            sum(
+                time.mktime(sample.TIMESTAMP.timetuple())
+                + sample.TIMESTAMP.microsecond / 1.0e6
+                for sample in samples
+            )
+            / n
+        )
+        averaged = SAMPLE(
+            TIMESTAMP=timestamp,
+            DEVICE_ID=device_id,
+            **dict(
+                (key, sum(getattr(sample, key) for sample in device_samples) / float(n))
+                for key in VALUE_KEYS
+            )
+        )
+
+        averaged_samples.append(averaged)
+
+    return averaged_samples
+
+
+def serialize(sample):
+    serialized = ','.join(
+        [
+            serialize_datetime(sample.TIMESTAMP),
+            sample.DEVICE_ID,
+            '{0:.4f}'.format(sample.TEMPERATURE),
+            '{0:.5f}'.format(sample.CONDUCTIVITY),
+            '{0:.3f}'.format(sample.PRESSURE),
+            '{0:.4f}'.format(sample.SALINITY),
+        ]
+    )
+
+    return serialized
+
+
+def deserialize(serialized):
+    split = serialized.split(',')
+
+    deserialized = SAMPLE(
+        TIMESTAMP=deserialize_datetime(split[0]),
+        DEVICE_ID=split[1],
+        TEMPERATURE=float(split[2]),
+        CONDUCTIVITY=float(split[3]),
+        SALINITY=float(split[4]),
+    )
+
+    return deserialized
 
 
 def print_samples(samples):
-    keys = list(samples)
-    print('\t'.join(keys))
+    print(', '.join(DATA_KEYS))
+    print('-' * 80)
     for sample in samples:
-        print('\t'.join([sample[key] for key in keys]))
-
-
-def get_averaged_sample(device_id, samples=6):
-    with imm_components():
-        with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
-            power_on(serial)
-            with force_capture_line(serial):
-                raw = query_samples(serial, device_id, samples=samples)
-
-    metadata, samples = parse_samples(raw)
-
-    combined = {key: [sample[key] for sample in samples] for key in samples[0]}
-    averaged = {key: sum(values) / len(values) for key, values in combined}
-
-    return metadata, averaged
+        print(serialize(sample).replace(',', ', '))
 
 
 @fail_gracefully
 @log_execution
 def execute():
-    for ID in UNIT.SEABIRD_IDS:
-        data = get_averaged_sample(ID)
-        logger.debug('Seabird data (ID: {0}): {1}'.format(ID, data))
-        serialized = serialize(data, ID)
+    samples = get_averaged_samples(UNIT.SEABIRD_IDS)
+    for sample in samples:
+        serialized = serialize(sample)
         log_data(serialized, DATA_TAGS.SBD)
         queue_sbd(DATA_TAGS.SBD, serialized)
 

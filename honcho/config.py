@@ -274,3 +274,10 @@ STAGED_UPLOAD_DIR = '/media/mmcblk0p1/staged'
 UPLOAD_CLEANUP = True
 UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.GPS, DATA_TAGS.CAM)
 DATASTORE_DIR = '/media/mmcblk0p1/datastore'
+
+# --------------------------------------------------------------------------------
+# IMM
+# --------------------------------------------------------------------------------
+
+IMM_STARTUP_WAIT = 5
+IMM_COMMAND_TIMEOUT = 30

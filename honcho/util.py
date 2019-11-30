@@ -28,11 +28,19 @@ def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
     serial.write(command)
     serial.flush()
     start_time = time()
+    sleep(0.1)
     response = ''
+    response_length = len(response)
     while time() - start_time < timeout:
         response += serial.read(serial.inWaiting())
         if re.search(expected_regex, response, flags=re.DOTALL):
             break
+
+        new_response_length = len(response)
+        if new_response_length > response_length:
+            start_time = time()
+            response_length = new_response_length
+
         sleep(poll)
     else:
         logger.debug('Response collected from serial at timeout: {0}'.format(response))

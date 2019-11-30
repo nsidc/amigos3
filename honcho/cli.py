@@ -61,7 +61,7 @@ def add_gpio_parser(subparsers):
     for component in GPIO:
         group = parser.add_mutually_exclusive_group()
         group.add_argument(
-            "--{0}-on".format(component),
+            "--{0}-on".format(component.lower()),
             help="Turn on {0}".format(component),
             action="append_const",
             default=[],
@@ -69,7 +69,7 @@ def add_gpio_parser(subparsers):
             dest='turn_on',
         )
         group.add_argument(
-            "--{0}-off".format(component),
+            "--{0}-off".format(component.lower()),
             help="Turn off {0}".format(component),
             action="append_const",
             default=[],
@@ -217,6 +217,22 @@ def add_orders_parser(subparsers):
     )
 
 
+def imm_handler(args):
+    import honcho.core.imm as imm
+
+    if args.repl:
+        imm.repl()
+
+
+def add_imm_parser(subparsers):
+    parser = subparsers.add_parser('imm')
+    parser.set_defaults(handler=imm_handler)
+
+    parser.add_argument(
+        "--repl", help="Start imm repl", action="store_true", dest='repl',
+    )
+
+
 def aquadopp_handler(args):
     import honcho.tasks.aquadopp as aquadopp
 
@@ -229,11 +245,7 @@ def add_aquadopp_parser(subparsers):
     parser.set_defaults(handler=aquadopp_handler)
 
     parser.add_argument(
-        "--execute",
-        help="Execute routine",
-        action="store_true",
-        dest='execute',
-        const='execute',
+        "--execute", help="Execute routine", action="store_true", dest='execute',
     )
 
 
@@ -242,12 +254,17 @@ def seabird_handler(args):
 
     if args.get:
         if args.device_id:
-            data = seabird.get_recent_samples([args.device_id], args.samples)
+            device_ids = [args.device_id]
         else:
-            data = seabird.get_recent_samples(UNIT.SEABIRD_IDS, args.samples)
+            device_ids = UNIT.SEABIRD_IDS
 
-        print('Last {0} samples from {1}'.format(args.samples, args.device_id))
-        seabird.print_samples(data)
+        if args.average:
+            samples = seabird.get_averaged_samples(device_ids, args.n)
+        else:
+            samples = seabird.get_recent_samples(device_ids, args.n)
+
+        seabird.print_samples(samples)
+
     if args.execute:
         seabird.execute()
 
@@ -262,18 +279,16 @@ def add_seabird_parser(subparsers):
     )
 
     parser.add_argument(
-        "--get", help="Get sample(s)", action="store_true", dest='samples',
+        "--get", help="Get sample(s)", action="store_true", dest='get',
     )
     parser.add_argument(
-        "--device-id", help="Device id", action="store", dest='id',
+        "--average", help="Get averaged sample(s)", action="store_true", dest='average',
     )
     parser.add_argument(
-        "--samples",
-        help="Number of samples",
-        action="store",
-        dest='samples',
-        type=int,
-        default=5,
+        "--id", help="Device id", action="store", dest='device_id',
+    )
+    parser.add_argument(
+        "-n", help="Number of samples", action="store", dest='n', type=int, default=5,
     )
 
 
@@ -289,11 +304,7 @@ def add_dts_parser(subparsers):
     parser.set_defaults(handler=dts_handler)
 
     parser.add_argument(
-        "--execute",
-        help="Execute routine",
-        action="store_true",
-        dest='execute',
-        const='execute',
+        "--execute", help="Execute routine", action="store_true", dest='execute',
     )
 
 
@@ -317,11 +328,7 @@ def add_data_parser(subparsers):
     parser.set_defaults(handler=dts_handler)
 
     parser.add_argument(
-        "--execute",
-        help="Execute routine",
-        action="store_true",
-        dest='execute',
-        const='execute',
+        "--execute", help="Execute routine", action="store_true", dest='execute',
     )
 
     parser.add_argument(
@@ -333,7 +340,6 @@ def add_data_parser(subparsers):
         help="Rotate data and logs into archive",
         action="store_true",
         dest='archive',
-        const='archive',
     )
 
     parser.add_argument(
@@ -341,7 +347,6 @@ def add_data_parser(subparsers):
         help="Rotate data into archive",
         action="store_true",
         dest='archive_data',
-        const='archive_data',
     )
 
     parser.add_argument(
@@ -349,7 +354,6 @@ def add_data_parser(subparsers):
         help="Rotate logs into archive",
         action="store_true",
         dest='archive_logs',
-        const='archive_logs',
     )
 
 
@@ -365,6 +369,7 @@ def build_parser():
     add_seabird_parser(subparsers)
     add_dts_parser(subparsers)
     add_data_parser(subparsers)
+    add_imm_parser(subparsers)
 
     return parser
 

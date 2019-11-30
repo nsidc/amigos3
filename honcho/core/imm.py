@@ -1,61 +1,82 @@
 import re
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from logging import getLogger
 from time import sleep
 
-from honcho.config import GPIO, DATA_LOG_FILENAME
-from honcho.util import serial_request, serialize_datetime, deserialize_datetime
+from serial import Serial
+
+from honcho.config import (
+    GPIO,
+    DATA_LOG_FILENAME,
+    IMM_PORT,
+    IMM_BAUD,
+    IMM_STARTUP_WAIT,
+    IMM_COMMAND_TIMEOUT,
+)
+from honcho.util import serial_request
 from honcho.core.gpio import powered
 
 logger = getLogger(__name__)
 
-EXPECTED = '(' + re.escape('<Executing/>\r\n') + ')*' + re.escape('<Executed/>\r\n')
+GENERIC_EXPECTED = re.escape('<Executed/>\r\n')
 
 
 @contextmanager
 def imm_components():
-    with powered([GPIO.IMM, GPIO.SER]):
-        sleep(5)
+    with powered([GPIO.SER, GPIO.IMM]):
+        sleep(IMM_STARTUP_WAIT)
         yield
 
 
-def power_on(serial):
-    expected = re.escape('<PowerOn/>\r\n')
-    serial_request(serial, 'PwrOn', expected, timeout=10)
+@contextmanager
+def power(serial):
+    try:
+        serial_request(
+            serial, '\r\nPwrOn', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
+        )
+        yield
+    finally:
+        serial_request(
+            serial, '\r\nPwrOff', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
+        )
+
+
+@contextmanager
+def active_line():
+    with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
+        with power(serial):
+            with force_capture_line(serial):
+                yield serial
 
 
 @contextmanager
 def force_capture_line(serial):
     try:
-        serial_request(serial, 'ForceCaptureLine', EXPECTED, timeout=5)
+        serial_request(
+            serial, 'ForceCaptureLine', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
+        )
         yield
     finally:
-        serial_request(serial, 'ReleaseLine', EXPECTED, timeout=5)
+        serial_request(
+            serial, 'ReleaseLine', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
+        )
 
 
 def send_wakeup_tone(serial):
-    serial_request(serial, 'SendWakeUpTone', EXPECTED, timeout=10)
+    serial_request(
+        serial, 'SendWakeUpTone', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
+    )
 
 
-def log_data(s, tag):
-    if not s.endswith('\n'):
-        s += '\n'
-
-    with open(DATA_LOG_FILENAME(tag), 'a') as f:
-        f.write(s)
-
-
-def serialize(data, device_id):
-    serialized = ','.join([serialize_datetime(data[0]), device_id] + data)
-
-    return serialized
-
-
-def deserialize(serialized):
-    split = serialized.split(',')
-
-    deserialized = [deserialize_datetime(split[0]), split[1]] + [
-        float(el) for el in split[2:]
-    ]
-
-    return deserialized
+def repl():
+    with imm_components():
+        with active_line() as serial:
+            while True:
+                print(serial.read(serial.inWaiting()))
+                cmd = raw_input('> ') + '\r\n'
+                if cmd.lower() in ['quit', 'q']:
+                    break
+                serial.write(cmd + '\r\n')
+                sleep(1)
+                print(serial.read(serial.inWaiting()))
+                sleep(3)
