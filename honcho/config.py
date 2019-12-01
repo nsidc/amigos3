@@ -208,8 +208,15 @@ RESULTS_DIR = '/media/mmcblk0p1/orders/results'
 SBD_MAX_SIZE = 1960
 SBD_SIGNAL_WAIT = 10
 SBD_SIGNAL_TRIES = 6
-SBD_QUEUE_DIR = '/media/mmcblk0p1/sbd_queue'
 SBD_QUEUE_MAX_TIME = 60 * 10
+SBD_QUEUE_ROOT_DIR = '/media/mmcblk0p1/sbd_queue'
+
+
+def SBD_QUEUE_DIR(tag):
+    queue_dir = os.path.join(SBD_QUEUE_ROOT_DIR, tag)
+
+    return queue_dir
+
 
 # --------------------------------------------------------------------------------
 # Serial ports
@@ -263,10 +270,13 @@ def DATA_DIR(tag):
 
 
 def DATA_LOG_FILENAME(tag):
-    data_dir = os.path.join(DATA_DIR(tag), tag + '.log')
+    data_log_filepath = os.path.join(DATA_DIR(tag), tag + '.log')
 
-    return data_dir
+    return data_log_filepath
 
+
+TIMESTAMP_FMT = '%Y-%m-%dT%H:%M:%S'
+TIMESTAMP_FILENAME_FMT = '%Y_%m_%dT_H_%M_%S'
 
 # --------------------------------------------------------------------------------
 # Upload

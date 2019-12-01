@@ -5,7 +5,7 @@ from bisect import bisect
 from time import sleep
 import xml.etree.ElementTree as ET
 
-from honcho.util import ensure_dirs, fail_gracefully, log_execution
+from honcho.util import fail_gracefully, log_execution
 from honcho.core.gpio import powered
 from honcho.config import (
     GPIO,
@@ -148,7 +148,6 @@ def process_data(cleanup_local=DTS_CLEANUP_LOCAL, cleanup_remote=DTS_CLEANUP_REM
 @log_execution
 def execute():
     logger.info("Turning on DTS and windows unit")
-    ensure_dirs([DTS_RAW_DATA_DIR, DATA_DIR(DATA_TAGS.DTS)])
     with powered([GPIO.HUB, GPIO.WIN, GPIO.DTS]):
         logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
         sleep(DTS_PULL_DELAY)

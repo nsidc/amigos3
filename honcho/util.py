@@ -13,6 +13,8 @@ from netrc import netrc
 
 logger = getLogger(__name__)
 
+from honcho.config import TIMESTAMP_FMT, TIMESTAMP_FILENAME_FMT
+
 
 def ensure_dirs(directories):
     for directory in directories:
@@ -180,7 +182,12 @@ def get_creds(host):
 
 
 def serialize_datetime(dt):
-    s = dt.strftime('%Y-%m-%dT%H:%M:%S')
+    s = dt.strftime(TIMESTAMP_FMT)
+    return s
+
+
+def serialize_datetime_for_filepath(dt):
+    s = dt.strftime(FILENAME_TIMESTAMP_FMT)
     return s
 
 

@@ -19,7 +19,6 @@ from honcho.config import (
 )
 from honcho.util import (
     get_creds,
-    ensure_dirs,
     fail_gracefully,
     log_execution,
     file_size,
@@ -113,7 +112,6 @@ def archive():
 @fail_gracefully
 @log_execution
 def execute():
-    ensure_dirs([STAGED_UPLOAD_DIR])
     staged_data_files = stage_data()
     staged_log_files = stage_logs()
     try:
