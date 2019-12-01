@@ -15,7 +15,7 @@ def imm_mock(serial_mock):
 
             # write back the response
             if res == b'PwrOn\r\n':
-                os.write(port, b'<PowerOn/>\r\n')
+                os.write(port, b'<Executed/>\r\n')
             elif res == b'ForceCaptureLine\r\n':
                 os.write(port, b'<Executed/>\r\n')
             elif res == b'ReleaseLine\r\n':
@@ -29,8 +29,8 @@ def imm_mock(serial_mock):
         yield serial
 
 
-def test_power_on_smoke(imm_mock):
-    imm.power_on(imm_mock)
+def test_power_smoke(imm_mock):
+    imm.power(imm_mock)
 
 
 def test_force_capture_line_smoke(imm_mock):

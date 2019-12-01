@@ -80,7 +80,7 @@ def test_parse_samples(imm_mock):
     expected_metadata = {
         'start_time': datetime(2019, 10, 9, 14, 50, 1),
     }
-    expected_data = [
+    expected_data = SAMPLE(
         [datetime(2019, 10, 9, 14, 50, 1), 19.0395, 1.45496, -1.627],
         [datetime(2019, 10, 9, 15, 00, 1), 19.1149, 1.45735, -1.649],
         [datetime(2019, 10, 9, 15, 10, 1), 19.2158, 1.46027, -1.644],
@@ -89,7 +89,7 @@ def test_parse_samples(imm_mock):
         [datetime(2019, 10, 9, 15, 40, 1), 19.4796, 1.46918, -1.608],
     ]
     metadata, data = seabird.parse_samples(
-        seabird.query_samples(imm_mock, device_id='06', samples=6)
+        device_id, seabird.query_samples(imm_mock, device_id='06', samples=6)
     )
 
     assert metadata == expected_metadata
@@ -97,7 +97,7 @@ def test_parse_samples(imm_mock):
 
 
 def test_get_data(imm_mock, mocker):
-    mocker.patch('honcho.tasks.seabird.Serial', lambda *args, **kwargs: imm_mock)
+    mocker.patch('honcho.core.imm.Serial', lambda *args, **kwargs: imm_mock)
     mocker.patch('honcho.core.imm.powered', mocker.stub())
 
     expected_data = [

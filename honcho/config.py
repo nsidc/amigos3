@@ -31,13 +31,14 @@ _UNIT = namedtuple(
     'UNIT', ('NAME', 'MAC_ADDRESS', 'SEABIRD_IDS', 'AQUADOPP_IDS', 'DATA_DIR')
 )
 
+# SEABIRD_IDS=['90', '80', '06', '05', '07', '08', '09'],
 
 UNITS = namedtuple('UNITS', ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC'))(
     _UNIT(
         NAME='AMIGOSIIIA',
         MAC_ADDRESS='70:b3:d5:65:46:05',
-        SEABIRD_IDS=['90', '80', '06'],
-        AQUADOPP_IDS=['20', '21'],
+        SEABIRD_IDS=['05', '07', '08', '09'],
+        AQUADOPP_IDS=['20', '21', '22'],
         DATA_DIR='amigos3a',
     ),
     _UNIT(
@@ -131,11 +132,11 @@ SCHEDULES = {
         # ('day', "03:00", 'camera'),
         # ('day', "06:00", 'cr1000x'),
         # ('day', "07:00", 'solar'),
-        ('day', "04:00", 'seabird'),
-        ('day', "05:00", 'aquadopp'),
-        ('day', "08:00", 'dts'),
-        ('day', "09:00", 'archive'),
-        ('day', "10:00", 'orders'),
+        ('hour', "04:00", 'seabird'),
+        ('hour', "05:00", 'aquadopp'),
+        # ('day', "08:00", 'dts'),
+        # ('day', "09:00", 'archive'),
+        # ('day', "10:00", 'orders'),
     ),
 }
 
@@ -248,6 +249,7 @@ def VOLTAGE_CONVERTER(value):
 # Data
 # --------------------------------------------------------------------------------
 
+SEP = ','
 DATA_ROOT_DIR = "/media/mmcblk0p1/data"
 
 _DATA_TAGS = ('AQD', 'SBD', 'DTS', 'GPS', 'CAM')

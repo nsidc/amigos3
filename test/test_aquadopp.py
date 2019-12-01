@@ -74,7 +74,7 @@ def test_parse_sample(imm_mock):
         323.9,
     ]
     metadata, data = aquadopp.parse_sample(
-        aquadopp.query_sample(imm_mock, device_id='20')
+        device_id, aquadopp.query_sample(imm_mock, device_id='20')
     )
 
     assert metadata == expected_metadata
@@ -82,7 +82,7 @@ def test_parse_sample(imm_mock):
 
 
 def test_get_data(imm_mock, mocker):
-    mocker.patch('honcho.tasks.aquadopp.Serial', lambda *args, **kwargs: imm_mock)
+    mocker.patch('honcho.core.imm.Serial', lambda *args, **kwargs: imm_mock)
     mocker.patch('honcho.core.imm.powered', mocker.stub())
 
     expected_data = [

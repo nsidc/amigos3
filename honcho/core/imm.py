@@ -7,7 +7,6 @@ from serial import Serial
 
 from honcho.config import (
     GPIO,
-    DATA_LOG_FILENAME,
     IMM_PORT,
     IMM_BAUD,
     IMM_STARTUP_WAIT,
@@ -18,7 +17,10 @@ from honcho.core.gpio import powered
 
 logger = getLogger(__name__)
 
-GENERIC_EXPECTED = re.escape('<Executed/>\r\n')
+RESPONSE_END = re.escape('<Executed/>\r\n')
+REMOTE_RESPONSE_END = (
+    re.escape('<Executed/>') + r'\s*' + re.escape('</RemoteReply>\r\n')
+)
 
 
 @contextmanager
@@ -31,14 +33,10 @@ def imm_components():
 @contextmanager
 def power(serial):
     try:
-        serial_request(
-            serial, '\r\nPwrOn', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
-        )
+        serial_request(serial, '\r\nPwrOn', RESPONSE_END, timeout=IMM_COMMAND_TIMEOUT)
         yield
     finally:
-        serial_request(
-            serial, '\r\nPwrOff', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
-        )
+        serial_request(serial, '\r\nPwrOff', RESPONSE_END, timeout=IMM_COMMAND_TIMEOUT)
 
 
 @contextmanager
@@ -53,19 +51,15 @@ def active_line():
 def force_capture_line(serial):
     try:
         serial_request(
-            serial, 'ForceCaptureLine', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
+            serial, 'ForceCaptureLine', RESPONSE_END, timeout=IMM_COMMAND_TIMEOUT
         )
         yield
     finally:
-        serial_request(
-            serial, 'ReleaseLine', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
-        )
+        serial_request(serial, 'ReleaseLine', RESPONSE_END, timeout=IMM_COMMAND_TIMEOUT)
 
 
 def send_wakeup_tone(serial):
-    serial_request(
-        serial, 'SendWakeUpTone', GENERIC_EXPECTED, timeout=IMM_COMMAND_TIMEOUT
-    )
+    serial_request(serial, 'SendWakeUpTone', RESPONSE_END, timeout=IMM_COMMAND_TIMEOUT)
 
 
 def repl():
@@ -73,7 +67,7 @@ def repl():
         with active_line() as serial:
             while True:
                 print(serial.read(serial.inWaiting()))
-                cmd = raw_input('> ') + '\r\n'
+                cmd = raw_input('> ')
                 if cmd.lower() in ['quit', 'q']:
                     break
                 serial.write(cmd + '\r\n')

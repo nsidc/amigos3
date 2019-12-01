@@ -24,7 +24,7 @@ def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
     if not command.endswith('\r\n'):
         command += '\r\n'
 
-    logger.debug('Sending command to {0}: {1}'.format(serial.port, command))
+    logger.debug('Sending command to {0}: {1}'.format(serial.port, command.stri()))
     serial.write(command)
     serial.flush()
     start_time = time()
@@ -43,7 +43,9 @@ def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
 
         sleep(poll)
     else:
-        logger.debug('Response collected from serial at timeout: {0}'.format(response))
+        logger.debug(
+            'Response collected from serial at timeout: {0}'.format(response.strip())
+        )
         raise Exception('Timed out waiting for expected serial response')
 
     logger.debug('Response collected from serial: {0}'.format(response))

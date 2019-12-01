@@ -236,6 +236,16 @@ def add_imm_parser(subparsers):
 def aquadopp_handler(args):
     import honcho.tasks.aquadopp as aquadopp
 
+    if args.device_id:
+        device_ids = [args.device_id]
+    else:
+        device_ids = UNIT.AQUADOPP_IDS
+
+    if args.get:
+        samples = aquadopp.get_recent_samples(device_ids, args.n)
+
+        aquadopp.print_samples(samples)
+
     if args.execute:
         aquadopp.execute()
 
@@ -243,6 +253,18 @@ def aquadopp_handler(args):
 def add_aquadopp_parser(subparsers):
     parser = subparsers.add_parser('aquadopp')
     parser.set_defaults(handler=aquadopp_handler)
+
+    parser.set_defaults(callbacks=[])
+
+    parser.add_argument(
+        "--get", help="Get sample(s)", action="store_true", dest='get',
+    )
+    parser.add_argument(
+        "--id", help="Device id", action="store", dest='device_id',
+    )
+    parser.add_argument(
+        "-n", help="Number of samples", action="store", dest='n', type=int, default=5,
+    )
 
     parser.add_argument(
         "--execute", help="Execute routine", action="store_true", dest='execute',
@@ -252,12 +274,19 @@ def add_aquadopp_parser(subparsers):
 def seabird_handler(args):
     import honcho.tasks.seabird as seabird
 
-    if args.get:
-        if args.device_id:
-            device_ids = [args.device_id]
-        else:
-            device_ids = UNIT.SEABIRD_IDS
+    if args.device_id:
+        device_ids = [args.device_id]
+    else:
+        device_ids = UNIT.SEABIRD_IDS
 
+    if args.start:
+        seabird.start(device_ids)
+
+    if args.set:
+        if args.interval:
+            seabird.set_interval(device_ids, args.interval)
+
+    if args.get:
         if args.average:
             samples = seabird.get_averaged_samples(device_ids, args.n)
         else:
@@ -268,6 +297,9 @@ def seabird_handler(args):
     if args.execute:
         seabird.execute()
 
+    if args.stop:
+        seabird.stop(device_ids)
+
 
 def add_seabird_parser(subparsers):
     parser = subparsers.add_parser('seabird')
@@ -275,7 +307,7 @@ def add_seabird_parser(subparsers):
     parser.set_defaults(callbacks=[])
 
     parser.add_argument(
-        "--execute", help="Execute routine", action="store_true", dest='execute',
+        "--start", help="Start logging", action="store_true", dest='start',
     )
 
     parser.add_argument(
@@ -289,6 +321,25 @@ def add_seabird_parser(subparsers):
     )
     parser.add_argument(
         "-n", help="Number of samples", action="store", dest='n', type=int, default=5,
+    )
+
+    parser.add_argument(
+        "--set", help="Set parameters", action="store_true", dest='set',
+    )
+    parser.add_argument(
+        "--interval",
+        help="Set sampling interval",
+        action="store",
+        dest='interval',
+        type=int,
+    )
+
+    parser.add_argument(
+        "--execute", help="Execute routine", action="store_true", dest='execute',
+    )
+
+    parser.add_argument(
+        "--stop", help="Stop logging", action="store_true", dest='stop',
     )
 
 

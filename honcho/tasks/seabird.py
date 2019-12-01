@@ -1,17 +1,11 @@
 import re
 from datetime import datetime
 from logging import getLogger
-from contextlib import closing
 from collections import namedtuple
 import time
 
-from serial import Serial
-
-from honcho.config import IMM_PORT, IMM_BAUD, UNIT, DATA_TAGS
-from honcho.core.imm import (
-    active_line,
-    imm_components,
-)
+from honcho.config import UNIT, DATA_TAGS, SEP
+from honcho.core.imm import active_line, imm_components, REMOTE_RESPONSE_END
 from honcho.tasks.sbd import queue_sbd
 from honcho.core.data import log_data
 from honcho.util import (
@@ -35,29 +29,33 @@ _DATA_KEYS = (
 _VALUE_KEYS = _DATA_KEYS[2:]
 DATA_KEYS = namedtuple('DATA_KEYS', _DATA_KEYS)(*_DATA_KEYS)
 VALUE_KEYS = namedtuple('VALUE_KEYS', _VALUE_KEYS)(*_VALUE_KEYS)
+VALUE_CONVERSIONS = {
+    VALUE_KEYS.TEMPERATURE: float,
+    VALUE_KEYS.CONDUCTIVITY: float,
+    VALUE_KEYS.PRESSURE: float,
+    VALUE_KEYS.SALINITY: float,
+}
+STRING_CONVERSIONS = {
+    VALUE_KEYS.TEMPERATURE: '{0:.4f}',
+    VALUE_KEYS.CONDUCTIVITY: '{0:.5f}',
+    VALUE_KEYS.PRESSURE: '{0:.3f}',
+    VALUE_KEYS.SALINITY: '{0:.4f}',
+}
 SAMPLE = namedtuple('SAMPLE', DATA_KEYS)
 
 
 def query_samples(serial, device_id, samples=6):
-    expected = (
-        re.escape('<RemoteReply>')
-        + '.*'
-        + re.escape('<Executed/>\r\n</RemoteReply>\r\n<Executed/>\r\n')
-    )
     raw = serial_request(
-        serial, '#{0}DN{1}'.format(device_id, samples), expected, timeout=10
+        serial, '#{0}DN{1}'.format(device_id, samples), REMOTE_RESPONSE_END, timeout=10
     )
 
     return raw
 
 
 def query_status(serial, device_id):
-    expected = (
-        re.escape('<RemoteReply>')
-        + '.*'
-        + re.escape('<Executed/>\r\n</RemoteReply>\r\n<Executed/>\r\n')
+    raw = serial_request(
+        serial, '#{0}GetSD'.format(device_id), REMOTE_RESPONSE_END, timeout=10
     )
-    raw = serial_request(serial, '#{0}GetSD'.format(device_id), expected, timeout=10)
 
     return raw
 
@@ -66,7 +64,8 @@ def parse_samples(device_id, raw):
     pattern = (
         re.escape('<RemoteReply>')
         + '(?P<data>.*)'
-        + re.escape('<Executed/>\r\n</RemoteReply>')
+        + re.escape('<Executed/>\r\n')
+        + re.escape('</RemoteReply>\r\n')
     )
     match = re.search(pattern, raw, flags=re.DOTALL)
 
@@ -77,10 +76,10 @@ def parse_samples(device_id, raw):
         SAMPLE(
             TIMESTAMP=datetime.strptime(' '.join(row[4:-1]), '%d %b %Y %H:%M:%S'),
             DEVICE_ID=device_id,
-            TEMPERATURE=float(row[0]),
-            CONDUCTIVITY=float(row[1]),
-            PRESSURE=float(row[2]),
-            SALINITY=float(row[3]),
+            **dict(
+                (key, VALUE_CONVERSIONS[key](row[i]))
+                for i, key in enumerate(VALUE_KEYS)
+            )
         )
         for row in values
     ]
@@ -150,29 +149,24 @@ def get_averaged_samples(device_ids, n=6):
 
 
 def serialize(sample):
-    serialized = ','.join(
-        [
-            serialize_datetime(sample.TIMESTAMP),
-            sample.DEVICE_ID,
-            '{0:.4f}'.format(sample.TEMPERATURE),
-            '{0:.5f}'.format(sample.CONDUCTIVITY),
-            '{0:.3f}'.format(sample.PRESSURE),
-            '{0:.4f}'.format(sample.SALINITY),
-        ]
+    serialized = SEP.join(
+        [serialize_datetime(sample.TIMESTAMP), sample.DEVICE_ID]
+        + [STRING_CONVERSIONS[key].format(getattr(sample, key)) for key in VALUE_KEYS]
     )
 
     return serialized
 
 
 def deserialize(serialized):
-    split = serialized.split(',')
+    split = serialized.split(SEP)
 
     deserialized = SAMPLE(
         TIMESTAMP=deserialize_datetime(split[0]),
         DEVICE_ID=split[1],
-        TEMPERATURE=float(split[2]),
-        CONDUCTIVITY=float(split[3]),
-        SALINITY=float(split[4]),
+        **dict(
+            (key, VALUE_CONVERSIONS[key](split[2 + i]))
+            for i, key in enumerate(VALUE_KEYS)
+        )
     )
 
     return deserialized
@@ -182,7 +176,42 @@ def print_samples(samples):
     print(', '.join(DATA_KEYS))
     print('-' * 80)
     for sample in samples:
-        print(serialize(sample).replace(',', ', '))
+        print(serialize(sample).replace(SEP, ', '))
+
+
+def start(device_ids):
+    with imm_components():
+        with active_line() as serial:
+            for device_id in device_ids:
+                expected_response = 'start logging.*' + REMOTE_RESPONSE_END
+                serial_request(
+                    serial,
+                    '#{0}StartNow'.format(device_id),
+                    expected_response,
+                    timeout=10,
+                )
+
+
+def stop(device_ids):
+    with imm_components():
+        with active_line() as serial:
+            for device_id in device_ids:
+                expected_response = 'logging stopped.*' + REMOTE_RESPONSE_END
+                serial_request(
+                    serial, '#{0}Stop'.format(device_id), expected_response, timeout=10,
+                )
+
+
+def set_interval(device_ids, interval):
+    with imm_components():
+        with active_line() as serial:
+            for device_id in device_ids:
+                serial_request(
+                    serial,
+                    '#{0}SampleInterval={1}'.format(device_id, interval),
+                    REMOTE_RESPONSE_END,
+                    timeout=10,
+                )
 
 
 @fail_gracefully
