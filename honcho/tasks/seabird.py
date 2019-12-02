@@ -127,7 +127,8 @@ def get_averaged_samples(device_ids, n=6):
     for device_id in device_ids:
         device_samples = [sample for sample in samples if sample.DEVICE_ID == device_id]
         timestamp = datetime.fromtimestamp(
-            sum(time.mktime(sample.TIMESTAMP.timetuple()) for sample in samples) / n
+            sum(time.mktime(sample.TIMESTAMP.timetuple()) for sample in device_samples)
+            / n
         )
         averaged = SAMPLE(
             TIMESTAMP=timestamp,

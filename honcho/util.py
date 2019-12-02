@@ -26,7 +26,7 @@ def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
     if not command.endswith('\r\n'):
         command += '\r\n'
 
-    logger.debug('Sending command to {0}: {1}'.format(serial.port, command.stri()))
+    logger.debug('Sending command to {0}: {1}'.format(serial.port, command.strip()))
     serial.write(command)
     serial.flush()
     start_time = time()
@@ -139,7 +139,7 @@ def fail_gracefully(f, reraise=False):
 
 
 def format_timedelta(td):
-    s = round(td.total_seconds())
+    s = td.days * 24 * 3600 + td.seconds
     formatted = ''
     labels = ('hrs', 'min', 'sec')
     n = len(labels)
@@ -147,9 +147,7 @@ def format_timedelta(td):
         factor = float(60 ** (n - i - 1))
         count = s / factor
         if count >= 1:
-            return '{0} {1:.2f}'.format(count, label)
-
-    return formatted.strip()
+            return '{0:.2f} {1}'.format(count, label)
 
 
 def log_execution(f):
@@ -187,7 +185,7 @@ def serialize_datetime(dt):
 
 
 def serialize_datetime_for_filepath(dt):
-    s = dt.strftime(FILENAME_TIMESTAMP_FMT)
+    s = dt.strftime(TIMESTAMP_FILENAME_FMT)
     return s
 
 

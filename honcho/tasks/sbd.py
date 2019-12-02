@@ -15,7 +15,7 @@ from honcho.config import (
 )
 from honcho.core.gpio import powered
 from honcho.core.iridium import send_sbd
-from honcho.util import fail_gracefully, log_execution
+from honcho.util import fail_gracefully, log_execution, serialize_datetime_for_filepath
 
 
 logger = logging.getLogger(__name__)
@@ -58,8 +58,14 @@ def send_queue(serial, timeout=SBD_QUEUE_MAX_TIME):
 
 def queue_sbd(tag, message):
     logging.debug('Queuing {0} message'.format(tag))
-    filename = datetime.now().isoformat()
+
+    filename = serialize_datetime_for_filepath(datetime.now())
     filepath = os.path.join(SBD_QUEUE_DIR(tag), filename)
+    while os.path.exists(filepath):
+        sleep(1)
+        filename = serialize_datetime_for_filepath(datetime.now())
+        filepath = os.path.join(SBD_QUEUE_DIR(tag), filename)
+
     with open(filepath, 'w') as f:
         f.write(tag + ',' + message)
 

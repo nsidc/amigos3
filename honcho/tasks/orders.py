@@ -66,7 +66,7 @@ def perform_orders():
             fo.write(result)
 
     overall_end_time = datetime.now().isoformat()
-    sbd.send_message(
+    sbd.send(
         'ORD, {0}, {1}, {2}, {3}'.format(
             orders_scripts, overall_start_time, overall_end_time, bool(errors)
         )

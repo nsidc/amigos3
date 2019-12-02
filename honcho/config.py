@@ -44,14 +44,14 @@ UNITS = namedtuple('UNITS', ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC'))(
     _UNIT(
         NAME='AMIGOSIIIB',
         MAC_ADDRESS='70:b3:d5:65:46:00',
-        SEABIRD_IDS=['05', '09'],
-        AQUADOPP_IDS=['22', '23'],
+        SEABIRD_IDS=['06', '80'],
+        AQUADOPP_IDS=['23', '24'],
         DATA_DIR='amigos3b',
     ),
     _UNIT(
         NAME='AMIGOSIIIC',
         MAC_ADDRESS='70:b3:d5:65:46:03',
-        SEABIRD_IDS=['06', '80'],
+        SEABIRD_IDS=[],
         AQUADOPP_IDS=['26', '27'],
         DATA_DIR='amigos3c',
     ),
@@ -276,7 +276,7 @@ def DATA_LOG_FILENAME(tag):
 
 
 TIMESTAMP_FMT = '%Y-%m-%dT%H:%M:%S'
-TIMESTAMP_FILENAME_FMT = '%Y_%m_%dT_H_%M_%S'
+TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 
 # --------------------------------------------------------------------------------
 # Upload
