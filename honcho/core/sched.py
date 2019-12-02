@@ -13,7 +13,7 @@ from honcho.config import (
     SCHEDULE_NAMES,
     SCHEDULES,
 )
-import honcho.tasks as tasks
+from honcho.tasks import import_task
 
 
 logger = logging.getLogger(__name__)
@@ -42,9 +42,9 @@ def select_schedule(date):
 
 
 def load_schedule(scheduler, config):
-    for period, time, module in config:
-        execute = getattr(tasks, module).execute
-        getattr(scheduler.every(), period).at(time).do(execute)
+    for period, time, task_module in config:
+        task = import_task(task_module)
+        getattr(scheduler.every(), period).at(time).do(task.execute)
 
 
 def execute():

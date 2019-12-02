@@ -5,6 +5,7 @@ import honcho.logs as logs
 from honcho.version import version
 from honcho.core.system import shutdown, reboot
 from honcho.config import GPIO, UNIT
+from honcho.tasks import import_task
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +151,7 @@ def add_onboard_parser(subparsers):
 
 
 def sbd_handler(args):
-    import honcho.tasks.sbd as sbd
+    sbd = import_task('sbd')
 
     if args.message:
         sbd.send(args.message)
@@ -183,7 +184,7 @@ def add_sbd_parser(subparsers):
 
 
 def orders_handler(args):
-    import honcho.tasks.orders as orders
+    orders = import_task('orders')
 
     if args.get:
         orders.get_orders()
@@ -234,7 +235,7 @@ def add_imm_parser(subparsers):
 
 
 def aquadopp_handler(args):
-    import honcho.tasks.aquadopp as aquadopp
+    aquadopp = import_task('aquadopp')
 
     if args.device_id:
         device_ids = [args.device_id]
@@ -272,19 +273,19 @@ def add_aquadopp_parser(subparsers):
 
 
 def seabird_handler(args):
-    import honcho.tasks.seabird as seabird
+    seabird = import_task('seabird')
 
     if args.device_id:
         device_ids = [args.device_id]
     else:
         device_ids = UNIT.SEABIRD_IDS
 
-    if args.start:
-        seabird.start(device_ids)
-
     if args.set:
         if args.interval:
             seabird.set_interval(device_ids, args.interval)
+
+    if args.start:
+        seabird.start(device_ids)
 
     if args.get:
         if args.average:
@@ -344,7 +345,7 @@ def add_seabird_parser(subparsers):
 
 
 def dts_handler(args):
-    import honcho.tasks.dts as dts
+    dts = import_task('dts')
 
     if args.execute:
         dts.execute()
@@ -360,7 +361,7 @@ def add_dts_parser(subparsers):
 
 
 def data_handler(args):
-    import honcho.tasks.archive as archive
+    archive = import_task('archive')
 
     if args.upload_filepath:
         archive.upload([args.upload_filepath])
