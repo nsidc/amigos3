@@ -100,6 +100,8 @@ SCHEDULES = {
         ('day', "00:00", 'orders'),
     ),
     SCHEDULE_NAMES.SUMMER: (
+        ('day', "00:00", 'archive'),
+        ('day', "00:05", 'orders'),
         # ('hour', ":49", 'monitor'),
         # ('day', "05:10", 'binex'),
         # ('day', "11:10", 'binex'),
@@ -122,8 +124,6 @@ SCHEDULES = {
         # ('day', "06:10", 'archive'),
         # ('day', "12:10", 'archive'),
         # ('day', "18:10", 'archive'),
-        # ('day', "00:10", 'archive'),
-        # ('day', "00:00", 'orders'),
     ),
     SCHEDULE_NAMES.TEST: (
         # ('day', "00:00", 'monitor'),
@@ -135,8 +135,8 @@ SCHEDULES = {
         ('hour', "04:00", 'seabird'),
         ('hour', "05:00", 'aquadopp'),
         # ('day', "08:00", 'dts'),
-        # ('day', "09:00", 'archive'),
-        # ('day', "10:00", 'orders'),
+        ('day', "09:00", 'archive'),
+        ('day', "10:00", 'orders'),
     ),
 }
 
@@ -285,7 +285,7 @@ TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 STAGED_UPLOAD_DIR = '/media/mmcblk0p1/staged'
 UPLOAD_CLEANUP = True
 UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.GPS, DATA_TAGS.CAM)
-DATASTORE_DIR = '/media/mmcblk0p1/datastore'
+ARCHIVE_DIR = '/media/mmcblk0p1/archive'
 
 # --------------------------------------------------------------------------------
 # IMM
