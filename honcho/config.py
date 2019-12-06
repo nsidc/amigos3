@@ -23,6 +23,7 @@ DEFAULT_LOG_LEVEL = 'INFO'
 LOG_LEVEL = getattr(logging, os.environ.get('LOG_LEVEL', DEFAULT_LOG_LEVEL))
 LOG_SIZE = 200000
 
+
 # --------------------------------------------------------------------------------
 # UNIT SPECIFIC CONFIGURATION
 # --------------------------------------------------------------------------------
@@ -30,8 +31,6 @@ LOG_SIZE = 200000
 _UNIT = namedtuple(
     'UNIT', ('NAME', 'MAC_ADDRESS', 'SEABIRD_IDS', 'AQUADOPP_IDS', 'DATA_DIR')
 )
-
-# SEABIRD_IDS=['90', '80', '06', '05', '07', '08', '09'],
 
 UNITS = namedtuple('UNITS', ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC'))(
     _UNIT(
@@ -189,17 +188,19 @@ GPIO_CONFIG = {
     GPIO.SOL: {'index': 2, 'mask': int('0b00001000', 2)},
 }
 
+
 # --------------------------------------------------------------------------------
 # Up/downlink
 # --------------------------------------------------------------------------------
 
-FTP_HOST = 'restricted_ftp'
+FTP_HOST = '128.138.135.165'  # restricted_ftp
 FTP_TIMEOUT = 60
 FTP_CONNECT_RETRIES = 2
 FTP_ORDERS_DIR = 'orders'
 FTP_RESULTS_DIR = 'orders/results'
 ORDERS_DIR = '/media/mmcblk0p1/orders'
 RESULTS_DIR = '/media/mmcblk0p1/orders/results'
+
 
 # --------------------------------------------------------------------------------
 # Up/downlink
@@ -227,11 +228,12 @@ SBD_BAUD = 9600
 IMM_PORT = '/dev/ttyS4'
 IMM_BAUD = 9600
 
+
 # --------------------------------------------------------------------------------
 # DTS
 # --------------------------------------------------------------------------------
 
-DTS_HOST = "192.168.0.50"
+DTS_HOST = "192.168.0.50"  # win
 DTS_USER = "admin"
 DTS_PULL_DELAY = 60 * 5
 DTS_WIN_DATA_DIR = 'Desktop/dts_data'
@@ -239,6 +241,7 @@ DTS_RAW_DATA_DIR = "/media/mmcblk0p1/data/dts_raw"
 DTS_CLEANUP_LOCAL = True
 DTS_CLEANUP_REMOTE = True
 DTS_FULL_RES_RANGES = [(1000, 1200), (2000, 2200)]
+
 
 # --------------------------------------------------------------------------------
 # Onboard sensors
@@ -278,6 +281,7 @@ def DATA_LOG_FILENAME(tag):
 TIMESTAMP_FMT = '%Y-%m-%dT%H:%M:%S'
 TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 
+
 # --------------------------------------------------------------------------------
 # Upload
 # --------------------------------------------------------------------------------
@@ -287,9 +291,60 @@ UPLOAD_CLEANUP = True
 UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.GPS, DATA_TAGS.CAM)
 ARCHIVE_DIR = '/media/mmcblk0p1/archive'
 
+
 # --------------------------------------------------------------------------------
 # IMM
 # --------------------------------------------------------------------------------
 
 IMM_STARTUP_WAIT = 5
 IMM_COMMAND_TIMEOUT = 30
+
+
+# --------------------------------------------------------------------------------
+# Camera
+# --------------------------------------------------------------------------------
+
+_SOAP_ACTION_KEYS = ('GET_STATUS', 'ABSOLUTE_MOVE')
+SOAP_ACTION_KEYS = namedtuple('SOAP_ACTION_KEYS', _SOAP_ACTION_KEYS)(*_SOAP_ACTION_KEYS)
+
+PTZ_SERVICE_URL = 'http://192.168.0.108/onvif/ptz_service'
+SNAPSHOP_URL = (
+    "http://192.168.0.108/onvifsnapshot/media_service/snapshot?channel=1&subtype=0"
+)
+
+SOAP_ACTIONS = {
+    SOAP_ACTION_KEYS.GET_STATUS: 'http://www.onvif.org/ver20/ptz/wsdl/GetStatus',
+    SOAP_ACTION_KEYS.ABSOLUTE_MOVE: 'http://www.onvif.org/ver20/ptz/wsdl/AbsoluteMove',
+}
+ONVIF_TEMPLATE_DIR = '/media/mmcblk0p1/honcho/tasks/onvif_templates'
+ONVIF_TEMPLATE_FILES = {
+    SOAP_ACTION_KEYS.GET_STATUS: 'get_status.xml',
+    SOAP_ACTION_KEYS.ABSOLUTE_MOVE: 'absolute_move.xml',
+}
+
+CAMERA_USERNAME = 'admin'
+CAMERA_PASSWORD = '10iLtxyh'
+IMAGE_REDUCTION_FACTOR = '3/8'
+
+_LOOKS = ('NORTH', 'EAST', 'WEST', 'DOWN', 'MIRROR', 'HOME')
+LOOKS = namedtuple('LOOKS', _LOOKS)(*_LOOKS)
+PTZ = namedtuple('PTZ', ('pan', 'tilt', 'zoom'))
+LOOK_PTZ = {
+    LOOKS.NORTH: PTZ(pan=0, tilt=0, zoom=0),
+    LOOKS.EAST: PTZ(pan=0.5, tilt=0, zoom=0),
+    LOOKS.WEST: PTZ(pan=-0.5, tilt=0, zoom=0),
+    LOOKS.DOWN: PTZ(pan=0, tilt=-0.25, zoom=0),
+    LOOKS.MIRROR: PTZ(pan=0, tilt=-0.25, zoom=1),
+    LOOKS.HOME: PTZ(pan=0, tilt=1, zoom=0),
+}
+LOOK_SERIES = (
+    LOOKS.NORTH,
+    LOOKS.EAST,
+    LOOKS.WEST,
+    LOOKS.DOWN,
+    LOOKS.MIRROR,
+    LOOKS.HOME,
+)
+
+CJPEG_COMMAND = '/media/mmcblk0p1/honcho/scripts/cjpeg'
+DJPEG_COMMAND = '/media/mmcblk0p1/honcho/scripts/djpeg'

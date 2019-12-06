@@ -68,7 +68,9 @@ install-hosts:
 
 install-win-ssh-key:
 	ssh root@amigos "mount / -o remount,rw"
-	# TODO
+	scp -pCB ~/.ssh/id_rsa_windows* root@amigos:/root/.ssh/
+	# TODO: Manually copy to windowns box
+	# 	cat ~/.ssh/id_rsa_windows.pub | ssh admin@win "mkdir -p ~/.ssh && cat > ~/.ssh/authorized_keys"
 	ssh root@amigos "mount / -o remount,ro"
 
 sync-code: clean # sync the code to the amigos box

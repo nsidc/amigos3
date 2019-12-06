@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 
 from honcho.util import fail_gracefully, log_execution
 from honcho.core.gpio import powered
+from honcho.tasks.upload import stage_path
 from honcho.config import (
     GPIO,
     DTS_HOST,
@@ -107,11 +108,10 @@ def write(metadata, measurements, filepath):
             f.write(','.join([str(el) for el in row]) + '\n')
 
 
-def process_data(cleanup_local=DTS_CLEANUP_LOCAL, cleanup_remote=DTS_CLEANUP_REMOTE):
+def pull_data(ssh, cleanup=DTS_CLEANUP_REMOTE):
     """Entry point of DTS files retrival and execution plus time update on windows unit
     """
     logger.info("Pulling files from windows unit")
-    ssh = SSH(DTS_USER, DTS_HOST)
     win_data_glob = os.path.join(DTS_WIN_DATA_DIR, "*")
 
     ssh.copy(win_data_glob, DTS_RAW_DATA_DIR, recursive=True)
@@ -125,8 +125,16 @@ def process_data(cleanup_local=DTS_CLEANUP_LOCAL, cleanup_remote=DTS_CLEANUP_REM
                 if filename.endswith('xml')
             ]
         )
-    logger.info("Found {0} dts files".format(len(filepaths)))
+    logger.info("Pulled {0} dts files".format(len(filepaths)))
 
+    if cleanup:
+        logger.info("Cleaning up remote raw DTS data")
+        ssh.execute("rm -rf {glob}".format(glob=win_data_glob))
+
+    return filepaths
+
+
+def process_data(filepaths, cleanup=DTS_CLEANUP_LOCAL):
     for filepath in filepaths:
         logger.info("Processing {0}".format(filepath))
         metadata, measurements = parse_xml(filepath)
@@ -135,13 +143,13 @@ def process_data(cleanup_local=DTS_CLEANUP_LOCAL, cleanup_remote=DTS_CLEANUP_REM
 
     logger.info("Processing DTS complete")
 
-    if cleanup_remote:
-        logger.info("Cleaning up remote raw DTS data")
-        ssh.execute("rm -rf {glob}".format(glob=win_data_glob))
-
-    if cleanup_local:
+    if cleanup:
         logger.info("Cleaning up local raw DTS data")
         shutil.rmtree(DTS_RAW_DATA_DIR)
+
+
+def shutdown_win(ssh):
+    ssh.execute("shutdown --now")
 
 
 @fail_gracefully
@@ -151,7 +159,13 @@ def execute():
     with powered([GPIO.HUB, GPIO.WIN, GPIO.DTS]):
         logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
         sleep(DTS_PULL_DELAY)
-        process_data()
+        ssh = SSH(DTS_USER, DTS_HOST)
+        filepaths = pull_data(ssh)
+        shutdown_win(ssh)
+
+    process_data(filepaths)
+
+    stage_path(DATA_DIR(DATA_TAGS.DTS))
 
 
 if __name__ == "__main__":

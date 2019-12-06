@@ -409,6 +409,38 @@ def add_data_parser(subparsers):
     )
 
 
+def camera_handler(args):
+    camera = import_task('camera')
+
+    if not all(el is None for el in (args.pan, args.tilt, args.zoom)):
+        camera.set_ptz(float(args.pan), float(args.tilt), float(args.zoom))
+    if args.snapshot:
+        camera.snapshot('snapshot.jpg')
+
+
+def add_camera_parser(subparsers):
+    parser = subparsers.add_parser('camera')
+    parser.set_defaults(handler=camera_handler)
+
+    parser.add_argument(
+        "--execute", help="Execute routine", action="store_true", dest='execute',
+    )
+
+    parser.add_argument(
+        "--pan", help="Pan to value (-1 to 1)", action="store", dest='pan',
+    )
+    parser.add_argument(
+        "--tilt", help="Tilt to value (-1 to 1)", action="store", dest='tilt',
+    )
+    parser.add_argument(
+        "--zoom", help="Zoom to value (0 to 1)", action="store", dest='zoom',
+    )
+
+    parser.add_argument(
+        "--snapshot", help="Take snapshot", action="store_true", dest='snapshot',
+    )
+
+
 def build_parser():
     parser, subparsers = init_parsers()
     add_schedule_parser(subparsers)
@@ -422,6 +454,7 @@ def build_parser():
     add_dts_parser(subparsers)
     add_data_parser(subparsers)
     add_imm_parser(subparsers)
+    add_camera_parser(subparsers)
 
     return parser
 
