@@ -21,10 +21,10 @@ logger = getLogger(__name__)
 _DATA_KEYS = (
     'TIMESTAMP',
     'DEVICE_ID',
-    'ERROR',
-    'STATUS',
     'UNKNOWN1',
     'UNKNOWN2',
+    'ERROR',
+    'STATUS',
     'EAST_VEL',
     'NORTH_VEL',
     'UP_VEL',
