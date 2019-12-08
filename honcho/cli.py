@@ -146,7 +146,7 @@ def add_onboard_parser(subparsers):
     )
 
     parser.add_argument(
-        "-H", "--humidity", help="Check humidity", action="store_true", dest='humidity',
+        "-H", "--humidity", help="Check humidity", action="store_true", dest='humidity'
     )
 
 
@@ -230,7 +230,7 @@ def add_imm_parser(subparsers):
     parser.set_defaults(handler=imm_handler)
 
     parser.add_argument(
-        "--repl", help="Start imm repl", action="store_true", dest='repl',
+        "--repl", help="Start imm repl", action="store_true", dest='repl'
     )
 
 
@@ -257,18 +257,14 @@ def add_aquadopp_parser(subparsers):
 
     parser.set_defaults(callbacks=[])
 
+    parser.add_argument("--get", help="Get sample(s)", action="store_true", dest='get')
+    parser.add_argument("--id", help="Device id", action="store", dest='device_id')
     parser.add_argument(
-        "--get", help="Get sample(s)", action="store_true", dest='get',
-    )
-    parser.add_argument(
-        "--id", help="Device id", action="store", dest='device_id',
-    )
-    parser.add_argument(
-        "-n", help="Number of samples", action="store", dest='n', type=int, default=5,
+        "-n", help="Number of samples", action="store", dest='n', type=int, default=5
     )
 
     parser.add_argument(
-        "--execute", help="Execute routine", action="store_true", dest='execute',
+        "--execute", help="Execute routine", action="store_true", dest='execute'
     )
 
 
@@ -308,25 +304,19 @@ def add_seabird_parser(subparsers):
     parser.set_defaults(callbacks=[])
 
     parser.add_argument(
-        "--start", help="Start logging", action="store_true", dest='start',
+        "--start", help="Start logging", action="store_true", dest='start'
     )
 
+    parser.add_argument("--get", help="Get sample(s)", action="store_true", dest='get')
     parser.add_argument(
-        "--get", help="Get sample(s)", action="store_true", dest='get',
+        "--average", help="Get averaged sample(s)", action="store_true", dest='average'
     )
+    parser.add_argument("--id", help="Device id", action="store", dest='device_id')
     parser.add_argument(
-        "--average", help="Get averaged sample(s)", action="store_true", dest='average',
-    )
-    parser.add_argument(
-        "--id", help="Device id", action="store", dest='device_id',
-    )
-    parser.add_argument(
-        "-n", help="Number of samples", action="store", dest='n', type=int, default=5,
+        "-n", help="Number of samples", action="store", dest='n', type=int, default=5
     )
 
-    parser.add_argument(
-        "--set", help="Set parameters", action="store_true", dest='set',
-    )
+    parser.add_argument("--set", help="Set parameters", action="store_true", dest='set')
     parser.add_argument(
         "--interval",
         help="Set sampling interval",
@@ -336,12 +326,10 @@ def add_seabird_parser(subparsers):
     )
 
     parser.add_argument(
-        "--execute", help="Execute routine", action="store_true", dest='execute',
+        "--execute", help="Execute routine", action="store_true", dest='execute'
     )
 
-    parser.add_argument(
-        "--stop", help="Stop logging", action="store_true", dest='stop',
-    )
+    parser.add_argument("--stop", help="Stop logging", action="store_true", dest='stop')
 
 
 def dts_handler(args):
@@ -356,7 +344,7 @@ def add_dts_parser(subparsers):
     parser.set_defaults(handler=dts_handler)
 
     parser.add_argument(
-        "--execute", help="Execute routine", action="store_true", dest='execute',
+        "--execute", help="Execute routine", action="store_true", dest='execute'
     )
 
 
@@ -380,11 +368,11 @@ def add_data_parser(subparsers):
     parser.set_defaults(handler=dts_handler)
 
     parser.add_argument(
-        "--execute", help="Execute routine", action="store_true", dest='execute',
+        "--execute", help="Execute routine", action="store_true", dest='execute'
     )
 
     parser.add_argument(
-        "--upload", help="Upload single file", action="store", dest='upload_filepath',
+        "--upload", help="Upload single file", action="store", dest='upload_filepath'
     )
 
     parser.add_argument(
@@ -423,21 +411,34 @@ def add_camera_parser(subparsers):
     parser.set_defaults(handler=camera_handler)
 
     parser.add_argument(
-        "--execute", help="Execute routine", action="store_true", dest='execute',
+        "--execute", help="Execute routine", action="store_true", dest='execute'
     )
 
     parser.add_argument(
-        "--pan", help="Pan to value (-1 to 1)", action="store", dest='pan',
+        "--pan", help="Pan to value (-1 to 1)", action="store", dest='pan'
     )
     parser.add_argument(
-        "--tilt", help="Tilt to value (-1 to 1)", action="store", dest='tilt',
+        "--tilt", help="Tilt to value (-1 to 1)", action="store", dest='tilt'
     )
     parser.add_argument(
-        "--zoom", help="Zoom to value (0 to 1)", action="store", dest='zoom',
+        "--zoom", help="Zoom to value (0 to 1)", action="store", dest='zoom'
     )
 
     parser.add_argument(
-        "--snapshot", help="Take snapshot", action="store_true", dest='snapshot',
+        "--snapshot", help="Take snapshot", action="store_true", dest='snapshot'
+    )
+
+
+def cr1000x_handler():
+    pass
+
+
+def add_cr1000x_parser(subparsers):
+    parser = subparsers.add_parser('cr1000x')
+    parser.set_defaults(handler=cr1000x_handler)
+
+    parser.add_argument(
+        "--execute", help="Execute routine", action="store_true", dest='execute'
     )
 
 
@@ -455,6 +456,7 @@ def build_parser():
     add_data_parser(subparsers)
     add_imm_parser(subparsers)
     add_camera_parser(subparsers)
+    add_cr1000x_parser(subparsers)
 
     return parser
 

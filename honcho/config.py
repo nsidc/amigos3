@@ -348,3 +348,9 @@ LOOK_SERIES = (
 
 CJPEG_COMMAND = '/media/mmcblk0p1/honcho/scripts/cjpeg'
 DJPEG_COMMAND = '/media/mmcblk0p1/honcho/scripts/djpeg'
+
+# --------------------------------------------------------------------------------
+# CR100X
+# --------------------------------------------------------------------------------
+
+CR1000X_URL = 'tcp:192.168.0.30:6785'
