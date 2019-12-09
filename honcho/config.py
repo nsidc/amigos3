@@ -375,9 +375,10 @@ MEASUREMENTS = 40
 
 
 # --------------------------------------------------------------------------------
-# Watchdog
+# System
 # --------------------------------------------------------------------------------
 
 WATCHDOG_DEVICE = '/sys/class/gpio/wdt_ctl/data'
 MAX_SYSTEM_SLEEP = 59
 MIN_SYSTEM_VOLTAGE = 11
+HUB_ALWAYS_ON = MODE in (MODES.TEST, MODES.SAFE)

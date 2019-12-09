@@ -1,7 +1,13 @@
 import logging
 from contextlib import contextmanager
 
-from honcho.config import POWER_INDEX_DEVICE, POWER_DATA_DEVICE, GPIO_CONFIG
+from honcho.config import (
+    POWER_INDEX_DEVICE,
+    POWER_DATA_DEVICE,
+    GPIO_CONFIG,
+    HUB_ALWAYS_ON,
+    GPIO,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +62,8 @@ def is_on(component):
 def powered(components):
     for component in components:
         if is_on(component):
+            if component == GPIO.HUB and HUB_ALWAYS_ON:
+                continue
             raise Exception('{0} requested but already powered on'.format(component))
         logger.debug('Turning on {0}'.format(component))
         turn_on(component)
@@ -63,6 +71,8 @@ def powered(components):
         yield
     finally:
         for component in components:
+            if component == GPIO.HUB and HUB_ALWAYS_ON:
+                continue
             logger.debug('Turning off {0}'.format(component))
             turn_off(component)
 
