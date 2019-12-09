@@ -4,7 +4,9 @@ from honcho.config import (
     HUMIDITY_DATA_DEVICE,
     TEMPERATURE_DATA_DEVICE,
     VOLTAGE_CONVERTER,
+    GPIO,
 )
+from honcho.core.gpio import powered
 
 
 def _set_supply_index(index):
@@ -62,3 +64,11 @@ def get_temperature():
     raw = get_raw_temperature()
 
     return raw
+
+
+def get_solar():
+    with powered([GPIO.SOL]):
+        solar_1 = _get_supply_value(0)
+        solar_2 = _get_supply_value(1)
+
+    return (solar_1, solar_2)
