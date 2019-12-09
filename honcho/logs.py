@@ -30,9 +30,7 @@ def add_file_logging(logger, level, directory=LOG_DIR, filename=LOG_FILENAME):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    file_handler = logging.handlers.RotatingFileHandler(
-        os.path.join(directory, filename), maxBytes=1000000, backupCount=20
-    )
+    file_handler = logging.FileHandler(os.path.join(directory, filename))
 
     file_handler.setFormatter(LOG_FORMATTER)
     file_handler.setLevel(level)
