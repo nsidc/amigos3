@@ -194,7 +194,7 @@ def stop(device_ids):
             for device_id in device_ids:
                 expected_response = 'logging stopped.*' + REMOTE_RESPONSE_END
                 serial_request(
-                    serial, '#{0}Stop'.format(device_id), expected_response, timeout=10,
+                    serial, '#{0}Stop'.format(device_id), expected_response, timeout=10
                 )
 
 

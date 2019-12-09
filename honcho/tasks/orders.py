@@ -43,7 +43,7 @@ def run_script(script_filepath):
     os.chmod(script_filepath, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC)
     start_time = datetime.now().isoformat()
     p = subprocess.Popen(
-        script_filepath, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE,
+        script_filepath, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE
     )
     output, _ = p.communicate()
     finish_time = datetime.now().isoformat()
