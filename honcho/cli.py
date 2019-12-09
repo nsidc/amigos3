@@ -442,6 +442,86 @@ def add_cr1000x_parser(subparsers):
     )
 
 
+def weather_handler(args):
+    weather = import_task('weather')
+
+    if args.get:
+        samples = weather.get_samples(args.n)
+        if args.average:
+            samples = [weather.average_samples(samples)]
+
+        weather.print_samples(samples)
+    if args.execute:
+        weather.execute()
+
+
+def add_weather_parser(subparsers):
+    parser = subparsers.add_parser('weather')
+    parser.set_defaults(handler=weather_handler)
+
+    parser.add_argument(
+        "--get", help="Get measurement", action="store_true", dest='get'
+    )
+    parser.add_argument(
+        "--execute", help="Execute routine", action="store_true", dest='execute'
+    )
+
+
+def gps_handler(args):
+    gps = import_task('gps')
+    binex = import_task('binex')
+    tps = import_task('tps')
+
+    if args.get_gga:
+        sample = gps.get_gga()
+        gps.print_samples([sample])
+    if args.get_binex:
+        binex.get_binex()
+    if args.get_tps:
+        tps.get_tps()
+
+    if args.execute_gga:
+        gps.execute()
+    if args.execute_binex:
+        binex.execute()
+    if args.execute_tps:
+        tps.execute()
+
+
+def add_gps_parser(subparsers):
+    parser = subparsers.add_parser('gps')
+    parser.set_defaults(handler=gps_handler)
+
+    parser.add_argument(
+        "--execute-gga",
+        help="Execute gga routine",
+        action="store_true",
+        dest='execute_gga',
+    )
+    parser.add_argument(
+        "--execute-binex",
+        help="Execute binex routine",
+        action="store_true",
+        dest='execute_binex',
+    )
+    parser.add_argument(
+        "--execute-tps",
+        help="Execute tps routine",
+        action="store_true",
+        dest='execute_tps',
+    )
+
+    parser.add_argument(
+        "--get-gga", help="Get GGA data", action="store_true", dest='get_gga'
+    )
+    parser.add_argument(
+        "--get-binex", help="Get binex data", action="store_true", dest='get_binex'
+    )
+    parser.add_argument(
+        "--get-tps", help="Get binex data", action="store_true", dest='get_tps'
+    )
+
+
 def build_parser():
     parser, subparsers = init_parsers()
     add_schedule_parser(subparsers)
@@ -457,6 +537,8 @@ def build_parser():
     add_imm_parser(subparsers)
     add_camera_parser(subparsers)
     add_cr1000x_parser(subparsers)
+    add_weather_parser(subparsers)
+    add_gps_parser(subparsers)
 
     return parser
 
@@ -465,7 +547,7 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    logs.init_logging(directory=None)
+    logs.init_logging()
 
     if hasattr(args, 'callbacks'):
         for callback in args.callbacks:

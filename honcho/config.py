@@ -262,7 +262,7 @@ def VOLTAGE_CONVERTER(value):
 SEP = ','
 DATA_ROOT_DIR = "/media/mmcblk0p1/data"
 
-_DATA_TAGS = ('AQD', 'SBD', 'DTS', 'GPS', 'CAM')
+_DATA_TAGS = ('AQD', 'SBD', 'DTS', 'GGA', 'CAM', 'WXT', 'CRX', 'BNX', 'TPS')
 DATA_TAGS = namedtuple('DATA_TAGS', _DATA_TAGS)(*_DATA_TAGS)
 
 
@@ -288,7 +288,7 @@ TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 
 STAGED_UPLOAD_DIR = '/media/mmcblk0p1/staged'
 UPLOAD_CLEANUP = True
-UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.GPS, DATA_TAGS.CAM)
+UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.TPS, DATA_TAGS.CAM)
 ARCHIVE_DIR = '/media/mmcblk0p1/archive'
 
 
