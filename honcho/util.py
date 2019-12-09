@@ -138,9 +138,12 @@ def fail_gracefully(f, reraise=False):
     return wrapped
 
 
+def total_seconds(td):
+    return td.days * 24 * 3600 + td.seconds
+
+
 def format_timedelta(td):
-    s = td.days * 24 * 3600 + td.seconds
-    formatted = ''
+    s = total_seconds(td)
     labels = ('hrs', 'min', 'sec')
     n = len(labels)
     for i, label in enumerate(labels):

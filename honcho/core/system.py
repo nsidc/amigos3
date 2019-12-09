@@ -2,7 +2,7 @@ import subprocess
 import logging
 
 from honcho.core.gpio import all_off
-from honcho.config import WATCHDOG_DEVICE
+from honcho.config import WATCHDOG_DEVICE, MAX_SYSTEM_SLEEP
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +21,12 @@ def reboot():
     subprocess.call("reboot", shell=True)
 
 
-def sleep(td):
+def system_standby(minutes):
     all_off()
-    subprocess.check_call(['apmsleep', '+{0}:{1}'.format(td.hours, td.seconds)])
+    watchdog_tick_1hour()
+    assert minutes <= MAX_SYSTEM_SLEEP
+    logger.info('Sleeping for {0} minutes'.format(minutes))
+    subprocess.check_call(['apmsleep', '+0:{0}'.format(minutes)])
 
 
 def watchdog_tick_3min():
