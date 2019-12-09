@@ -53,6 +53,8 @@ def gpio_handler(args):
     if args.turn_off:
         for component in args.turn_off:
             gpio.turn_off(component)
+    if args.all_off:
+        gpio.all_off()
 
 
 def add_gpio_parser(subparsers):
@@ -77,6 +79,10 @@ def add_gpio_parser(subparsers):
             const=component,
             dest='turn_off',
         )
+
+    group.add_argument(
+        "--all-off", help="Turn off all gpio", action="store_true", dest='all_off'
+    )
 
 
 def add_system_parser(subparsers):

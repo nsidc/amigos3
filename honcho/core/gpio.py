@@ -46,8 +46,7 @@ def turn_off(component):
 def is_on(component):
     index = GPIO_CONFIG[component]['index']
     mask = GPIO_CONFIG[component]['mask']
-    _set_index(index)
-    value = _get_value(mask)
+    value = _get_value(index)
     result = bool(value & mask)
 
     return result
