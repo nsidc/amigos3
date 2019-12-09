@@ -6,6 +6,9 @@ from honcho.config import (
     SBD_MAX_SIZE,
     SBD_SIGNAL_TRIES,
     SBD_SIGNAL_WAIT,
+    SBD_WRITE_TIMEOUT,
+    SBD_TRANSMISSION_TIMEOUT,
+    IRD_DEFAULT_TIMEOUT,
 )
 from honcho.util import serial_request
 
@@ -17,7 +20,7 @@ def ping(serial):
     expected = re.escape('OK\r\n')
     try:
         logging.debug('Pinging iridium')
-        serial_request(serial, 'AT', expected, timeout=10)
+        serial_request(serial, 'AT', expected, timeout=IRD_DEFAULT_TIMEOUT)
     except Exception:
         logging.error('Ping failed')
         raise Exception("Iridium did not respond correctly to ping")
@@ -29,7 +32,9 @@ def check_signal(serial):
     expected = re.escape('+CSQ:') + r'(?P<strength>\d)' + re.escape('\r\n')
     try:
         logging.debug('Checking signal')
-        response = serial_request(serial, 'AT+CSQ', expected, timeout=10)
+        response = serial_request(
+            serial, 'AT+CSQ', expected, timeout=IRD_DEFAULT_TIMEOUT
+        )
     except Exception:
         logging.error('Signal check failed')
         raise Exception("Iridium did not respond correctly to signal query")
@@ -65,11 +70,11 @@ def send_sbd(serial, message):
 
     # Initiate write text
     expected = 'READY\r\n'
-    serial_request(serial, 'AT+SBDWT', expected, timeout=10)
+    serial_request(serial, 'AT+SBDWT', expected, timeout=IRD_DEFAULT_TIMEOUT)
 
     # Submit message
     expected = r'(?P<status>\d)' + re.escape('\r\n')
-    response = serial_request(serial, message, expected, timeout=30)
+    response = serial_request(serial, message, expected, timeout=SBD_WRITE_TIMEOUT)
     status = int(re.search(expected, response).groupdict()['status'])
     if status:
         raise Exception('SBD write command returned error status')
@@ -87,7 +92,9 @@ def send_sbd(serial, message):
         )
         + re.escape('\r\n')
     )
-    response = serial_request(serial, 'AT+SBDIX', expected, timeout=60)
+    response = serial_request(
+        serial, 'AT+SBDIX', expected, timeout=SBD_TRANSMISSION_TIMEOUT
+    )
     status = int(re.search(expected, response).groupdict()['mo_status'])
     if status:
         raise Exception('SBD transfer command returned error status')
@@ -96,7 +103,9 @@ def send_sbd(serial, message):
 def clear_mo_buffer(serial):
     logging.debug('Clearing MO buffer')
     expected = r'(?P<status>\d)' + re.escape('\r\n')
-    response = serial_request(serial, 'AT+SBDD0', re.escape('\r\n'), timeout=10)
+    response = serial_request(
+        serial, 'AT+SBDD0', re.escape('\r\n'), timeout=IRD_DEFAULT_TIMEOUT
+    )
     status = int(re.search(expected, response).groupdict()['status'])
     if status:
         raise Exception('SBD clear mo command returned error status')

@@ -206,9 +206,14 @@ RESULTS_DIR = '/media/mmcblk0p1/orders/results'
 # Up/downlink
 # --------------------------------------------------------------------------------
 
+SBD_PORT = '/dev/ttyS1'
+SBD_BAUD = 9600
 SBD_MAX_SIZE = 1960
 SBD_SIGNAL_WAIT = 10
 SBD_SIGNAL_TRIES = 6
+SBD_WRITE_TIMEOUT = 30
+SBD_TRANSMISSION_TIMEOUT = 60 * 5
+IRD_DEFAULT_TIMEOUT = 10
 SBD_QUEUE_MAX_TIME = 60 * 10
 SBD_QUEUE_ROOT_DIR = '/media/mmcblk0p1/sbd_queue'
 
@@ -217,16 +222,6 @@ def SBD_QUEUE_DIR(tag):
     queue_dir = os.path.join(SBD_QUEUE_ROOT_DIR, tag)
 
     return queue_dir
-
-
-# --------------------------------------------------------------------------------
-# Serial ports
-# --------------------------------------------------------------------------------
-
-SBD_PORT = '/dev/ttyS1'
-SBD_BAUD = 9600
-IMM_PORT = '/dev/ttyS4'
-IMM_BAUD = 9600
 
 
 # --------------------------------------------------------------------------------
@@ -298,6 +293,8 @@ ARCHIVE_DIR = '/media/mmcblk0p1/archive'
 
 IMM_STARTUP_WAIT = 5
 IMM_COMMAND_TIMEOUT = 30
+IMM_PORT = '/dev/ttyS4'
+IMM_BAUD = 9600
 
 
 # --------------------------------------------------------------------------------
@@ -349,8 +346,36 @@ LOOK_SERIES = (
 CJPEG_COMMAND = '/media/mmcblk0p1/honcho/scripts/cjpeg'
 DJPEG_COMMAND = '/media/mmcblk0p1/honcho/scripts/djpeg'
 
+
 # --------------------------------------------------------------------------------
-# CR100X
+# CR1000X
 # --------------------------------------------------------------------------------
 
 CR1000X_URL = 'tcp:192.168.0.30:6785'
+
+
+# --------------------------------------------------------------------------------
+# Weather
+# --------------------------------------------------------------------------------
+
+WXT_PORT = '/dev/ttyS5'
+WXT_BAUD = 115200
+WXT_SAMPLES = 120
+
+
+# --------------------------------------------------------------------------------
+# GPS
+# --------------------------------------------------------------------------------
+
+GPS_PORT = '/dev/ttyS0'
+GPS_BAUD = 115200
+GPS_STARTUP_WAIT = 30
+SECONDS_PER_MEASUREMENT = 30
+MEASUREMENTS = 40
+
+
+# --------------------------------------------------------------------------------
+# Watchdog
+# --------------------------------------------------------------------------------
+
+WATCHDOG_DEVICE = '/sys/class/gpio/wdt_ctl/data'
