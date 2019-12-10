@@ -7,4 +7,3 @@ umask 077
 set -o vi
 
 alias ls='ls -la --color=auto'
-alias honcho='python /media/mmcblk0p1/honcho/cli.py'

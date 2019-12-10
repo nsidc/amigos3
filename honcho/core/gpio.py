@@ -77,6 +77,11 @@ def powered(components):
             turn_off(component)
 
 
+def set_awake_gpio_state():
+    if HUB_ALWAYS_ON and not is_on(GPIO.HUB):
+        turn_on(GPIO.HUB)
+
+
 def all_off():
     for index in range(3):
         _unset_mask(index, 255)

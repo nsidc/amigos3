@@ -78,7 +78,7 @@ SCHEDULE_START_TIMES = {
 }
 
 # Time to wait in between schedule tasks/checks
-SCHEDULE_SLEEP = 30
+SCHEDULE_IDLE_CHECK_INTERVAL = 30
 
 
 SCHEDULES = {
@@ -92,14 +92,14 @@ SCHEDULES = {
         ('hour', ":55", 'cr1000x'),
         ('hour', ":56", 'solar'),
         ('day', "21:05", 'dts'),
-        ('day', "06:10", 'archive'),
-        ('day', "12:10", 'archive'),
-        ('day', "18:10", 'archive'),
-        ('day', "00:10", 'archive'),
+        ('day', "06:10", 'upload'),
+        ('day', "12:10", 'upload'),
+        ('day', "18:10", 'upload'),
+        ('day', "00:10", 'upload'),
         ('day', "00:00", 'orders'),
     ),
     SCHEDULE_NAMES.SUMMER: (
-        ('day', "00:00", 'archive'),
+        ('day', "00:00", 'monitor'),
         ('day', "00:05", 'orders'),
         ('hour', ":49", 'monitor'),
         ('day', "05:10", 'tps'),
@@ -120,9 +120,10 @@ SCHEDULES = {
         ('day', "15:05", 'dts'),
         ('day', "19:05", 'dts'),
         ('day', "23:05", 'dts'),
-        ('day', "06:10", 'archive'),
-        ('day', "12:10", 'archive'),
-        ('day', "18:10", 'archive'),
+        ('day', "00:00", 'upload'),
+        ('day', "06:10", 'upload'),
+        ('day', "12:10", 'upload'),
+        ('day', "18:10", 'upload'),
     ),
     SCHEDULE_NAMES.TEST: (
         ('day', "00:00", 'monitor'),
@@ -133,10 +134,16 @@ SCHEDULES = {
         ('hour', "04:00", 'seabird'),
         ('hour', "05:00", 'aquadopp'),
         ('day', "08:00", 'dts'),
+        ('day', "09:00", 'upload'),
         ('day', "09:00", 'archive'),
         ('day', "10:00", 'orders'),
     ),
-    SCHEDULE_NAMES.SAFE: (('day', "00:00", 'monitor'), ('day', "10:00", 'orders')),
+    SCHEDULE_NAMES.SAFE: (
+        ('hour', ":59", 'power'),
+        ('day', "00:00", 'monitor'),
+        ('day', "01:00", 'orders'),
+        ('day', "13:00", 'orders'),
+    ),
 }
 
 
@@ -257,7 +264,7 @@ def VOLTAGE_CONVERTER(value):
 SEP = ','
 DATA_ROOT_DIR = "/media/mmcblk0p1/data"
 
-_DATA_TAGS = ('AQD', 'SBD', 'DTS', 'GGA', 'CAM', 'WXT', 'CRX', 'BNX', 'TPS')
+_DATA_TAGS = ('AQD', 'SBD', 'DTS', 'GGA', 'CAM', 'WXT', 'CRX', 'BNX', 'TPS', 'PWR')
 DATA_TAGS = namedtuple('DATA_TAGS', _DATA_TAGS)(*_DATA_TAGS)
 
 
