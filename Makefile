@@ -41,11 +41,6 @@ codecov:
 serial-con: # Connect to triton serial console
 	sudo picocom -b 115200 /dev/ttyUSB0
 
-install-ssh-key:
-	ssh root@amigos "mount / -o remount,rw"
-	cat ~/.ssh/id_rsa_amigos.pub | ssh root@amigos "mkdir -p ~/.ssh && cat > ~/.ssh/authorized_keys"
-	ssh root@amigos "mount / -o remount,ro"
-
 ssh-con: # Connect to triton over ssh
 	ssh root@amigos
 
@@ -53,24 +48,9 @@ ssh-con: # Connect to triton over ssh
 # Deployment
 # --------------------------------------------------------------------------------
 
-setup-login-shell: install-ssh-key 
+sync-system: 
 	ssh root@amigos "mount / -o remount,rw"
-	# Set bash shell for root
-	ssh root@amigos "sed -i 's/root:x:0:0:root:\/root:\/bin\/sh/root:x:0:0:root:\/root:\/bin\/bash/g' /etc/passwd"
-	# Install bashrc
-	scp -pCB system/.bashrc root@amigos:/root
-	ssh root@amigos "mount / -o remount,ro"
-
-install-hosts:
-	ssh root@amigos "mount / -o remount,rw"
-	scp -pCB system/hosts root@amigos:/etc/hosts
-	ssh root@amigos "mount / -o remount,ro"
-
-install-win-ssh-key:
-	ssh root@amigos "mount / -o remount,rw"
-	scp -pCB ~/.ssh/id_rsa_windows* root@amigos:/root/.ssh/
-	# TODO: Manually copy to windowns box
-	# 	cat ~/.ssh/id_rsa_windows.pub | ssh admin@win "mkdir -p ~/.ssh && cat > ~/.ssh/authorized_keys"
+	rsync -vlrEc system/ root@amigos:/
 	ssh root@amigos "mount / -o remount,ro"
 
 sync-code: clean # sync the code to the amigos box
@@ -78,8 +58,7 @@ sync-code: clean # sync the code to the amigos box
 	rm -rf build/*
 	cp -pr honcho build/
 	find ./build | grep .git | xargs rm -rf
-	ssh root@amigos "rm -rf /media/mmcblk0p1/*"
-	scp -prCB build/honcho root@amigos:/media/mmcblk0p1
+	rsync -vlrEc build/honcho root@amigos:/media/mmcblk0p1
 
 # --------------------------------------------------------------------------------
 # Deployment
