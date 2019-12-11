@@ -13,7 +13,7 @@ from honcho.config import (
     DATA_ROOT_DIR,
     DATA_DIR,
     DATA_TAGS,
-    STAGED_UPLOAD_DIR,
+    UPLOAD_QUEUE_DIR,
     UPLOAD_DATA_TAGS,
     UPLOAD_CLEANUP,
     ARCHIVE_DIR,

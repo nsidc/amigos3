@@ -528,6 +528,22 @@ def add_gps_parser(subparsers):
     )
 
 
+def supervise_handler(args):
+    pass
+
+
+def add_supervise_parser(subparsers):
+    parser = subparsers.add_parser('supervise')
+    parser.set_defaults(handler=supervise_handler)
+
+    parser.add_argument(
+        "--execute",
+        help="Execute supervise routine",
+        action="store_true",
+        dest='execute',
+    )
+
+
 def build_parser():
     parser, subparsers = init_parsers()
     add_schedule_parser(subparsers)
@@ -545,6 +561,7 @@ def build_parser():
     add_cr1000x_parser(subparsers)
     add_weather_parser(subparsers)
     add_gps_parser(subparsers)
+    add_supervise_parser(subparsers)
 
     return parser
 

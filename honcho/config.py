@@ -83,7 +83,6 @@ SCHEDULE_IDLE_CHECK_INTERVAL = 30
 
 SCHEDULES = {
     SCHEDULE_NAMES.WINTER: (
-        ('hour', ":49", 'monitor'),
         ('day', "23:10", 'tps'),
         ('day', "20:10", 'camera'),
         ('hour', ":57", 'vaisala'),
@@ -96,12 +95,8 @@ SCHEDULES = {
         ('day', "12:10", 'upload'),
         ('day', "18:10", 'upload'),
         ('day', "00:10", 'upload'),
-        ('day', "00:00", 'orders'),
     ),
     SCHEDULE_NAMES.SUMMER: (
-        ('day', "00:00", 'monitor'),
-        ('day', "00:05", 'orders'),
-        ('hour', ":49", 'monitor'),
         ('day', "05:10", 'tps'),
         ('day', "11:10", 'tps'),
         ('day', "17:10", 'tps'),
@@ -126,7 +121,6 @@ SCHEDULES = {
         ('day', "18:10", 'upload'),
     ),
     SCHEDULE_NAMES.TEST: (
-        ('day', "00:00", 'monitor'),
         ('day', "01:00", 'tps'),
         ('day', "02:00", 'vaisala'),
         ('day', "03:00", 'camera'),
@@ -135,17 +129,13 @@ SCHEDULES = {
         ('hour', "05:00", 'aquadopp'),
         ('day', "08:00", 'dts'),
         ('day', "09:00", 'upload'),
-        ('day', "09:00", 'archive'),
-        ('day', "10:00", 'orders'),
     ),
-    SCHEDULE_NAMES.SAFE: (
-        ('hour', ":59", 'power'),
-        ('day', "00:00", 'monitor'),
-        ('day', "01:00", 'orders'),
-        ('day', "13:00", 'orders'),
-    ),
+    SCHEDULE_NAMES.SAFE: (('hour', ":59", 'power'),),
 }
 
+START_NORMAL_SCHEDULE_SCRIPT = '/media/mmcblk0p1/honcho/bin/start_normal_schedule.sh'
+START_SAFE_SCHEDULE_SCRIPT = '/media/mmcblk0p1/honcho/bin/start_safe_schedule.sh'
+MAINTENANCE_HOUR = 0
 
 # --------------------------------------------------------------------------------
 # GPIO
@@ -264,7 +254,19 @@ def VOLTAGE_CONVERTER(value):
 SEP = ','
 DATA_ROOT_DIR = "/media/mmcblk0p1/data"
 
-_DATA_TAGS = ('AQD', 'SBD', 'DTS', 'GGA', 'CAM', 'WXT', 'CRX', 'BNX', 'TPS', 'PWR')
+_DATA_TAGS = (
+    'AQD',
+    'SBD',
+    'DTS',
+    'GGA',
+    'CAM',
+    'WXT',
+    'CRX',
+    'BNX',
+    'TPS',
+    'PWR',
+    'MON',
+)
 DATA_TAGS = namedtuple('DATA_TAGS', _DATA_TAGS)(*_DATA_TAGS)
 
 
@@ -288,7 +290,7 @@ TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 # Upload
 # --------------------------------------------------------------------------------
 
-STAGED_UPLOAD_DIR = '/media/mmcblk0p1/staged'
+UPLOAD_QUEUE_DIR = '/media/mmcblk0p1/staged'
 UPLOAD_CLEANUP = True
 UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.TPS, DATA_TAGS.CAM)
 ARCHIVE_DIR = '/media/mmcblk0p1/archive'
@@ -389,3 +391,11 @@ WATCHDOG_DEVICE = '/sys/class/gpio/wdt_ctl/data'
 MAX_SYSTEM_SLEEP = 59
 MIN_SYSTEM_VOLTAGE = 11
 HUB_ALWAYS_ON = MODE in (MODES.TEST, MODES.SAFE)
+KEEP_AWAKE = os.environ.get('KEEP_AWAKE', False)
+DIRECTORIES_TO_MONITOR = (
+    DATA_ROOT_DIR,
+    ARCHIVE_DIR,
+    UPLOAD_QUEUE_DIR,
+    SBD_QUEUE_DIR,
+    LOG_DIR,
+)

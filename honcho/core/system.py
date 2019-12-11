@@ -1,12 +1,75 @@
 import subprocess
 import logging
 import re
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 from honcho.core.gpio import all_off, set_awake_gpio_state
-from honcho.config import WATCHDOG_DEVICE, MAX_SYSTEM_SLEEP
+from honcho.config import WATCHDOG_DEVICE, MAX_SYSTEM_SLEEP, KEEP_AWAKE
 
 logger = logging.getLogger(__name__)
+
+TOP_CMD = ['top', '-n', '1']
+DF_CMD = ['df']
+
+DISK_USAGE_FIELDS = {
+    'filesystem': 21,
+    'blocks': 10,
+    'used': 10,
+    'free': 10,
+    'percent': 5,
+    'mount': 1000,
+}
+DiskUsageSample = namedtuple('DiskUsageSample', DISK_USAGE_FIELDS)
+
+MEM_FIELDS = ('used', 'free', 'shrd', 'buff', 'cached')
+MemSample = namedtuple('MemSample', MEM_FIELDS)
+
+CPU_FIELDS = ('usr', 'sys', 'nic', 'idle', 'io', 'irq', 'sirq')
+CPUSample = namedtuple('CPUSample', CPU_FIELDS)
+
+LOAD_AVERAGE_FIELDS = ('usr', 'sys', 'nic', 'idle', 'io', 'irq', 'sirq')
+LoadAverageSample = namedtuple('LoadAverageSample', LOAD_AVERAGE_FIELDS)
+
+PROCESS_FIELDS = (
+    ('pid', 6),
+    ('ppid', 6),
+    ('user', 9),
+    ('stat', 6),
+    ('vsz', 5),
+    ('mem', 5),
+    ('cpu', 5),
+    ('command', 1000),
+)
+ProcessSample = namedtuple('ProcessSample', PROCESS_FIELDS)
+
+TopSample = namedtuple('TopSample', ('mem', 'cpu', 'processes'))
+
+MEM_PATTERN = (
+    r'Mem: '
+    r'(?P<used>\d+)K used, '
+    r'(?P<free>\d+)K free, '
+    r'(?P<shrd>\d+)K shrd, '
+    r'(?P<buff>\d+)K buff, '
+    r'(?P<cached>\d+)K cached'
+)
+CPU_PATTERN = (
+    r'CPU:'
+    r'\s+(?P<usr>\d+)% usr'
+    r'\s+(?P<sys>\d+)% sys'
+    r'\s+(?P<nic>\d+)% nic'
+    r'\s+(?P<idle>\d+)% idle'
+    r'\s+(?P<io>\d+)% io'
+    r'\s+(?P<irq>\d+)% irq'
+    r'\s+(?P<sirq>\d+)% sirq'
+)
+LOAD_AVERAGE_PATTERN = (
+    r'Load average: '
+    r'(?P<load_1>[\d\.]+) '
+    r'(?P<load_5>[\d\.]+) '
+    r'(?P<load_15>[\d\.]+) '
+    r'(?P<unknown_1>[\d/]+) '
+    r'(?P<unknown_2>\d+)'
+)
 
 
 def shutdown():
@@ -24,8 +87,13 @@ def reboot():
 
 
 def system_standby(minutes):
+    if KEEP_AWAKE:
+        logger.info('KEEP_AWAKE set, skipping sleep')
+        return
+
     all_off()
     watchdog_tick_1hour()
+    assert MAX_SYSTEM_SLEEP <= 59
     assert minutes <= MAX_SYSTEM_SLEEP
     logger.info('Sleeping for {0} minutes'.format(minutes))
     subprocess.check_call(['apmsleep', '+0:{0}'.format(minutes)])
@@ -48,68 +116,50 @@ def watchdog_tick_1hour():
     logger.info('Watchdog ticked for 1 hour')
 
 
-def top():
-    TOP_CMD = 'top -n1'
+def get_disk_usage():
+    p = subprocess.Popen(
+        DF_CMD, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE
+    )
+    output, _ = p.communicate()
+    output = output.strip().split('\n')
 
-    results = {}
+    results = []
+    for row in output[1:]:
+        pos = 0
+        values = {}
+        for key, length in DISK_USAGE_FIELDS:
+            values[key] = row[pos : pos + length].strip()
+            pos = pos + length
+        results.append(DiskUsageSample(**values))
+
+    return results
+
+
+def get_top():
     p = subprocess.Popen(
         TOP_CMD, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE
     )
     output, _ = p.communicate()
     output = output.strip().split('\n')
 
-    mem_pattern = (
-        r'Mem: '
-        r'(?P<used>\d+)K used, '
-        r'(?P<free>\d+)K free, '
-        r'(?P<shrd>\d+)K shrd, '
-        r'(?P<buff>\d+)K buff, '
-        r'(?P<cached>\d+)K cached'
+    mem_sample = MemSample(**re.search(MEM_PATTERN, output[0]).groupdict())
+    cpu_sample = CPUSample(**re.search(CPU_PATTERN, output[1]).groupdict())
+    load_average_sample = LoadAverageSample(
+        **re.search(LOAD_AVERAGE_PATTERN, output[2]).groupdict()
     )
-    raw = re.search(mem_pattern, output[0]).groupdict()
-    results['mem'] = dict((k, int(v)) for k, v in raw.iteritems())
 
-    cpu_pattern = (
-        r'CPU:'
-        r'\s+(?P<usr>\d+)% usr'
-        r'\s+(?P<sys>\d+)% sys'
-        r'\s+(?P<nic>\d+)% nic'
-        r'\s+(?P<idle>\d+)% idle'
-        r'\s+(?P<io>\d+)% io'
-        r'\s+(?P<irq>\d+)% irq'
-        r'\s+(?P<sirq>\d+)% sirq'
-    )
-    raw = re.search(cpu_pattern, output[1]).groupdict()
-    results['cpu'] = dict((k, int(v)) for k, v in raw.iteritems())
-
-    load_average_pattern = (
-        r'Load average: '
-        r'(?P<load_1>[\d\.]+) '
-        r'(?P<load_5>[\d\.]+) '
-        r'(?P<load_15>[\d\.]+) '
-        r'(?P<unknown_1>[\d/]+) '
-        r'(?P<unknown_2>\d+)'
-    )
-    raw = re.search(load_average_pattern, output[2]).groupdict()
-    results['load_average'] = raw
-
-    ps_fields = (
-        ('pid', 6),
-        ('ppid', 6),
-        ('user', 9),
-        ('stat', 6),
-        ('vsz', 5),
-        ('mem', 5),
-        ('cpu', 5),
-        ('command', 1000),
-    )
-    ps = defaultdict(list)
+    processes = []
     for row in output[4:]:
         pos = 0
-        for key, length in ps_fields:
-            ps[key].append(row[pos : pos + length].strip())
+        values = {}
+        for key, length in PROCESS_FIELDS:
+            values[key] = row[pos : pos + length].strip()
             pos = pos + length
+    processes.append(ProcessSample(**values))
 
-    results['processes'] = ps
-
-    return results
+    return TopSample(
+        mem=mem_sample,
+        cpu=cpu_sample,
+        load_average=load_average_sample,
+        processes=processes,
+    )

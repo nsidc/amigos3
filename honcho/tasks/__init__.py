@@ -6,13 +6,13 @@ from honcho.config import (
     ORDERS_DIR,
     RESULTS_DIR,
     DTS_RAW_DATA_DIR,
-    STAGED_UPLOAD_DIR,
+    UPLOAD_QUEUE_DIR,
 )
 
 ensure_dirs(
     [DATA_DIR(tag) for tag in DATA_TAGS]
     + [SBD_QUEUE_DIR(tag) for tag in DATA_TAGS]
-    + [ORDERS_DIR, RESULTS_DIR, DTS_RAW_DATA_DIR, STAGED_UPLOAD_DIR]
+    + [ORDERS_DIR, RESULTS_DIR, DTS_RAW_DATA_DIR, UPLOAD_QUEUE_DIR]
 )
 
 

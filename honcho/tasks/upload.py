@@ -12,7 +12,7 @@ from honcho.config import (
     FTP_CONNECT_RETRIES,
     DATA_DIR,
     DATA_TAGS,
-    STAGED_UPLOAD_DIR,
+    UPLOAD_QUEUE_DIR,
     UPLOAD_DATA_TAGS,
     UPLOAD_CLEANUP,
     ARCHIVE_DIR,
@@ -35,7 +35,7 @@ def stage_path(path, prefix=None):
     name = os.path.basename(path) + '_' + serialize_datetime(datetime.now()) + '.tgz'
     if prefix is not None:
         name = prefix + '_' + name
-    output_filepath = os.path.join(STAGED_UPLOAD_DIR, name)
+    output_filepath = os.path.join(UPLOAD_QUEUE_DIR, name)
     make_tarfile(output_filepath, path)
 
     return output_filepath
