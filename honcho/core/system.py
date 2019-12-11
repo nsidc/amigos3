@@ -30,16 +30,16 @@ CPUSample = namedtuple('CPUSample', CPU_FIELDS)
 LOAD_AVERAGE_FIELDS = ('usr', 'sys', 'nic', 'idle', 'io', 'irq', 'sirq')
 LoadAverageSample = namedtuple('LoadAverageSample', LOAD_AVERAGE_FIELDS)
 
-PROCESS_FIELDS = (
-    ('pid', 6),
-    ('ppid', 6),
-    ('user', 9),
-    ('stat', 6),
-    ('vsz', 5),
-    ('mem', 5),
-    ('cpu', 5),
-    ('command', 1000),
-)
+PROCESS_FIELDS = {
+    'pid': 6,
+    'ppid': 6,
+    'user': 9,
+    'stat': 6,
+    'vsz': 5,
+    'mem': 5,
+    'cpu': 5,
+    'command': 1000,
+}
 ProcessSample = namedtuple('ProcessSample', PROCESS_FIELDS)
 
 TopSample = namedtuple('TopSample', ('mem', 'cpu', 'processes'))
@@ -152,7 +152,7 @@ def get_top():
     for row in output[4:]:
         pos = 0
         values = {}
-        for key, length in PROCESS_FIELDS:
+        for key, length in PROCESS_FIELDS.iteritems():
             values[key] = row[pos : pos + length].strip()
             pos = pos + length
     processes.append(ProcessSample(**values))

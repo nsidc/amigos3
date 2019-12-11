@@ -54,7 +54,7 @@ def load_schedule(scheduler, config):
 def idle_check(scheduler):
     idle_minutes = scheduler.idle_seconds / 60.0
     if idle_minutes > 2:
-        logger.info('Schedule idle for {0} minutes'.format(idle_minutes))
+        logger.info('Schedule idle for {0:.0f} minutes'.format(idle_minutes))
         system_standby(min(int(idle_minutes - 1), MAX_SYSTEM_SLEEP))
 
 

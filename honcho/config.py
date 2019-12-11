@@ -85,7 +85,7 @@ SCHEDULES = {
     SCHEDULE_NAMES.WINTER: (
         ('day', "23:10", 'tps'),
         ('day', "20:10", 'camera'),
-        ('hour', ":57", 'vaisala'),
+        ('hour', ":57", 'weather'),
         ('hour', ":50", 'seabird'),
         ('hour', ":52", 'aquadopp'),
         ('hour', ":55", 'cr1000x'),
@@ -104,7 +104,7 @@ SCHEDULES = {
         ('day', "04:10", 'camera'),
         ('day', "12:10", 'camera'),
         ('day', "20:10", 'camera'),
-        ('hour', ":57", 'vaisala'),
+        ('hour', ":57", 'weather'),
         ('hour', ":50", 'seabird'),
         ('hour', ":52", 'aquadopp'),
         ('hour', ":55", 'cr1000x'),
@@ -122,7 +122,7 @@ SCHEDULES = {
     ),
     SCHEDULE_NAMES.TEST: (
         ('day', "01:00", 'tps'),
-        ('day', "02:00", 'vaisala'),
+        ('day', "02:00", 'weather'),
         ('day', "03:00", 'camera'),
         ('day', "06:00", 'cr1000x'),
         ('hour', "04:00", 'seabird'),
