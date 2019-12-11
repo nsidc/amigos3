@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-source set-env-test.sh
+source set_env_test.sh
 honcho schedule --execute

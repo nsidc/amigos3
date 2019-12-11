@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-source set-env-safe.sh
+source set_env_normal.sh
 honcho schedule --execute

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-source set-paths.sh
+source set_paths.sh
 export LOG_LEVEL=DEBUG
 export MODE=SAFE
 export HUB_ALWAYS_ON=1
+export KEEP_AWAKE=0
