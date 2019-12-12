@@ -83,56 +83,58 @@ SCHEDULE_IDLE_CHECK_INTERVAL = 30
 
 SCHEDULES = {
     SCHEDULE_NAMES.WINTER: (
-        ('day', "23:10", 'tps'),
-        ('day', "20:10", 'camera'),
-        ('hour', ":57", 'weather'),
-        ('hour', ":50", 'seabird'),
-        ('hour', ":52", 'aquadopp'),
-        ('hour', ":55", 'cr1000x'),
-        ('day', "21:05", 'dts'),
-        ('day', "06:10", 'upload'),
-        ('day', "12:10", 'upload'),
-        ('day', "18:10", 'upload'),
-        ('day', "00:10", 'upload'),
+        ('scheduler.every().day.at("23:10")', 'tps'),
+        ('scheduler.every().day.at("20:10")', 'camera'),
+        ('scheduler.every().hour.at(":57")', 'weather'),
+        ('scheduler.every().hour.at(":50")', 'seabird'),
+        ('scheduler.every().hour.at(":52")', 'aquadopp'),
+        ('scheduler.every().hour.at(":55")', 'cr1000x'),
+        ('scheduler.every().day.at("21:05")', 'dts'),
+        ('scheduler.every().day.at("06:10")', 'upload'),
+        ('scheduler.every().day.at("12:10")', 'upload'),
+        ('scheduler.every().day.at("18:10")', 'upload'),
+        ('scheduler.every().day.at("00:10")', 'upload'),
     ),
     SCHEDULE_NAMES.SUMMER: (
-        ('day', "05:10", 'tps'),
-        ('day', "11:10", 'tps'),
-        ('day', "17:10", 'tps'),
-        ('day', "23:10", 'tps'),
-        ('day', "04:10", 'camera'),
-        ('day', "12:10", 'camera'),
-        ('day', "20:10", 'camera'),
-        ('hour', ":57", 'weather'),
-        ('hour', ":50", 'seabird'),
-        ('hour', ":52", 'aquadopp'),
-        ('hour', ":55", 'cr1000x'),
-        ('day', "03:05", 'dts'),
-        ('day', "07:05", 'dts'),
-        ('day', "11:05", 'dts'),
-        ('day', "15:05", 'dts'),
-        ('day', "19:05", 'dts'),
-        ('day', "23:05", 'dts'),
-        ('day', "00:00", 'upload'),
-        ('day', "06:10", 'upload'),
-        ('day', "12:10", 'upload'),
-        ('day', "18:10", 'upload'),
+        ('scheduler.every().day.at("05:10")', 'tps'),
+        ('scheduler.every().day.at("11:10")', 'tps'),
+        ('scheduler.every().day.at("17:10")', 'tps'),
+        ('scheduler.every().day.at("23:10")', 'tps'),
+        ('scheduler.every().day.at("04:10")', 'camera'),
+        ('scheduler.every().day.at("12:10")', 'camera'),
+        ('scheduler.every().day.at("20:10")', 'camera'),
+        ('scheduler.every().hour.at(":57")', 'weather'),
+        ('scheduler.every().hour.at(":50")', 'seabird'),
+        ('scheduler.every().hour.at(":52")', 'aquadopp'),
+        ('scheduler.every().hour.at(":55")', 'cr1000x'),
+        ('scheduler.every().day.at("03:05")', 'dts'),
+        ('scheduler.every().day.at("07:05")', 'dts'),
+        ('scheduler.every().day.at("11:05")', 'dts'),
+        ('scheduler.every().day.at("15:05")', 'dts'),
+        ('scheduler.every().day.at("19:05")', 'dts'),
+        ('scheduler.every().day.at("23:05")', 'dts'),
+        ('scheduler.every().day.at("00:00")', 'upload'),
+        ('scheduler.every().day.at("06:10")', 'upload'),
+        ('scheduler.every().day.at("12:10")', 'upload'),
+        ('scheduler.every().day.at("18:10")', 'upload'),
     ),
     SCHEDULE_NAMES.TEST: (
-        ('day', "01:00", 'tps'),
-        ('day', "02:00", 'weather'),
-        ('day', "03:00", 'camera'),
-        ('day', "06:00", 'cr1000x'),
-        ('hour', "04:00", 'seabird'),
-        ('hour', "05:00", 'aquadopp'),
-        ('day', "08:00", 'dts'),
-        ('day', "09:00", 'upload'),
+        ('scheduler.every().day.at("01:00")', 'tps'),
+        ('scheduler.every().day.at("02:00")', 'weather'),
+        ('scheduler.every().day.at("03:00")', 'camera'),
+        ('scheduler.every().day.at("06:00")', 'cr1000x'),
+        ('scheduler.every().hour.at("04:00")', 'seabird'),
+        ('scheduler.every().hour.at("05:00")', 'aquadopp'),
+        ('scheduler.every().day.at("08:00")', 'dts'),
+        ('scheduler.every().day.at("09:00")', 'upload'),
     ),
-    SCHEDULE_NAMES.SAFE: (('hour', ":59", 'power'),),
+    SCHEDULE_NAMES.SAFE: (
+        ('scheduler.every().hour.at(":59")', 'power'),
+        ('scheduler.every().day.at("00:00")', 'orders'),
+    ),
 }
 
-START_NORMAL_SCHEDULE_SCRIPT = '/media/mmcblk0p1/honcho/bin/start_normal_schedule.sh'
-START_SAFE_SCHEDULE_SCRIPT = '/media/mmcblk0p1/honcho/bin/start_safe_schedule.sh'
+START_SCHEDULE_COMMAND = 'source set_env_{0}.sh && run_schedule.sh'.format(MODE.lower())
 MAINTENANCE_HOUR = 0
 
 # --------------------------------------------------------------------------------
@@ -188,9 +190,11 @@ GPIO_CONFIG = {
 # Up/downlink
 # --------------------------------------------------------------------------------
 
-FTP_HOST = '128.138.135.165'  # restricted_ftp
+FTP_HOST = 'restricted_ftp'
 FTP_TIMEOUT = 60
-FTP_CONNECT_RETRIES = 2
+DIALOUT_WAIT = 30
+FTP_CONNECT_RETRIES = 18
+FTP_RETRY_WAIT = 10
 FTP_ORDERS_DIR = 'orders'
 FTP_RESULTS_DIR = 'orders/results'
 ORDERS_DIR = '/media/mmcblk0p1/orders'
@@ -203,6 +207,7 @@ RESULTS_DIR = '/media/mmcblk0p1/orders/results'
 
 SBD_PORT = '/dev/ttyS1'
 SBD_BAUD = 9600
+SBD_STARTUP_WAIT = 30
 SBD_MAX_SIZE = 1960
 SBD_SIGNAL_WAIT = 10
 SBD_SIGNAL_TRIES = 6
@@ -388,12 +393,12 @@ MEASUREMENTS = 40
 WATCHDOG_DEVICE = '/sys/class/gpio/wdt_ctl/data'
 MAX_SYSTEM_SLEEP = 59
 MIN_SYSTEM_VOLTAGE = 11
-HUB_ALWAYS_ON = MODE in (MODES.TEST, MODES.SAFE)
-KEEP_AWAKE = os.environ.get('KEEP_AWAKE', False)
-DIRECTORIES_TO_MONITOR = (
-    DATA_ROOT_DIR,
-    ARCHIVE_DIR,
-    UPLOAD_QUEUE_DIR,
-    SBD_QUEUE_DIR,
-    LOG_DIR,
-)
+HUB_ALWAYS_ON = MODE == MODES.TEST
+KEEP_AWAKE = int(os.environ.get('KEEP_AWAKE', 0))
+DIRECTORIES_TO_MONITOR = {
+    'data': DATA_ROOT_DIR,
+    'archive': ARCHIVE_DIR,
+    'sbd': SBD_QUEUE_ROOT_DIR,
+    'upload': UPLOAD_QUEUE_DIR,
+    'log': LOG_DIR,
+}

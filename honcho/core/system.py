@@ -5,20 +5,23 @@ from collections import namedtuple
 
 from honcho.core.gpio import all_off, set_awake_gpio_state
 from honcho.config import WATCHDOG_DEVICE, MAX_SYSTEM_SLEEP, KEEP_AWAKE
+from honcho.util import OrderedDict
 
 logger = logging.getLogger(__name__)
 
 TOP_CMD = ['top', '-n', '1']
 DF_CMD = ['df']
 
-DISK_USAGE_FIELDS = {
-    'filesystem': 21,
-    'blocks': 10,
-    'used': 10,
-    'free': 10,
-    'percent': 5,
-    'mount': 1000,
-}
+DISK_USAGE_FIELDS = OrderedDict(
+    (
+        ('filesystem', 21),
+        ('blocks', 10),
+        ('used', 10),
+        ('free', 10),
+        ('percent', 5),
+        ('mount', 1000),
+    )
+)
 DiskUsageSample = namedtuple('DiskUsageSample', DISK_USAGE_FIELDS)
 
 MEM_FIELDS = ('used', 'free', 'shrd', 'buff', 'cached')
@@ -27,22 +30,24 @@ MemSample = namedtuple('MemSample', MEM_FIELDS)
 CPU_FIELDS = ('usr', 'sys', 'nic', 'idle', 'io', 'irq', 'sirq')
 CPUSample = namedtuple('CPUSample', CPU_FIELDS)
 
-LOAD_AVERAGE_FIELDS = ('usr', 'sys', 'nic', 'idle', 'io', 'irq', 'sirq')
+LOAD_AVERAGE_FIELDS = ('load_1', 'load_5', 'load_15', 'unknown_1', 'unknown_2')
 LoadAverageSample = namedtuple('LoadAverageSample', LOAD_AVERAGE_FIELDS)
 
-PROCESS_FIELDS = {
-    'pid': 6,
-    'ppid': 6,
-    'user': 9,
-    'stat': 6,
-    'vsz': 5,
-    'mem': 5,
-    'cpu': 5,
-    'command': 1000,
-}
+PROCESS_FIELDS = OrderedDict(
+    (
+        ('pid', 6),
+        ('ppid', 6),
+        ('user', 9),
+        ('stat', 6),
+        ('vsz', 5),
+        ('mem', 5),
+        ('cpu', 5),
+        ('command', 1000),
+    )
+)
 ProcessSample = namedtuple('ProcessSample', PROCESS_FIELDS)
 
-TopSample = namedtuple('TopSample', ('mem', 'cpu', 'processes'))
+TopSample = namedtuple('TopSample', ('mem', 'cpu', 'load_average', 'processes'))
 
 MEM_PATTERN = (
     r'Mem: '
@@ -103,7 +108,9 @@ def system_standby(minutes):
 def watchdog_tick_3min():
     with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(1))
+    with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(0))
+    with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(1))
     logger.info('Watchdog ticked for 3 minutes')
 
@@ -111,15 +118,15 @@ def watchdog_tick_3min():
 def watchdog_tick_1hour():
     with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(3))
-        f.write(hex(0))
+    with open(WATCHDOG_DEVICE, 'wb') as f:
+        f.write(hex(2))
+    with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(3))
     logger.info('Watchdog ticked for 1 hour')
 
 
 def get_disk_usage():
-    p = subprocess.Popen(
-        DF_CMD, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE
-    )
+    p = subprocess.Popen(DF_CMD, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
     output, _ = p.communicate()
     output = output.strip().split('\n')
 
@@ -127,19 +134,17 @@ def get_disk_usage():
     for row in output[1:]:
         pos = 0
         values = {}
-        for key, length in DISK_USAGE_FIELDS:
+        for key, length in DISK_USAGE_FIELDS.items():
             end_pos = pos + length
             values[key] = row[pos:end_pos].strip()
-            pos = pos + length
+            pos = end_pos
         results.append(DiskUsageSample(**values))
 
     return results
 
 
 def get_top():
-    p = subprocess.Popen(
-        TOP_CMD, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE
-    )
+    p = subprocess.Popen(TOP_CMD, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
     output, _ = p.communicate()
     output = output.strip().split('\n')
 
@@ -153,7 +158,7 @@ def get_top():
     for row in output[4:]:
         pos = 0
         values = {}
-        for key, length in PROCESS_FIELDS.iteritems():
+        for key, length in PROCESS_FIELDS.items():
             end_pos = pos + length
             values[key] = row[pos:end_pos].strip()
             pos = pos + length

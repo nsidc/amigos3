@@ -12,6 +12,7 @@ from honcho.config import (
     SBD_QUEUE_DIR,
     SBD_QUEUE_ROOT_DIR,
     SBD_QUEUE_MAX_TIME,
+    SBD_STARTUP_WAIT,
     GPIO,
     TIMESTAMP_FILENAME_FMT,
 )
@@ -26,8 +27,10 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def sbd_components():
     with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
-        logging.debug('Sleeping for 30 seconds for iridium startup')
-        sleep(30)
+        logging.debug(
+            'Sleeping for {0} seconds for iridium startup'.format(SBD_STARTUP_WAIT)
+        )
+        sleep(SBD_STARTUP_WAIT)
         yield
 
 

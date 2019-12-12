@@ -62,7 +62,7 @@ def is_on(component):
 def powered(components):
     for component in components:
         if is_on(component):
-            if component == GPIO.HUB and HUB_ALWAYS_ON:
+            if component == GPIO.HUB and is_on(GPIO.HUB) and HUB_ALWAYS_ON:
                 continue
             raise Exception('{0} requested but already powered on'.format(component))
         logger.debug('Turning on {0}'.format(component))

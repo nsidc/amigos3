@@ -1,4 +1,4 @@
-.PHONY: env submodules clean lint test serial-con install-ssh-key ssh-con
+.PHONY: env submodules clean lint test serial-con ssh-con sync
 .DEFAULT_GOAL := help
 
 SHELL=/bin/bash
@@ -47,6 +47,8 @@ ssh-con: # Connect to triton over ssh
 # --------------------------------------------------------------------------------
 # Deployment
 # --------------------------------------------------------------------------------
+
+sync: sync-system sync-code
 
 sync-system: 
 	ssh root@amigos "mount / -o remount,rw"

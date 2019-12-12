@@ -19,11 +19,10 @@ def init_logging(log_level=LOG_LEVEL, directory=LOG_DIR):
 
 
 def add_console_logging(logger, level):
-    ch = logging.StreamHandler()
-    ch.setLevel(level)
-    formatter = LOG_FORMATTER
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(level)
+    stream_handler.setFormatter(LOG_FORMATTER)
+    logger.addHandler(stream_handler)
 
 
 def add_file_logging(logger, level, directory=LOG_DIR, filename=LOG_FILENAME):
@@ -35,3 +34,6 @@ def add_file_logging(logger, level, directory=LOG_DIR, filename=LOG_FILENAME):
     file_handler.setFormatter(LOG_FORMATTER)
     file_handler.setLevel(level)
     logger.addHandler(file_handler)
+
+
+init_logging()

@@ -100,7 +100,7 @@ def process_measurements(measurements):
 
 def write(metadata, measurements, filepath):
     with open(filepath, "w") as f:
-        for k, v in metadata.iteritems():
+        for k, v in metadata.items():
             f.write('# ' + str(k) + '=' + str(v) + '\n')
 
         f.write("length,stokes,anti_stokes,reverse_stokes,reverse_anti_stokes,temp\n")

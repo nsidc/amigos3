@@ -12,6 +12,8 @@ import tarfile
 from netrc import netrc
 
 from honcho.config import (
+    ARCHIVE_DIR,
+    LOG_DIR,
     DATA_DIR,
     DATA_TAGS,
     SBD_QUEUE_DIR,
@@ -35,7 +37,14 @@ def ensure_all_dirs():
     ensure_dirs(
         [DATA_DIR(tag) for tag in DATA_TAGS]
         + [SBD_QUEUE_DIR(tag) for tag in DATA_TAGS]
-        + [ORDERS_DIR, RESULTS_DIR, DTS_RAW_DATA_DIR, UPLOAD_QUEUE_DIR]
+        + [
+            LOG_DIR,
+            ORDERS_DIR,
+            RESULTS_DIR,
+            DTS_RAW_DATA_DIR,
+            UPLOAD_QUEUE_DIR,
+            ARCHIVE_DIR,
+        ]
     )
 
 

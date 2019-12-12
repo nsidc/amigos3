@@ -13,7 +13,7 @@ from honcho.config import (
     SBD_QUEUE_DIR,
     UPLOAD_QUEUE_DIR,
     DIRECTORIES_TO_MONITOR,
-    START_NORMAL_SCHEDULE_SCRIPT,
+    START_SCHEDULE_COMMAND,
     MAINTENANCE_HOUR,
     TIMESTAMP_FMT,
 )
@@ -37,14 +37,14 @@ def serialize(
     timestamp, top, card_usage, measurement_counts, sbd_queue_counts, directory_sizes
 ):
     serialized = SEP.join(
-        [timestamp.strftime(TIMESTAMP_FMT), UNIT]
-        + top.mem
-        + top.cpu
-        + top.load_average
-        + card_usage
-        + measurement_counts
-        + sbd_queue_counts
-        + directory_sizes
+        [timestamp.strftime(TIMESTAMP_FMT), UNIT.NAME]
+        + list(str(el) for el in top.mem)
+        + list(str(el) for el in top.cpu)
+        + list(str(el) for el in top.load_average)
+        + list(str(el) for el in card_usage)
+        + list(str(el) for el in measurement_counts)
+        + list(str(el) for el in sbd_queue_counts)
+        + list(str(el) for el in directory_sizes)
     )
     return serialized
 
@@ -80,8 +80,8 @@ def get_upload_queue_count():
 def get_directory_sizes():
     return DirectorySizeSample(
         **dict(
-            (os.path.basename(directory), len(os.listdir(directory)))
-            for directory in DIRECTORIES_TO_MONITOR
+            (key, len(os.listdir(directory)))
+            for key, directory in DIRECTORIES_TO_MONITOR.items()
         )
     )
 
@@ -121,7 +121,7 @@ def execute():
     # Start schedule if not running
     top_sample = get_top()
     if check_schedule(top_sample) is None:
-        subprocess.Popen([START_NORMAL_SCHEDULE_SCRIPT], shell=True)
+        subprocess.Popen([START_SCHEDULE_COMMAND], shell=True)
 
 
 if __name__ == '__main__':

@@ -13,14 +13,14 @@ from honcho.core.ftp import ftp_session
 
 logger = getLogger(__name__)
 
-_RESULT_KEYS = ('output', 'start_time', 'finish_time', 'return_code')
+_RESULT_KEYS = ('filename', 'output', 'start_time', 'finish_time', 'return_code')
 Result = namedtuple('Result', _RESULT_KEYS)
 
 
 def get_orders():
     with ftp_session() as ftp:
         ftp.cwd(FTP_ORDERS_DIR)
-        orders_scripts = ftp.nlst()
+        orders_scripts = [el for el in ftp.nlst() if el not in ('.', '..', 'results')]
         for filename in orders_scripts:
             logger.info('Retrieving orders: {0}'.format(filename))
             local_script_filepath = os.path.join(ORDERS_DIR, filename)
@@ -30,12 +30,12 @@ def get_orders():
 
 def run_script(script_filepath):
     os.chmod(script_filepath, stat.S_IREAD | stat.S_IWRITE | stat.S_IEXEC)
-    start_time = datetime.now().isoformat()
+    start_time = datetime.now()
     p = subprocess.Popen(
         script_filepath, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE
     )
     output, _ = p.communicate()
-    finish_time = datetime.now().isoformat()
+    finish_time = datetime.now()
     return_code = p.returncode
 
     return Result(
@@ -54,7 +54,7 @@ def serialize(result):
             result.filename,
             result.start_time.isoformat(),
             result.finish_time.isoformat(),
-            result.return_code,
+            str(result.return_code),
         ]
     )
 
@@ -89,10 +89,10 @@ def report_results():
                 os.path.join(RESULTS_DIR, result_filename)
             )
             with open(result_filepath, 'r') as fi:
-                ftp.storlines('STOR {}'.format(result_filename), fi)
+                ftp.storlines('STOR {0}'.format(result_filename), fi)
 
 
-def clean_up():
+def cleanup():
     orders_filepaths = [os.path.join(ORDERS_DIR, el) for el in os.listdir(ORDERS_DIR)]
     results_filepaths = [
         os.path.join(RESULTS_DIR, el) for el in os.listdir(RESULTS_DIR)
@@ -108,4 +108,4 @@ def execute():
     get_orders()
     perform_orders()
     report_results()
-    clean_up()
+    cleanup()

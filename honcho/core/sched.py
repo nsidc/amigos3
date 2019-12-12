@@ -47,9 +47,12 @@ def select_schedule(date):
 
 
 def load_schedule(scheduler, config):
-    for period, time, task_module in config:
+    for spec, task_module in config:
         task = import_task(task_module)
-        getattr(scheduler.every(), period).at(time).do(task.execute)
+        try:
+            eval(spec).do(task.execute)
+        except (SyntaxError, NameError):
+            continue
 
 
 def idle_check(scheduler):

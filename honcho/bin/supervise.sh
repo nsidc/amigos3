@@ -1,4 +1,3 @@
 #!/usr/bin/env bash
-source set_paths.sh
 
-honcho supervise --execute
+honcho supervise --run >> /media/mmcblk0p1/logs/supervisor.log 2>&1
