@@ -2,30 +2,29 @@ import logging
 from datetime import datetime
 from collections import namedtuple
 
-from honcho.util import fail_gracefully, log_execution, serialize_datetime
+from honcho.util import fail_gracefully, log_execution
 from honcho.core.onboard import get_voltage
-from honcho.core.data import log_data
-from honcho.config import MIN_SYSTEM_VOLTAGE, MAX_SYSTEM_SLEEP, SEP, DATA_TAGS
+import honcho.core.data as data
+from honcho.config import MIN_SYSTEM_VOLTAGE, MAX_SYSTEM_SLEEP, DATA_TAGS, TIMESTAMP_FMT
 from honcho.core.system import system_standby
 
 logger = logging.getLogger(__name__)
 
 
-PowerSample = namedtuple('PowerSample', ('timestamp', 'voltage'))
-
-
-def serialize(sample):
-    serialized = SEP.join(
-        [serialize_datetime(sample.timestamp), '{0:.2f}'.format(sample.voltage)]
-    )
-
-    return serialized
+_DATA_KEYS = ('timestamp', 'voltage')
+DATA_KEYS = namedtuple('DATA_KEYS', (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)
+PowerSample = namedtuple('PowerSample', DATA_KEYS)
+CONVERSION_TO_STRING = {
+    DATA_KEYS.TIMESTAMP: '{0:' + TIMESTAMP_FMT + '}',
+    DATA_KEYS.VOLTAGE: '{0:.4f}',
+}
 
 
 def voltage_check():
     sample = PowerSample(timestamp=datetime.now(), voltage=get_voltage())
     logger.info('Current voltage {0:.2f}'.format(sample.voltage))
-    log_data(serialize(sample), DATA_TAGS.PWR)
+    serialized = data.serialize(sample, CONVERSION_TO_STRING)
+    data.log_serialized(serialized, DATA_TAGS.PWR)
     voltage_ok = sample.voltage >= MIN_SYSTEM_VOLTAGE
     if not voltage_ok:
         logger.warning(

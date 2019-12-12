@@ -11,15 +11,32 @@ from time import sleep, time
 import tarfile
 from netrc import netrc
 
-logger = getLogger(__name__)
+from honcho.config import (
+    DATA_DIR,
+    DATA_TAGS,
+    SBD_QUEUE_DIR,
+    ORDERS_DIR,
+    RESULTS_DIR,
+    DTS_RAW_DATA_DIR,
+    UPLOAD_QUEUE_DIR,
+)
 
-from honcho.config import TIMESTAMP_FMT, TIMESTAMP_FILENAME_FMT
+
+logger = getLogger(__name__)
 
 
 def ensure_dirs(directories):
     for directory in directories:
         if not os.path.exists(directory):
             os.makedirs(directory)
+
+
+def ensure_all_dirs():
+    ensure_dirs(
+        [DATA_DIR(tag) for tag in DATA_TAGS]
+        + [SBD_QUEUE_DIR(tag) for tag in DATA_TAGS]
+        + [ORDERS_DIR, RESULTS_DIR, DTS_RAW_DATA_DIR, UPLOAD_QUEUE_DIR]
+    )
 
 
 def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
@@ -182,17 +199,7 @@ def get_creds(host):
     return user, passwd
 
 
-def serialize_datetime(dt):
-    s = dt.strftime(TIMESTAMP_FMT)
-    return s
-
-
-def serialize_datetime_for_filepath(dt):
-    s = dt.strftime(TIMESTAMP_FILENAME_FMT)
-    return s
-
-
-def deserialize_datetime(s):
+def deserialize_timestamp(s):
     dt = datetime.strftime(s, '%Y-%m-%dT%H:%M:%S')
 
     return dt

@@ -4,10 +4,10 @@ from datetime import datetime
 
 from pycampbellcr1000 import CR1000
 
-from honcho.config import CR1000X_URL, SEP, DATA_TAGS, GPIO
-from honcho.util import fail_gracefully, log_execution, serialize_datetime
+from honcho.config import CR1000X_URL, DATA_TAGS, GPIO, TIMESTAMP_FMT
+from honcho.util import fail_gracefully, log_execution
 from honcho.tasks.sbd import queue_sbd
-from honcho.core.data import log_data
+import honcho.core.data as data
 from honcho.core.gpio import powered
 
 
@@ -36,34 +36,32 @@ _DATA_KEYS = (
     'TCDT',
 )
 DATA_KEYS = namedtuple('DATA_KEYS', (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)
-_VALUE_KEYS = DATA_KEYS[1:]
-VALUE_KEYS = namedtuple('VALUE_KEYS', _VALUE_KEYS)(*_VALUE_KEYS)
-STRING_CONVERSIONS = {
-    VALUE_KEYS.TIMESTAMP: '{0:.4f}',
-    VALUE_KEYS.BATT_VOLT: '{0:.4f}',
-    VALUE_KEYS.PTEMP_C: '{0:.4f}',
-    VALUE_KEYS.R6: '{0:.4f}',
-    VALUE_KEYS.R10: '{0:.4f}',
-    VALUE_KEYS.R20: '{0:.4f}',
-    VALUE_KEYS.R40: '{0:.4f}',
-    VALUE_KEYS.R2_5: '{0:.4f}',
-    VALUE_KEYS.R4_5: '{0:.4f}',
-    VALUE_KEYS.R6_5: '{0:.4f}',
-    VALUE_KEYS.R8_5: '{0:.4f}',
-    VALUE_KEYS.T6: '{0:.4f}',
-    VALUE_KEYS.T10: '{0:.4f}',
-    VALUE_KEYS.T20: '{0:.4f}',
-    VALUE_KEYS.T40: '{0:.4f}',
-    VALUE_KEYS.T2_5: '{0:.4f}',
-    VALUE_KEYS.T4_5: '{0:.4f}',
-    VALUE_KEYS.T6_5: '{0:.4f}',
-    VALUE_KEYS.T8_5: '{0:.4f}',
-    VALUE_KEYS.DT: '{0:.4f}',
-    VALUE_KEYS.Q: '{0:.4f}',
-    VALUE_KEYS.TCDT: '{0:.4f}',
+CONVERSION_TO_STRING = {
+    DATA_KEYS.TIMESTAMP: '{0:' + TIMESTAMP_FMT + '}',
+    DATA_KEYS.BATT_VOLT: '{0:.4f}',
+    DATA_KEYS.PTEMP_C: '{0:.4f}',
+    DATA_KEYS.R6: '{0:.4f}',
+    DATA_KEYS.R10: '{0:.4f}',
+    DATA_KEYS.R20: '{0:.4f}',
+    DATA_KEYS.R40: '{0:.4f}',
+    DATA_KEYS.R2_5: '{0:.4f}',
+    DATA_KEYS.R4_5: '{0:.4f}',
+    DATA_KEYS.R6_5: '{0:.4f}',
+    DATA_KEYS.R8_5: '{0:.4f}',
+    DATA_KEYS.T6: '{0:.4f}',
+    DATA_KEYS.T10: '{0:.4f}',
+    DATA_KEYS.T20: '{0:.4f}',
+    DATA_KEYS.T40: '{0:.4f}',
+    DATA_KEYS.T2_5: '{0:.4f}',
+    DATA_KEYS.T4_5: '{0:.4f}',
+    DATA_KEYS.T6_5: '{0:.4f}',
+    DATA_KEYS.T8_5: '{0:.4f}',
+    DATA_KEYS.DT: '{0:.4f}',
+    DATA_KEYS.Q: '{0:.4f}',
+    DATA_KEYS.TCDT: '{0:.4f}',
 }
 
-Sample = namedtuple('Sample', _DATA_KEYS)
+CR1000XSample = namedtuple('CR1000XSample', DATA_KEYS)
 
 
 @contextmanager
@@ -84,26 +82,17 @@ def get_last_sample():
             data = device.get_raw_packets("Public")
             fields = data[0]['RecFrag'][0]['Fields']
             fields['timestamp'] = datetime.now()  # TODO: should be in data
-            sample = Sample(*fields)
+            sample = CR1000XSample(**fields)
 
     return sample
-
-
-def serialize(sample):
-    serialized = SEP.join(
-        [serialize_datetime(sample.TIMESTAMP), sample.DEVICE_ID]
-        + [STRING_CONVERSIONS[key].format(getattr(sample, key)) for key in VALUE_KEYS]
-    )
-
-    return serialized
 
 
 @fail_gracefully
 @log_execution
 def execute():
     sample = get_last_sample()
-    serialized = serialize(sample)
-    log_data(serialized, DATA_TAGS.SBD)
+    serialized = data.serialize(sample, CONVERSION_TO_STRING)
+    data.log_serialized(serialized, DATA_TAGS.SBD)
     queue_sbd(DATA_TAGS.SBD, serialized)
 
 

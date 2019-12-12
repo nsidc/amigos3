@@ -2,7 +2,6 @@ import os
 import logging
 from time import sleep
 from datetime import datetime, timedelta
-from datetime import datetime, timedelta
 from contextlib import closing
 
 from serial import Serial
@@ -18,6 +17,8 @@ from honcho.config import (
     GPS_BAUD,
     GPS_STARTUP_WAIT,
     GPIO,
+    SECONDS_PER_MEASUREMENT,
+    MEASUREMENTS,
 )
 
 logger = logging.getLogger(__name__)

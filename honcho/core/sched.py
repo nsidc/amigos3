@@ -4,6 +4,7 @@ import logging
 
 from schedule.schedule import Scheduler
 
+from honcho.util import ensure_all_dirs
 from honcho.logs import init_logging
 from honcho.config import (
     MODE,
@@ -59,6 +60,7 @@ def idle_check(scheduler):
 
 
 def execute():
+    ensure_all_dirs()
     init_logging()
     set_awake_gpio_state()
 

@@ -1,6 +1,5 @@
 import os
 import signal
-import re
 import subprocess
 from datetime import datetime
 from logging import getLogger
@@ -16,15 +15,17 @@ from honcho.config import (
     DIRECTORIES_TO_MONITOR,
     START_NORMAL_SCHEDULE_SCRIPT,
     MAINTENANCE_HOUR,
+    TIMESTAMP_FMT,
 )
-from honcho.core.data import log_data
+import honcho.core.data as data
 from honcho.core.system import get_top, get_disk_usage
 
 from honcho.tasks.sbd import queue_sbd
 import honcho.tasks.archive as archive
 import honcho.tasks.orders as orders
-from honcho.util import log_execution, serialize_datetime
+from honcho.util import log_execution
 
+logger = getLogger(__name__)
 
 MeasurementsCountSample = namedtuple('MeasurementsCountSample', DATA_TAGS)
 SBDQueueCountSample = namedtuple('SBDQueueCountSample', DATA_TAGS)
@@ -36,7 +37,7 @@ def serialize(
     timestamp, top, card_usage, measurement_counts, sbd_queue_counts, directory_sizes
 ):
     serialized = SEP.join(
-        [serialize_datetime(timestamp)]
+        [timestamp.strftime(TIMESTAMP_FMT), UNIT]
         + top.mem
         + top.cpu
         + top.load_average
@@ -96,17 +97,16 @@ def execute():
     measurement_counts = get_measurement_counts()
     sbd_queue_counts = get_sbd_queue_counts()
     directory_sizes = get_directory_sizes()
-    queue_sbd(
-        DATA_TAGS.MON,
-        serialize(
-            timestamp,
-            top,
-            card_usage,
-            measurement_counts,
-            sbd_queue_counts,
-            directory_sizes,
-        ),
+    serialized = serialize(
+        timestamp,
+        top,
+        card_usage,
+        measurement_counts,
+        sbd_queue_counts,
+        directory_sizes,
     )
+    data.log_serialized(serialized, DATA_TAGS.MON)
+    queue_sbd(DATA_TAGS.MON, serialized)
 
     # If health critical
     #     Reboot

@@ -6,6 +6,11 @@ import honcho.tasks.aquadopp as aquadopp
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def short_serial_timeout(mocker):
+    mocker.patch('honcho.core.imm.IMM_COMMAND_TIMEOUT', 3)
+
+
 @pytest.fixture
 def imm_mock(serial_mock):
     def imm_listener(port):
@@ -17,14 +22,16 @@ def imm_mock(serial_mock):
 
             # write back the response
             if res == b'PwrOn\r\n':
-                os.write(port, b'<PowerOn/>\r\n')
+                os.write(port, b'<Executed/>\r\n')
+            elif res == b'PwrOff\r\n':
+                os.write(port, b'<Executed/>\r\n')
             elif res == b'ForceCaptureLine\r\n':
                 os.write(port, b'<Executed/>\r\n')
             elif res == b'ReleaseLine\r\n':
                 os.write(port, b'<Executed/>\r\n')
             elif res == b'SendWakeUpTone\r\n':
                 os.write(port, b'<Executing/>\r\n<Executed/>\r\n')
-            elif re.match(r'!\d{2}SAMPLEGETLAST' + re.escape('\r\n'), res):
+            elif re.match(r'!\d{2}SampleGetLast' + re.escape('\r\n'), res):
                 os.write(
                     port,
                     (
@@ -45,14 +52,16 @@ def imm_mock(serial_mock):
         yield serial
 
 
-def test_query_sample_smoke(imm_mock):
-    aquadopp.query_sample(imm_mock, device_id='20')
+def test_query_last_sample_smoke(imm_mock):
+    aquadopp.query_last_sample(imm_mock, device_id='20')
 
 
 def test_parse_sample(imm_mock):
-    expected_metadata = {'error': 0, 'status': 0}
-    expected_data = [
+    expected = aquadopp.AquadoppSample(
         datetime(2019, 10, 9, 15, 0, 0),
+        '20',
+        0,
+        0,
         0,
         48,
         -0.043,
@@ -72,41 +81,45 @@ def test_parse_sample(imm_mock):
         0,
         0.073,
         323.9,
-    ]
-    metadata, data = aquadopp.parse_sample(
-        device_id, aquadopp.query_sample(imm_mock, device_id='20')
+    )
+    result = aquadopp.parse_sample(
+        '20', aquadopp.query_last_sample(imm_mock, device_id='20')
     )
 
-    assert metadata == expected_metadata
-    assert data == expected_data
+    assert result == expected
 
 
-def test_get_data(imm_mock, mocker):
+def test_get_recent_samples(imm_mock, mocker):
     mocker.patch('honcho.core.imm.Serial', lambda *args, **kwargs: imm_mock)
     mocker.patch('honcho.core.imm.powered', mocker.stub())
 
-    expected_data = [
-        datetime(2019, 10, 9, 15, 0, 0),
-        0,
-        48,
-        -0.043,
-        0.059,
-        -0.105,
-        159,
-        135,
-        155,
-        13.1,
-        1519.8,
-        39.8,
-        -11.6,
-        0.5,
-        0.000,
-        19.43,
-        0,
-        0,
-        0.073,
-        323.9,
+    expected = [
+        aquadopp.AquadoppSample(
+            datetime(2019, 10, 9, 15, 0, 0),
+            '20',
+            0,
+            0,
+            0,
+            48,
+            -0.043,
+            0.059,
+            -0.105,
+            159,
+            135,
+            155,
+            13.1,
+            1519.8,
+            39.8,
+            -11.6,
+            0.5,
+            0.000,
+            19.43,
+            0,
+            0,
+            0.073,
+            323.9,
+        )
     ]
-    data = aquadopp.get_data('20')
+    result = aquadopp.get_recent_samples(['20'], n=1)
 
-    assert data == expected_data
+    assert result == expected

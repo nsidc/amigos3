@@ -1,32 +1,16 @@
 import os
-from ftplib import FTP
 from logging import getLogger
-from contextlib import closing
 from datetime import datetime
 
 from honcho.config import (
     LOG_DIR,
-    GPIO,
-    FTP_HOST,
-    FTP_TIMEOUT,
-    FTP_CONNECT_RETRIES,
     DATA_ROOT_DIR,
     DATA_DIR,
     DATA_TAGS,
-    UPLOAD_QUEUE_DIR,
-    UPLOAD_DATA_TAGS,
-    UPLOAD_CLEANUP,
     ARCHIVE_DIR,
+    TIMESTAMP_FILENAME_FMT,
 )
-from honcho.util import (
-    get_creds,
-    fail_gracefully,
-    log_execution,
-    file_size,
-    make_tarfile,
-    serialize_datetime,
-    clear_directory,
-)
+from honcho.util import fail_gracefully, log_execution, make_tarfile, clear_directory
 
 
 logger = getLogger(__name__)
@@ -34,13 +18,13 @@ logger = getLogger(__name__)
 
 def archive_data():
     for tag in DATA_TAGS:
-        name = tag + '_' + serialize_datetime(datetime.now()) + '.tgz'
+        name = tag + '_' + datetime.now().strftime(TIMESTAMP_FILENAME_FMT) + '.tgz'
         output_filepath = os.path.join(ARCHIVE_DIR, name)
         make_tarfile(output_filepath, DATA_DIR(tag))
 
 
 def archive_logs():
-    name = 'LOG_' + serialize_datetime(datetime.now()) + '.tgz'
+    name = 'LOG_' + datetime.now().strftime(TIMESTAMP_FILENAME_FMT) + '.tgz'
     output_filepath = os.path.join(ARCHIVE_DIR, name)
     make_tarfile(output_filepath, LOG_DIR)
 

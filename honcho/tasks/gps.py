@@ -1,5 +1,4 @@
 import re
-import subprocess
 from collections import namedtuple
 from datetime import datetime
 from time import sleep
@@ -7,66 +6,73 @@ from contextlib import closing
 
 from serial import Serial
 
-from honcho.util import fail_gracefully, log_execution, serialize_datetime
+from honcho.util import fail_gracefully, log_execution
 from honcho.util import serial_request
 from honcho.core.gpio import powered
-from honcho.config import GPIO, GPS_PORT, GPS_BAUD, DATA_TAGS, SEP, GPS_STARTUP_WAIT
+from honcho.core.system import set_datetime
+from honcho.config import (
+    GPIO,
+    GPS_PORT,
+    GPS_BAUD,
+    DATA_TAGS,
+    GPS_STARTUP_WAIT,
+    TIMESTAMP_FMT,
+)
 from honcho.tasks.sbd import queue_sbd
-from honcho.core.data import log_data
+import honcho.core.data as data
 
 _DATA_KEYS = (
-    'TIMESTAMP',
-    'LATITUDE',
-    'LATITUDE_HEMI',
-    'LONGITUDE',
-    'LONGITUDE_HEMI',
-    'QUALITY',
-    'SAT_COUNT',
-    'HDOP',
-    'ALTITUDE',
-    'ALTITUDE_UNITS',
-    'GEOID_SEP',
-    'GEOID_SEP_UNITS',
-    'AGE',
-    'REF_ID',
-    'CHECKSUM',
+    'timestamp',
+    'latitude',
+    'latitude_hemi',
+    'longitude',
+    'longitude_hemi',
+    'quality',
+    'sat_count',
+    'hdop',
+    'altitude',
+    'altitude_units',
+    'geoid_sep',
+    'geoid_sep_units',
+    'age',
+    'ref_id',
+    'checksum',
 )
-_VALUE_KEYS = _DATA_KEYS[1:]
-DATA_KEYS = namedtuple('DATA_KEYS', _DATA_KEYS)(*_DATA_KEYS)
-VALUE_KEYS = namedtuple('VALUE_KEYS', _VALUE_KEYS)(*_VALUE_KEYS)
-VALUE_CONVERSIONS = {
-    VALUE_KEYS.LATITUDE: float,
-    VALUE_KEYS.LATITUDE_HEMI: str,
-    VALUE_KEYS.LONGITUDE: float,
-    VALUE_KEYS.LONGITUDE_HEMI: str,
-    VALUE_KEYS.QUALITY: int,
-    VALUE_KEYS.SAT_COUNT: int,
-    VALUE_KEYS.HDOP: float,
-    VALUE_KEYS.ALTITUDE: float,
-    VALUE_KEYS.ALTITUDE_UNITS: str,
-    VALUE_KEYS.GEOID_SEP: float,
-    VALUE_KEYS.GEOID_SEP_UNITS: str,
-    VALUE_KEYS.AGE: float,
-    VALUE_KEYS.REF_ID: str,
-    VALUE_KEYS.CHECKSUM: lambda x: int(x, 16),
+DATA_KEYS = namedtuple('DATA_KEYS', (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)
+CONVERSION_TO_VALUE = {
+    DATA_KEYS.LATITUDE: float,
+    DATA_KEYS.LATITUDE_HEMI: str,
+    DATA_KEYS.LONGITUDE: float,
+    DATA_KEYS.LONGITUDE_HEMI: str,
+    DATA_KEYS.QUALITY: int,
+    DATA_KEYS.SAT_COUNT: int,
+    DATA_KEYS.HDOP: float,
+    DATA_KEYS.ALTITUDE: float,
+    DATA_KEYS.ALTITUDE_UNITS: str,
+    DATA_KEYS.GEOID_SEP: float,
+    DATA_KEYS.GEOID_SEP_UNITS: str,
+    DATA_KEYS.AGE: float,
+    DATA_KEYS.REF_ID: str,
+    DATA_KEYS.CHECKSUM: lambda x: int(x, 16),
 }
-STRING_CONVERSIONS = {
-    VALUE_KEYS.LATITUDE: '{0:.2f}',
-    VALUE_KEYS.LATITUDE_HEMI: '{0}',
-    VALUE_KEYS.LONGITUDE: '{0:.2f}',
-    VALUE_KEYS.LONGITUDE_HEMI: '{0}',
-    VALUE_KEYS.QUALITY: '{0}',
-    VALUE_KEYS.SAT_COUNT: '{0}',
-    VALUE_KEYS.HDOP: '{0:.2f}',
-    VALUE_KEYS.ALTITUDE: '{0:.4f}',
-    VALUE_KEYS.ALTITUDE_UNITS: '{0}',
-    VALUE_KEYS.GEOID_SEP: '{0:.4f}',
-    VALUE_KEYS.GEOID_SEP_UNITS: '{0:.2f}',
-    VALUE_KEYS.AGE: '{0:.1f}',
-    VALUE_KEYS.REF_ID: '{0}',
-    VALUE_KEYS.CHECKSUM: '{0:02X}',
+CONVERSION_TO_STRING = {
+    DATA_KEYS.TIMESTAMP: '{0:' + TIMESTAMP_FMT + '}',
+    DATA_KEYS.LATITUDE: '{0:.2f}',
+    DATA_KEYS.LATITUDE_HEMI: '{0}',
+    DATA_KEYS.LONGITUDE: '{0:.2f}',
+    DATA_KEYS.LONGITUDE_HEMI: '{0}',
+    DATA_KEYS.QUALITY: '{0}',
+    DATA_KEYS.SAT_COUNT: '{0}',
+    DATA_KEYS.HDOP: '{0:.2f}',
+    DATA_KEYS.ALTITUDE: '{0:.4f}',
+    DATA_KEYS.ALTITUDE_UNITS: '{0}',
+    DATA_KEYS.GEOID_SEP: '{0:.4f}',
+    DATA_KEYS.GEOID_SEP_UNITS: '{0:.2f}',
+    DATA_KEYS.AGE: '{0:.1f}',
+    DATA_KEYS.REF_ID: '{0}',
+    DATA_KEYS.CHECKSUM: '{0:02X}',
 }
-SAMPLE = namedtuple('SAMPLE', DATA_KEYS)
+GGASample = namedtuple('GGASample', DATA_KEYS)
 
 
 def query_gga(serial):
@@ -102,28 +108,15 @@ def parse_gga(raw, timestamp):
     timestamp = timestamp.replace(
         hour=time.hour, minute=time.minute, second=time.second
     )
+    data = [timestamp] + data[1:]
 
-    sample = SAMPLE(
-        timestamp=timestamp,
+    sample = GGASample(
         **dict(
-            (key, VALUE_CONVERSIONS[key](data[1:])) for i, key in enumerate(VALUE_KEYS)
+            (key, CONVERSION_TO_VALUE[key](data[i])) for i, key in enumerate(DATA_KEYS)
         )
     )
 
     return sample
-
-
-def serialize(sample):
-    serialized = SEP.join(
-        [serialize_datetime(sample.TIMESTAMP), sample.DEVICE_ID]
-        + [STRING_CONVERSIONS[key].format(getattr(sample, key)) for key in VALUE_KEYS]
-    )
-
-    return serialized
-
-
-def set_datetime(timestamp):
-    subprocess.check_call(['date', '-s', timestamp.strftime('%Y-%m-%d %H:%M:%S')])
 
 
 def get_gga():
@@ -137,19 +130,12 @@ def get_gga():
     return sample
 
 
-def print_samples(samples):
-    print(', '.join(DATA_KEYS))
-    print('-' * 80)
-    for sample in samples:
-        print(serialize(sample).replace(SEP, ', '))
-
-
 @fail_gracefully
 @log_execution
 def execute():
     sample = get_gga()
-    serialized = serialize(sample)
-    log_data(serialized, DATA_TAGS.GGA)
+    serialized = data.serialize(sample, CONVERSION_TO_STRING)
+    data.log_serialized(serialized, DATA_TAGS.GGA)
     queue_sbd(DATA_TAGS.GGA, serialized)
 
 

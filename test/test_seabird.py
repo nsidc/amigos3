@@ -6,6 +6,11 @@ import honcho.tasks.seabird as seabird
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def short_serial_timeout(mocker):
+    mocker.patch('honcho.core.imm.IMM_COMMAND_TIMEOUT', 3)
+
+
 @pytest.fixture
 def imm_mock(serial_mock):
     def imm_listener(port):
@@ -17,7 +22,9 @@ def imm_mock(serial_mock):
 
             # write back the response
             if res == b'PwrOn\r\n':
-                os.write(port, b'<PowerOn/>\r\n')
+                os.write(port, b'<Executed/>\r\n')
+            elif res == b'PwrOff\r\n':
+                os.write(port, b'<Executed/>\r\n')
             elif res == b'ForceCaptureLine\r\n':
                 os.write(port, b'<Executed/>\r\n')
             elif res == b'ReleaseLine\r\n':
@@ -31,12 +38,12 @@ def imm_mock(serial_mock):
                         b'<RemoteReply>start sample number = 7770\r\n'
                         b'start time = 09 Oct 2019 14:50:01\r\n'
                         b'\r\n'
-                        b'19.0395,  1.45496,   -1.627, 09 Oct 2019, 14:50:01, 7775\r\n'
-                        b'19.1149,  1.45735,   -1.649, 09 Oct 2019, 15:00:01, 7775\r\n'
-                        b'19.2158,  1.46027,   -1.644, 09 Oct 2019, 15:10:01, 7775\r\n'
-                        b'19.2948,  1.46287,   -1.639, 09 Oct 2019, 15:20:01, 7775\r\n'
-                        b'19.3569,  1.46486,   -1.635, 09 Oct 2019, 15:30:01, 7775\r\n'
-                        b'19.4796,  1.46918,   -1.608, 09 Oct 2019, 15:40:01, 7775\r\n'
+                        b'19.0395,  1.45496,   -1.627, 34.184, 09 Oct 2019, 14:50:01, 7775\r\n'  # noqa
+                        b'19.1149,  1.45735,   -1.649, 34.284, 09 Oct 2019, 15:00:01, 7775\r\n'  # noqa
+                        b'19.2158,  1.46027,   -1.644, 34.384, 09 Oct 2019, 15:10:01, 7775\r\n'  # noqa
+                        b'19.2948,  1.46287,   -1.639, 34.484, 09 Oct 2019, 15:20:01, 7775\r\n'  # noqa
+                        b'19.3569,  1.46486,   -1.635, 34.584, 09 Oct 2019, 15:30:01, 7775\r\n'  # noqa
+                        b'19.4796,  1.46918,   -1.608, 34.684, 09 Oct 2019, 15:40:01, 7775\r\n'  # noqa
                         b'<Executed/>\r\n'
                         b'</RemoteReply>\r\n'
                         b'<Executed/>\r\n'
@@ -73,40 +80,53 @@ def imm_mock(serial_mock):
 
 
 def test_query_samples_smoke(imm_mock):
-    seabird.query_samples(imm_mock, device_id='06', samples=6)
+    seabird.query_samples(imm_mock, device_id='06', n=6)
 
 
-def test_parse_samples(imm_mock):
-    expected_metadata = {
-        'start_time': datetime(2019, 10, 9, 14, 50, 1),
-    }
-    expected_data = SAMPLE(
-        [datetime(2019, 10, 9, 14, 50, 1), 19.0395, 1.45496, -1.627],
-        [datetime(2019, 10, 9, 15, 00, 1), 19.1149, 1.45735, -1.649],
-        [datetime(2019, 10, 9, 15, 10, 1), 19.2158, 1.46027, -1.644],
-        [datetime(2019, 10, 9, 15, 20, 1), 19.2948, 1.46287, -1.639],
-        [datetime(2019, 10, 9, 15, 30, 1), 19.3569, 1.46486, -1.635],
-        [datetime(2019, 10, 9, 15, 40, 1), 19.4796, 1.46918, -1.608],
-    ]
-    metadata, data = seabird.parse_samples(
-        device_id, seabird.query_samples(imm_mock, device_id='06', samples=6)
-    )
-
-    assert metadata == expected_metadata
-    assert data == expected_data
-
-
-def test_get_data(imm_mock, mocker):
+def test_get_recent_samples(imm_mock, mocker):
     mocker.patch('honcho.core.imm.Serial', lambda *args, **kwargs: imm_mock)
     mocker.patch('honcho.core.imm.powered', mocker.stub())
 
-    expected_data = [
-        datetime(2019, 10, 9, 14, 50, 1),
-        50.0,
-        19.250249999999998,
-        1.4615816666666666,
-        -1.6336666666666668,
+    device_id = '06'
+    expected = [
+        seabird.SeabirdSample(
+            datetime(2019, 10, 9, 14, 50, 1), '06', 19.0395, 1.45496, -1.627, 34.184
+        ),
+        seabird.SeabirdSample(
+            datetime(2019, 10, 9, 15, 00, 1), '06', 19.1149, 1.45735, -1.649, 34.284
+        ),
+        seabird.SeabirdSample(
+            datetime(2019, 10, 9, 15, 10, 1), '06', 19.2158, 1.46027, -1.644, 34.384
+        ),
+        seabird.SeabirdSample(
+            datetime(2019, 10, 9, 15, 20, 1), '06', 19.2948, 1.46287, -1.639, 34.484
+        ),
+        seabird.SeabirdSample(
+            datetime(2019, 10, 9, 15, 30, 1), '06', 19.3569, 1.46486, -1.635, 34.584
+        ),
+        seabird.SeabirdSample(
+            datetime(2019, 10, 9, 15, 40, 1), '06', 19.4796, 1.46918, -1.608, 34.684
+        ),
     ]
-    data = seabird.get_data('06', samples=6)
+    result = seabird.get_recent_samples([device_id], n=6)
 
-    assert data == expected_data
+    assert result == expected
+
+
+def test_get_averaged_sample(imm_mock, mocker):
+    mocker.patch('honcho.core.imm.Serial', lambda *args, **kwargs: imm_mock)
+    mocker.patch('honcho.core.imm.powered', mocker.stub())
+
+    expected = [
+        seabird.SeabirdSample(
+            datetime(2019, 10, 9, 15, 15, 1),
+            '06',
+            19.250249999999998,
+            1.4615816666666666,
+            -1.6336666666666668,
+            34.434,
+        )
+    ]
+    result = seabird.get_averaged_samples(['06'], n=6)
+
+    assert result == expected

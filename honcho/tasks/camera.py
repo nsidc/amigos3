@@ -1,5 +1,4 @@
 import os
-from collections import namedtuple
 import subprocess
 from tempfile import NamedTemporaryFile
 from datetime import datetime
@@ -8,7 +7,7 @@ import xml.etree.ElementTree as ET
 import requests
 from requests.auth import HTTPDigestAuth
 
-from honcho.util import fail_gracefully, OrderedDict, serialize_datetime, log_execution
+from honcho.util import fail_gracefully, log_execution
 from honcho.config import (
     DATA_DIR,
     DATA_TAGS,
@@ -19,7 +18,6 @@ from honcho.config import (
     CAMERA_USERNAME,
     CAMERA_PASSWORD,
     IMAGE_REDUCTION_FACTOR,
-    LOOKS,
     PTZ_SERVICE_URL,
     PTZ,
     LOOK_PTZ,
@@ -27,6 +25,7 @@ from honcho.config import (
     SNAPSHOP_URL,
     DJPEG_COMMAND,
     CJPEG_COMMAND,
+    TIMESTAMP_FILENAME_FMT,
 )
 from honcho.tasks.upload import stage_path
 
@@ -124,7 +123,7 @@ def set_ptz(pan, tilt, zoom):
     zoom.attrib['x'] = serialize(zoom)
 
     data = ET.tostring(root)
-    response = requests.post(PTZ_SERVICE_URL, data=data, headers=headers)
+    requests.post(PTZ_SERVICE_URL, data=data, headers=headers)
 
 
 def snapshot(filepath):
@@ -164,15 +163,16 @@ def execute():
         ptz = LOOK_PTZ[look]
         set_ptz(*ptz)
 
+        timestamp = datetime.now()
         full_res_filename = '{timestamp}_{look}_full.jpg'.format(
-            timestamp=serialize_datetime(datetime.now()), look=look
+            timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
         )
         full_res_filepath = os.path.join(DATA_DIR(DATA_TAGS.CAM), full_res_filename)
         snapshot(full_res_filepath)
 
         low_res_dir = os.path.join(DATA_DIR(DATA_TAGS.CAM), 'low_res')
         low_res_filename = '{timestamp}_{look}_low.jpg'.format(
-            timestamp=serialize_datetime(datetime.now()), look=look
+            timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
         )
         low_res_filepath = os.path.join(low_res_dir, low_res_filename)
         reduce_image(full_res_filepath, low_res_filepath, IMAGE_REDUCTION_FACTOR)

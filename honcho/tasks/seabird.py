@@ -4,49 +4,43 @@ from logging import getLogger
 from collections import namedtuple
 import time
 
-from honcho.config import UNIT, DATA_TAGS, SEP
+from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT
 from honcho.core.imm import active_line, imm_components, REMOTE_RESPONSE_END
 from honcho.tasks.sbd import queue_sbd
-from honcho.core.data import log_data
-from honcho.util import (
-    serial_request,
-    fail_gracefully,
-    log_execution,
-    serialize_datetime,
-    deserialize_datetime,
-)
+import honcho.core.data as data
+from honcho.util import serial_request, fail_gracefully, log_execution
 
 logger = getLogger(__name__)
 
 _DATA_KEYS = (
-    'TIMESTAMP',
-    'DEVICE_ID',
-    'TEMPERATURE',
-    'CONDUCTIVITY',
-    'PRESSURE',
-    'SALINITY',
+    'timestamp',
+    'device_id',
+    'temperature',
+    'conductivity',
+    'pressure',
+    'salinity',
 )
-_VALUE_KEYS = _DATA_KEYS[2:]
-DATA_KEYS = namedtuple('DATA_KEYS', _DATA_KEYS)(*_DATA_KEYS)
-VALUE_KEYS = namedtuple('VALUE_KEYS', _VALUE_KEYS)(*_VALUE_KEYS)
-VALUE_CONVERSIONS = {
-    VALUE_KEYS.TEMPERATURE: float,
-    VALUE_KEYS.CONDUCTIVITY: float,
-    VALUE_KEYS.PRESSURE: float,
-    VALUE_KEYS.SALINITY: float,
+DATA_KEYS = namedtuple('DATA_KEYS', (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)
+CONVERSION_TO_VALUE = {
+    DATA_KEYS.TEMPERATURE: float,
+    DATA_KEYS.CONDUCTIVITY: float,
+    DATA_KEYS.PRESSURE: float,
+    DATA_KEYS.SALINITY: float,
 }
-STRING_CONVERSIONS = {
-    VALUE_KEYS.TEMPERATURE: '{0:.4f}',
-    VALUE_KEYS.CONDUCTIVITY: '{0:.5f}',
-    VALUE_KEYS.PRESSURE: '{0:.3f}',
-    VALUE_KEYS.SALINITY: '{0:.4f}',
+CONVERSION_TO_STRING = {
+    DATA_KEYS.TIMESTAMP: '{0:' + TIMESTAMP_FMT + '}',
+    DATA_KEYS.DEVICE_ID: '{0}',
+    DATA_KEYS.TEMPERATURE: '{0:.4f}',
+    DATA_KEYS.CONDUCTIVITY: '{0:.5f}',
+    DATA_KEYS.PRESSURE: '{0:.3f}',
+    DATA_KEYS.SALINITY: '{0:.4f}',
 }
-SAMPLE = namedtuple('SAMPLE', DATA_KEYS)
+SeabirdSample = namedtuple('SeabirdSample', DATA_KEYS)
 
 
-def query_samples(serial, device_id, samples=6):
+def query_samples(serial, device_id, n=6):
     raw = serial_request(
-        serial, '#{0}DN{1}'.format(device_id, samples), REMOTE_RESPONSE_END, timeout=10
+        serial, '#{0}DN{1}'.format(device_id, n), REMOTE_RESPONSE_END, timeout=10
     )
 
     return raw
@@ -73,12 +67,12 @@ def parse_samples(device_id, raw):
     header = dict([el.strip() for el in row.split('=')] for row in header.split('\r\n'))
     values = [[el.strip() for el in row.split(',')] for row in values.split('\r\n')]
     samples = [
-        SAMPLE(
-            TIMESTAMP=datetime.strptime(' '.join(row[4:-1]), '%d %b %Y %H:%M:%S'),
-            DEVICE_ID=device_id,
+        SeabirdSample(
+            timestamp=datetime.strptime(' '.join(row[4:-1]), '%d %b %Y %H:%M:%S'),
+            device_id=device_id,
             **dict(
-                (key, VALUE_CONVERSIONS[key](row[i]))
-                for i, key in enumerate(VALUE_KEYS)
+                (key, CONVERSION_TO_VALUE[key](row[i]))
+                for i, key in enumerate(DATA_KEYS[2:])
             )
         )
         for row in values
@@ -125,54 +119,23 @@ def get_averaged_samples(device_ids, n=6):
     averaged_samples = []
 
     for device_id in device_ids:
-        device_samples = [sample for sample in samples if sample.DEVICE_ID == device_id]
+        device_samples = [sample for sample in samples if sample.device_id == device_id]
         timestamp = datetime.fromtimestamp(
-            sum(time.mktime(sample.TIMESTAMP.timetuple()) for sample in device_samples)
+            sum(time.mktime(sample.timestamp.timetuple()) for sample in device_samples)
             / n
         )
-        averaged = SAMPLE(
-            TIMESTAMP=timestamp,
-            DEVICE_ID=device_id,
+        averaged = SeabirdSample(
+            timestamp=timestamp,
+            device_id=device_id,
             **dict(
                 (key, sum(getattr(sample, key) for sample in device_samples) / float(n))
-                for key in VALUE_KEYS
+                for key in DATA_KEYS[2:]
             )
         )
 
         averaged_samples.append(averaged)
 
     return averaged_samples
-
-
-def serialize(sample):
-    serialized = SEP.join(
-        [serialize_datetime(sample.TIMESTAMP), sample.DEVICE_ID]
-        + [STRING_CONVERSIONS[key].format(getattr(sample, key)) for key in VALUE_KEYS]
-    )
-
-    return serialized
-
-
-def deserialize(serialized):
-    split = serialized.split(SEP)
-
-    deserialized = SAMPLE(
-        TIMESTAMP=deserialize_datetime(split[0]),
-        DEVICE_ID=split[1],
-        **dict(
-            (key, VALUE_CONVERSIONS[key](split[2 + i]))
-            for i, key in enumerate(VALUE_KEYS)
-        )
-    )
-
-    return deserialized
-
-
-def print_samples(samples):
-    print(', '.join(DATA_KEYS))
-    print('-' * 80)
-    for sample in samples:
-        print(serialize(sample).replace(SEP, ', '))
 
 
 def start(device_ids):
@@ -215,8 +178,8 @@ def set_interval(device_ids, interval):
 def execute():
     samples = get_averaged_samples(UNIT.SEABIRD_IDS)
     for sample in samples:
-        serialized = serialize(sample)
-        log_data(serialized, DATA_TAGS.SBD)
+        serialized = data.serialize(sample, CONVERSION_TO_STRING)
+        data.log_serialized(serialized, DATA_TAGS.SBD)
         queue_sbd(DATA_TAGS.SBD, serialized)
 
 

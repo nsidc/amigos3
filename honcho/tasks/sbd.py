@@ -10,12 +10,14 @@ from honcho.config import (
     SBD_PORT,
     SBD_BAUD,
     SBD_QUEUE_DIR,
+    SBD_QUEUE_ROOT_DIR,
     SBD_QUEUE_MAX_TIME,
     GPIO,
+    TIMESTAMP_FILENAME_FMT,
 )
 from honcho.core.gpio import powered
 from honcho.core.iridium import send_sbd
-from honcho.util import fail_gracefully, log_execution, serialize_datetime_for_filepath
+from honcho.util import fail_gracefully, log_execution
 
 
 logger = logging.getLogger(__name__)
@@ -38,7 +40,7 @@ def send(message):
 
 def build_queue():
     queue = []
-    for dirpath, _, filenames in os.walk(SBD_QUEUE_DIR):
+    for dirpath, _, filenames in os.walk(SBD_QUEUE_ROOT_DIR):
         queue.extend([os.path.join(dirpath, filename) for filename in filenames])
 
     queue = sorted(queue, key=lambda x: os.path.split(x)[-1])
@@ -53,17 +55,18 @@ def send_queue(serial, timeout=SBD_QUEUE_MAX_TIME):
         with open(filepath, 'r') as f:
             tag = os.path.split(filepath)[-2]
             send_sbd(serial=serial, message=tag + ',' + f.read())
-            os.remove(filepath)
+
+        os.remove(filepath)
 
 
 def queue_sbd(tag, message):
     logging.debug('Queuing {0} message'.format(tag))
 
-    filename = serialize_datetime_for_filepath(datetime.now())
+    filename = datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
     filepath = os.path.join(SBD_QUEUE_DIR(tag), filename)
     while os.path.exists(filepath):
         sleep(1)
-        filename = serialize_datetime_for_filepath(datetime.now())
+        filename = datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
         filepath = os.path.join(SBD_QUEUE_DIR(tag), filename)
 
     with open(filepath, 'w') as f:

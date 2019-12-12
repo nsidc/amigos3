@@ -3,8 +3,8 @@ import logging
 
 import honcho.logs as logs
 from honcho.version import version
-from honcho.core.system import shutdown, reboot
 from honcho.config import GPIO, UNIT
+from honcho.util import ensure_all_dirs
 from honcho.tasks import import_task
 
 logger = logging.getLogger(__name__)
@@ -85,25 +85,28 @@ def add_gpio_parser(subparsers):
     )
 
 
+def system_handler(args):
+    from honcho.core.system import shutdown, reboot
+
+    if args.shutdown:
+        shutdown()
+    if args.reboot:
+        reboot()
+
+
 def add_system_parser(subparsers):
     parser = subparsers.add_parser('system')
+    parser.set_defaults(handler=system_handler)
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--shutdown",
         help="power down all peripherals and shutdown system",
-        action="append_const",
-        default=[],
-        const=shutdown,
-        dest='callbacks',
+        action="store_true",
+        dest='shutdown',
     )
     group.add_argument(
-        "--reboot",
-        help="reboot system",
-        action="append_const",
-        default=[],
-        const=reboot,
-        dest='callbacks',
+        "--reboot", help="reboot system", action="store_true", dest='reboot'
     )
 
 
@@ -480,7 +483,7 @@ def gps_handler(args):
 
     if args.get_gga:
         sample = gps.get_gga()
-        gps.print_samples([sample])
+        gps.print_samples([sample], gps.CONVERSION_TO_STRING)
     if args.get_binex:
         binex.get_binex()
     if args.get_tps:
@@ -570,6 +573,7 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
+    ensure_all_dirs()
     logs.init_logging()
 
     if hasattr(args, 'callbacks'):

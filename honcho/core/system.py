@@ -1,7 +1,7 @@
 import subprocess
 import logging
 import re
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 
 from honcho.core.gpio import all_off, set_awake_gpio_state
 from honcho.config import WATCHDOG_DEVICE, MAX_SYSTEM_SLEEP, KEEP_AWAKE
@@ -128,7 +128,8 @@ def get_disk_usage():
         pos = 0
         values = {}
         for key, length in DISK_USAGE_FIELDS:
-            values[key] = row[pos : pos + length].strip()
+            end_pos = pos + length
+            values[key] = row[pos:end_pos].strip()
             pos = pos + length
         results.append(DiskUsageSample(**values))
 
@@ -153,7 +154,8 @@ def get_top():
         pos = 0
         values = {}
         for key, length in PROCESS_FIELDS.iteritems():
-            values[key] = row[pos : pos + length].strip()
+            end_pos = pos + length
+            values[key] = row[pos:end_pos].strip()
             pos = pos + length
     processes.append(ProcessSample(**values))
 
@@ -163,3 +165,7 @@ def get_top():
         load_average=load_average_sample,
         processes=processes,
     )
+
+
+def set_datetime(timestamp):
+    subprocess.check_call(['date', '-s', timestamp.strftime('%Y-%m-%d %H:%M:%S')])

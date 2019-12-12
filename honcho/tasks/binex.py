@@ -2,7 +2,6 @@ import os
 import logging
 from time import sleep
 from datetime import datetime, timedelta
-from datetime import datetime, timedelta
 from contextlib import closing
 
 from serial import Serial
@@ -28,7 +27,10 @@ MEASUREMENTS = 4
 def query_binex(
     serial, output_filepath, n=MEASUREMENTS, interval=SECONDS_PER_MEASUREMENT
 ):
-    binex_cmd = 'out,,binex/{00_00,01_01,01_02,01_05,01_06,7E_00,7D_00,7F_02,7F_03,7F_04,7F_05}\r\n'
+    binex_cmd = (
+        'out,,binex/'
+        '{00_00,01_01,01_02,01_05,01_06,7E_00,7D_00,7F_02,7F_03,7F_04,7F_05}\r\n'
+    )
     count = 0
     with open(output_filepath, 'wb') as f:
         next_query = datetime.now()

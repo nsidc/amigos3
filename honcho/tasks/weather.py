@@ -5,79 +5,86 @@ from collections import namedtuple
 
 from serial import Serial
 
-from honcho.util import fail_gracefully, log_execution, serialize_datetime
-from honcho.config import WXT_PORT, WXT_BAUD, WXT_SAMPLES, DATA_TAGS, SEP, GPIO
+from honcho.util import fail_gracefully, log_execution
+from honcho.config import (
+    WXT_PORT,
+    WXT_BAUD,
+    WXT_SAMPLES,
+    DATA_TAGS,
+    GPIO,
+    TIMESTAMP_FMT,
+)
 from honcho.tasks.sbd import queue_sbd
-from honcho.core.data import log_data
+import honcho.core.data as data
 from honcho.core.gpio import powered
 
 _DATA_KEYS = (
-    'TIMESTAMP',
-    'WIND_DIRECTION',
-    'WIND_SPEED',
-    'TEMPERATURE',
-    'HUMIDITY',
-    'PRESSURE',
-    'RAIN_ACCUMULATION',
-    'RAIN_DURATION',
-    'RAIN_INTENSITY',
-    'RAIN_PEAK_INTENSITY',
-    'HAIL_ACCUMULATION',
-    'HAIL_DURATION',
-    'HAIL_INTENSITY',
-    'HAIL_PEAK_INTENSITY',
-    'HEATER_TEMPERATURE',
-    'HEATER_VOLTAGE',
-    'SUPPLY_VOLTAGE',
+    'timestamp',
+    'wind_direction',
+    'wind_speed',
+    'temperature',
+    'humidity',
+    'pressure',
+    'rain_accumulation',
+    'rain_duration',
+    'rain_intensity',
+    'rain_peak_intensity',
+    'hail_accumulation',
+    'hail_duration',
+    'hail_intensity',
+    'hail_peak_intensity',
+    'heater_temperature',
+    'heater_voltage',
+    'supply_voltage',
 )
-_VALUE_KEYS = _DATA_KEYS[1:]
-DATA_KEYS = namedtuple('DATA_KEYS', _DATA_KEYS)(*_DATA_KEYS)
-VALUE_KEYS = namedtuple('VALUE_KEYS', _VALUE_KEYS)(*_VALUE_KEYS)
-VALUE_CONVERSIONS = {
-    VALUE_KEYS.WIND_DIRECTION: float,
-    VALUE_KEYS.WIND_SPEED: float,
-    VALUE_KEYS.TEMPERATURE: float,
-    VALUE_KEYS.HUMIDITY: float,
-    VALUE_KEYS.PRESSURE: float,
-    VALUE_KEYS.RAIN_ACCUMULATION: float,
-    VALUE_KEYS.RAIN_DURATION: float,
-    VALUE_KEYS.RAIN_INTENSITY: float,
-    VALUE_KEYS.RAIN_PEAK_INTENSITY: float,
-    VALUE_KEYS.HAIL_ACCUMULATION: float,
-    VALUE_KEYS.HAIL_DURATION: float,
-    VALUE_KEYS.HAIL_INTENSITY: float,
-    VALUE_KEYS.HAIL_PEAK_INTENSITY: float,
-    VALUE_KEYS.HEATER_TEMPERATURE: float,
-    VALUE_KEYS.HEATER_VOLTAGE: float,
-    VALUE_KEYS.SUPPLY_VOLTAGE: float,
+DATA_KEYS = namedtuple('DATA_KEYS', (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)
+CONVERSION_TO_VALUE = {
+    DATA_KEYS.WIND_DIRECTION: float,
+    DATA_KEYS.WIND_SPEED: float,
+    DATA_KEYS.TEMPERATURE: float,
+    DATA_KEYS.HUMIDITY: float,
+    DATA_KEYS.PRESSURE: float,
+    DATA_KEYS.RAIN_ACCUMULATION: float,
+    DATA_KEYS.RAIN_DURATION: float,
+    DATA_KEYS.RAIN_INTENSITY: float,
+    DATA_KEYS.RAIN_PEAK_INTENSITY: float,
+    DATA_KEYS.HAIL_ACCUMULATION: float,
+    DATA_KEYS.HAIL_DURATION: float,
+    DATA_KEYS.HAIL_INTENSITY: float,
+    DATA_KEYS.HAIL_PEAK_INTENSITY: float,
+    DATA_KEYS.HEATER_TEMPERATURE: float,
+    DATA_KEYS.HEATER_VOLTAGE: float,
+    DATA_KEYS.SUPPLY_VOLTAGE: float,
 }
-STRING_CONVERSIONS = {
-    VALUE_KEYS.WIND_DIRECTION: '{0:.4f}',
-    VALUE_KEYS.WIND_SPEED: '{0:.4f}',
-    VALUE_KEYS.TEMPERATURE: '{0:.4f}',
-    VALUE_KEYS.HUMIDITY: '{0:.4f}',
-    VALUE_KEYS.PRESSURE: '{0:.4f}',
-    VALUE_KEYS.RAIN_ACCUMULATION: '{0:.4f}',
-    VALUE_KEYS.RAIN_DURATION: '{0:.4f}',
-    VALUE_KEYS.RAIN_INTENSITY: '{0:.4f}',
-    VALUE_KEYS.RAIN_PEAK_INTENSITY: '{0:.4f}',
-    VALUE_KEYS.HAIL_ACCUMULATION: '{0:.4f}',
-    VALUE_KEYS.HAIL_DURATION: '{0:.4f}',
-    VALUE_KEYS.HAIL_INTENSITY: '{0:.4f}',
-    VALUE_KEYS.HAIL_PEAK_INTENSITY: '{0:.4f}',
-    VALUE_KEYS.HEATER_TEMPERATURE: '{0:.4f}',
-    VALUE_KEYS.HEATER_VOLTAGE: '{0:.4f}',
-    VALUE_KEYS.SUPPLY_VOLTAGE: '{0:.4f}',
+CONVERSION_TO_STRING = {
+    DATA_KEYS.TIMESTAMP: '{0:' + TIMESTAMP_FMT + '}',
+    DATA_KEYS.WIND_DIRECTION: '{0:.4f}',
+    DATA_KEYS.WIND_SPEED: '{0:.4f}',
+    DATA_KEYS.TEMPERATURE: '{0:.4f}',
+    DATA_KEYS.HUMIDITY: '{0:.4f}',
+    DATA_KEYS.PRESSURE: '{0:.4f}',
+    DATA_KEYS.RAIN_ACCUMULATION: '{0:.4f}',
+    DATA_KEYS.RAIN_DURATION: '{0:.4f}',
+    DATA_KEYS.RAIN_INTENSITY: '{0:.4f}',
+    DATA_KEYS.RAIN_PEAK_INTENSITY: '{0:.4f}',
+    DATA_KEYS.HAIL_ACCUMULATION: '{0:.4f}',
+    DATA_KEYS.HAIL_DURATION: '{0:.4f}',
+    DATA_KEYS.HAIL_INTENSITY: '{0:.4f}',
+    DATA_KEYS.HAIL_PEAK_INTENSITY: '{0:.4f}',
+    DATA_KEYS.HEATER_TEMPERATURE: '{0:.4f}',
+    DATA_KEYS.HEATER_VOLTAGE: '{0:.4f}',
+    DATA_KEYS.SUPPLY_VOLTAGE: '{0:.4f}',
 }
-SAMPLE = namedtuple('SAMPLE', DATA_KEYS)
+WeatherSample = namedtuple('WeatherSample', DATA_KEYS)
 
 
 def parse_sample(s):
     row = s.split()
-    sample = SAMPLE(
+    sample = WeatherSample(
         TIMESTAMP=datetime.strptime(' '.join(row[4:-1]), '%d %b %Y %H:%M:%S'),
         **dict(
-            (key, VALUE_CONVERSIONS[key](row[i])) for i, key in enumerate(VALUE_KEYS)
+            (key, CONVERSION_TO_VALUE[key](row[i]))
+            for i, key in enumerate(DATA_KEYS[1:])
         )
     )
 
@@ -99,31 +106,15 @@ def average_samples(samples):
     timestamp = datetime.fromtimestamp(
         sum(time.mktime(sample.TIMESTAMP.timetuple()) for sample in samples) / n
     )
-    averaged = SAMPLE(
+    averaged = WeatherSample(
         timestamp=timestamp,
         **dict(
             (key, sum(getattr(sample, key) for sample in samples) / float(n))
-            for key in VALUE_KEYS
+            for key in DATA_KEYS[1:]
         )
     )
 
     return averaged
-
-
-def print_samples(samples):
-    print(', '.join(DATA_KEYS))
-    print('-' * 80)
-    for sample in samples:
-        print(serialize(sample).replace(SEP, ', '))
-
-
-def serialize(sample):
-    serialized = SEP.join(
-        [serialize_datetime(sample.TIMESTAMP)]
-        + [STRING_CONVERSIONS[key].format(getattr(sample, key)) for key in VALUE_KEYS]
-    )
-
-    return serialized
 
 
 @fail_gracefully
@@ -131,8 +122,8 @@ def serialize(sample):
 def execute():
     samples = get_samples(n=WXT_SAMPLES)
     average = average_samples(samples)
-    serialized = serialize(average)
-    log_data(serialized, DATA_TAGS.WXT)
+    serialized = data.serialize(average, CONVERSION_TO_STRING)
+    data.log_serialized(serialized, DATA_TAGS.WXT)
     queue_sbd(DATA_TAGS.WXT, serialized)
 
 

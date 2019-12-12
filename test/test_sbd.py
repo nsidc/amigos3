@@ -5,14 +5,9 @@ from datetime import datetime
 
 import pytest
 
-from honcho.config import SBD_MAX_SIZE
+from honcho.config import SBD_MAX_SIZE, TIMESTAMP_FILENAME_FMT
 from honcho.core.iridium import message_size
-from honcho.tasks.sbd import (
-    send,
-    queue_sbd,
-    send_queue,
-    clear_queue,
-)
+from honcho.tasks.sbd import send, queue_sbd, send_queue, clear_queue
 
 
 @pytest.fixture
@@ -63,19 +58,19 @@ def test_send_message(sbd_mock, mocker):
 def test_queue_sbd(tmpdir, sbd_mock, mocker):
     mocker.patch('honcho.tasks.sbd.Serial', lambda *args, **kwargs: sbd_mock)
     mocker.patch('honcho.tasks.sbd.powered', mocker.stub())
-    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    mocker.patch(
+        'honcho.tasks.sbd.SBD_QUEUE_DIR', lambda tag: os.path.join(str(tmpdir), tag)
+    )
 
     tag, message = 'test', 'message'
 
+    directory = tmpdir.join(tag)
+    directory.mkdir()
+
     queue_sbd(tag, message)
 
-    dirs = tmpdir.listdir()
-    assert len(dirs) == 1
-    assert dirs[0].basename == tag
-
-    files = tmpdir.join(tag).listdir()
+    files = directory.listdir()
     assert len(files) == 1
-    # assert re.matches(pattern, files[0].basename)
 
     sbd_file = files[0]
     assert sbd_file.read() == '{0},{1}'.format(tag, message)
@@ -83,12 +78,15 @@ def test_queue_sbd(tmpdir, sbd_mock, mocker):
 
 def test_send_queue(tmpdir, sbd_mock, mocker):
     mocker.patch('honcho.tasks.sbd.Serial', lambda *args, **kwargs: sbd_mock)
-    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    mocker.patch(
+        'honcho.tasks.sbd.SBD_QUEUE_DIR', lambda tag: os.path.join(str(tmpdir), tag)
+    )
+    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_ROOT_DIR', str(tmpdir))
     send = mocker.MagicMock()
     mocker.patch('honcho.tasks.sbd.send', send)
 
     tag, message = 'test', 'message'
-    filename = datetime.now().isoformat()
+    filename = datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
     directory = tmpdir.join(tag)
     directory.mkdir()
     filepath = tmpdir.join(tag).join(filename)
@@ -101,10 +99,13 @@ def test_send_queue(tmpdir, sbd_mock, mocker):
 
 
 def test_clear_queue(tmpdir, sbd_mock, mocker):
-    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    mocker.patch(
+        'honcho.tasks.sbd.SBD_QUEUE_DIR', lambda tag: os.path.join(str(tmpdir), tag)
+    )
+    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_ROOT_DIR', str(tmpdir))
 
     tag, message = 'test', 'message'
-    filename = datetime.now().isoformat()
+    filename = datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
     directory = tmpdir.join(tag)
     directory.mkdir()
     filepath = tmpdir.join(tag).join(filename)

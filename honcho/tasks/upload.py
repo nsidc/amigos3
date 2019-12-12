@@ -11,11 +11,10 @@ from honcho.config import (
     FTP_TIMEOUT,
     FTP_CONNECT_RETRIES,
     DATA_DIR,
-    DATA_TAGS,
     UPLOAD_QUEUE_DIR,
     UPLOAD_DATA_TAGS,
     UPLOAD_CLEANUP,
-    ARCHIVE_DIR,
+    TIMESTAMP_FILENAME_FMT,
 )
 from honcho.util import (
     get_creds,
@@ -23,8 +22,6 @@ from honcho.util import (
     log_execution,
     file_size,
     make_tarfile,
-    serialize_datetime,
-    clear_directory,
 )
 from honcho.core.gpio import powered
 
@@ -32,7 +29,12 @@ logger = getLogger(__name__)
 
 
 def stage_path(path, prefix=None):
-    name = os.path.basename(path) + '_' + serialize_datetime(datetime.now()) + '.tgz'
+    name = (
+        os.path.basename(path)
+        + '_'
+        + datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
+        + '.tgz'
+    )
     if prefix is not None:
         name = prefix + '_' + name
     output_filepath = os.path.join(UPLOAD_QUEUE_DIR, name)

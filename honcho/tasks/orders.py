@@ -2,23 +2,12 @@ import os
 import stat
 import subprocess
 from collections import namedtuple
-from contextlib import closing
 from datetime import datetime
 from logging import getLogger
 
-from honcho.util import get_creds, log_execution, fail_gracefully
-from honcho.core.gpio import powered
+from honcho.util import log_execution, fail_gracefully
 import honcho.tasks.sbd as sbd
-from honcho.config import (
-    SEP,
-    GPIO,
-    FTP_HOST,
-    FTP_TIMEOUT,
-    FTP_ORDERS_DIR,
-    FTP_RESULTS_DIR,
-    ORDERS_DIR,
-    RESULTS_DIR,
-)
+from honcho.config import SEP, FTP_ORDERS_DIR, FTP_RESULTS_DIR, ORDERS_DIR, RESULTS_DIR
 from honcho.core.ftp import ftp_session
 
 
