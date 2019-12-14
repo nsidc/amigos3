@@ -14,8 +14,7 @@ MODES = namedtuple('MODES', _MODES)(*_MODES)
 DEFAULT_MODE = MODES.NORMAL
 MODE = getattr(MODES, os.environ.get('MODE', DEFAULT_MODE))
 
-LOG_DIR = '/media/media/mmcblk0p1/logs'
-LOG_FILENAME = 'system.log'
+LOG_DIR = '/media/mmcblk0p1/logs'
 LOG_FORMATTER = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
@@ -119,18 +118,18 @@ SCHEDULES = {
         ('scheduler.every().day.at("18:10")', 'upload'),
     ),
     SCHEDULE_NAMES.TEST: (
-        ('scheduler.every().day.at("01:00")', 'tps'),
-        ('scheduler.every().day.at("02:00")', 'weather'),
-        ('scheduler.every().day.at("03:00")', 'camera'),
-        ('scheduler.every().day.at("06:00")', 'cr1000x'),
-        ('scheduler.every().hour.at("04:00")', 'seabird'),
-        ('scheduler.every().hour.at("05:00")', 'aquadopp'),
-        ('scheduler.every().day.at("08:00")', 'dts'),
-        ('scheduler.every().day.at("09:00")', 'upload'),
+        ('scheduler.every(15).minutes', 'tps'),
+        ('scheduler.every(15).minutes', 'weather'),
+        ('scheduler.every(15).minutes', 'camera'),
+        ('scheduler.every(15).minutes', 'cr1000x'),
+        ('scheduler.every(15).minutes', 'seabird'),
+        ('scheduler.every(15).minutes', 'aquadopp'),
+        ('scheduler.every(15).minutes', 'dts'),
+        ('scheduler.every(15).minutes', 'upload'),
     ),
     SCHEDULE_NAMES.SAFE: (
-        ('scheduler.every().hour.at(":59")', 'power'),
-        ('scheduler.every().day.at("00:00")', 'orders'),
+        ('scheduler.every(6).hours', 'power'),
+        ('scheduler.every(12).hours', 'orders'),
     ),
 }
 

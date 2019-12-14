@@ -1,20 +1,17 @@
 import logging
 import os
 
-from honcho.config import LOG_DIR, LOG_LEVEL, LOG_FILENAME, LOG_FORMATTER
+from honcho.config import LOG_DIR, LOG_LEVEL, LOG_FORMATTER
 
 logging_initialized = False
 
 
-def init_logging(log_level=LOG_LEVEL, directory=LOG_DIR):
+def init_logging(log_level=LOG_LEVEL):
     global logging_initialized
     if not logging_initialized:
         root_logger = logging.getLogger()
         root_logger.setLevel(log_level)
         add_console_logging(root_logger, log_level)
-        if directory is not None:
-            add_file_logging(root_logger, log_level, directory)
-
         logging_initialized = True
 
 
@@ -23,17 +20,6 @@ def add_console_logging(logger, level):
     stream_handler.setLevel(level)
     stream_handler.setFormatter(LOG_FORMATTER)
     logger.addHandler(stream_handler)
-
-
-def add_file_logging(logger, level, directory=LOG_DIR, filename=LOG_FILENAME):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    file_handler = logging.FileHandler(os.path.join(directory, filename))
-
-    file_handler.setFormatter(LOG_FORMATTER)
-    file_handler.setLevel(level)
-    logger.addHandler(file_handler)
 
 
 init_logging()
