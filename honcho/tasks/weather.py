@@ -122,7 +122,7 @@ def execute():
     average = average_samples(samples)
     serialized = data.serialize(average, CONVERSION_TO_STRING)
     data.log_serialized(serialized, DATA_TAGS.WXT)
-    queue_sbd(DATA_TAGS.WXT, serialized)
+    queue_sbd(serialized, DATA_TAGS.WXT)
 
 
 if __name__ == '__main__':

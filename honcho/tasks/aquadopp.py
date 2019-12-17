@@ -190,7 +190,7 @@ def execute():
     for sample in samples:
         serialized = data.serialize(sample, CONVERSION_TO_STRING)
         data.log_serialized(serialized, DATA_TAGS.AQD)
-        queue_sbd(DATA_TAGS.AQD, serialized)
+        queue_sbd(serialized, DATA_TAGS.AQD)
 
 
 if __name__ == '__main__':

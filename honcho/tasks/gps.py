@@ -136,7 +136,7 @@ def execute():
     sample = get_gga()
     serialized = data.serialize(sample, CONVERSION_TO_STRING)
     data.log_serialized(serialized, DATA_TAGS.GGA)
-    queue_sbd(DATA_TAGS.GGA, serialized)
+    queue_sbd(serialized, DATA_TAGS.GGA)
 
 
 if __name__ == '__main__':

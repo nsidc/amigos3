@@ -106,7 +106,7 @@ def execute():
         directory_sizes,
     )
     data.log_serialized(serialized, DATA_TAGS.MON)
-    queue_sbd(DATA_TAGS.MON, serialized)
+    queue_sbd(serialized, DATA_TAGS.MON)
 
     # If health critical
     #     Reboot

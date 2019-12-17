@@ -62,7 +62,7 @@ def send_queue(serial, timeout=SBD_QUEUE_MAX_TIME):
         os.remove(filepath)
 
 
-def queue_sbd(tag, message):
+def queue_sbd(message, tag):
     logging.debug('Queuing {0} message'.format(tag))
 
     filename = datetime.now().strftime(TIMESTAMP_FILENAME_FMT)

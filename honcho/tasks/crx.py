@@ -74,7 +74,7 @@ def execute():
     sample = get_last_sample()
     serialized = serialize(sample, CONVERSION_TO_STRING)
     log_serialized(serialized, DATA_TAGS.CRX)
-    queue_sbd(DATA_TAGS.SBD, serialized)
+    queue_sbd(serialized, DATA_TAGS.CRX)
 
 
 if __name__ == '__main__':
