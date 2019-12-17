@@ -10,6 +10,11 @@ from honcho.core.iridium import message_size
 from honcho.tasks.sbd import send, queue_sbd, send_queue, clear_queue
 
 
+@pytest.fixture(autouse=True)
+def skip_sleep(mocker):
+    mocker.patch('honcho.tasks.sbd.sleep', mocker.stub())
+
+
 @pytest.fixture
 def sbd_mock(serial_mock, mocker):
     def sbd_listener(port):
@@ -67,7 +72,7 @@ def test_queue_sbd(tmpdir, sbd_mock, mocker):
     directory = tmpdir.join(tag)
     directory.mkdir()
 
-    queue_sbd(tag, message)
+    queue_sbd(message, tag)
 
     files = directory.listdir()
     assert len(files) == 1

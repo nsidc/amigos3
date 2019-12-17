@@ -7,6 +7,11 @@ from honcho.config import DATA_TAGS
 import honcho.tasks.crx as crx
 
 
+@pytest.fixture(autouse=True)
+def skip_sleep(mocker):
+    mocker.patch('honcho.tasks.crx.sleep', mocker.stub())
+
+
 @pytest.fixture
 def crx_mock(mocker):
     @contextmanager
@@ -47,7 +52,7 @@ def crx_mock(mocker):
     yield mock
 
 
-def test_execute_smoke(crx_mock, mocker):
+def test_execute(crx_mock, mocker):
     log_serialized = mocker.MagicMock()
     queue_sbd = mocker.MagicMock()
     mocker.patch('honcho.tasks.crx.sleep', mocker.stub())
@@ -60,7 +65,7 @@ def test_execute_smoke(crx_mock, mocker):
         timestamp=datetime(2019, 12, 14, 22, 54, 30),
         RecNbr=178,
         R6=-1000506.4375,
-        TCDT='nan',
+        TCDT='nan',  # TODO: handle and fix
         T4_5=-248754.609375,
         T2_5=-259087.578125,
         R10=-994463.5625,
@@ -69,7 +74,7 @@ def test_execute_smoke(crx_mock, mocker):
         R6_5=-949568.5,
         R8_5=-950658.4375,
         T8_5=-248122.328125,
-        Q='nan',
+        Q='nan',  # TODO: handle and fix
         T6=-258624.5625,
         T6_5=-248710.578125,
         T10=-258036.5625,
@@ -78,10 +83,12 @@ def test_execute_smoke(crx_mock, mocker):
         T20=-248824.390625,
         R4_5=-951115.1875,
         Ptemp_C=20.85284423828125,
-        DT='nan',
+        DT='nan',  # TODO: handle and fix
         R20=-954313.5,
     )
+    expected_serialized = '2019-12-14T22:54:30,178,0.000,20.853,-1000506.4375,-994463.5625,-954313.5000,-994812.3125,-989970.9375,-951115.1875,-949568.5000,-950658.4375,-258624.562500,-258036.562500,-248824.390625,-257977.546875,-259087.578125,-248754.609375,-248710.578125,-248122.328125,nan,nan,nan'
     assert crx.get_last_sample() == expected_sample
     # Assert correct data logged
     assert log_serialized.called_once_with(expected_serialized, DATA_TAGS.CRX)
     # Assert correct data queued for sbd
+    assert queue_sbd.called_once_with(expected_serialized, DATA_TAGS.CRX)
