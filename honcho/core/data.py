@@ -10,9 +10,14 @@ def log_serialized(s, tag):
 
 
 def serialize(sample, conversions):
-    serialized = SEP.join(
-        [conversions[key].format(getattr(sample, key)) for key in sample._fields]
-    )
+    converted = []
+    for key in sample._fields:
+        try:
+            value = getattr(sample, key)
+            converted.append(conversions[key].format(value))
+        except:
+            converted.append(str(value))
+    serialized = SEP.join(converted)
 
     return serialized
 
