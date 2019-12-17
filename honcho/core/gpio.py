@@ -58,6 +58,11 @@ def is_on(component):
     return result
 
 
+def list():
+    for component in GPIO:
+        print('{0}: {1}'.format(component, 'ON' if is_on(component) else 'OFF'))
+
+
 @contextmanager
 def powered(components):
     for component in components:

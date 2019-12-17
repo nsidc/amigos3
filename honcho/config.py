@@ -87,7 +87,7 @@ SCHEDULES = {
         ('scheduler.every().hour.at(":57")', 'weather'),
         ('scheduler.every().hour.at(":50")', 'seabird'),
         ('scheduler.every().hour.at(":52")', 'aquadopp'),
-        ('scheduler.every().hour.at(":55")', 'cr1000x'),
+        ('scheduler.every().hour.at(":55")', 'crx'),
         ('scheduler.every().day.at("21:05")', 'dts'),
         ('scheduler.every().day.at("06:10")', 'upload'),
         ('scheduler.every().day.at("12:10")', 'upload'),
@@ -105,7 +105,7 @@ SCHEDULES = {
         ('scheduler.every().hour.at(":57")', 'weather'),
         ('scheduler.every().hour.at(":50")', 'seabird'),
         ('scheduler.every().hour.at(":52")', 'aquadopp'),
-        ('scheduler.every().hour.at(":55")', 'cr1000x'),
+        ('scheduler.every().hour.at(":55")', 'crx'),
         ('scheduler.every().day.at("03:05")', 'dts'),
         ('scheduler.every().day.at("07:05")', 'dts'),
         ('scheduler.every().day.at("11:05")', 'dts'),
@@ -121,7 +121,7 @@ SCHEDULES = {
         ('scheduler.every(15).minutes', 'tps'),
         ('scheduler.every(15).minutes', 'weather'),
         ('scheduler.every(15).minutes', 'camera'),
-        ('scheduler.every(15).minutes', 'cr1000x'),
+        ('scheduler.every(15).minutes', 'crx'),
         ('scheduler.every(15).minutes', 'seabird'),
         ('scheduler.every(15).minutes', 'aquadopp'),
         ('scheduler.every(15).minutes', 'dts'),
@@ -359,10 +359,11 @@ DJPEG_COMMAND = '/media/mmcblk0p1/honcho/scripts/djpeg'
 
 
 # --------------------------------------------------------------------------------
-# CR1000X
+# CRX
 # --------------------------------------------------------------------------------
 
-CR1000X_URL = 'tcp:192.168.0.30:6785'
+CRX_URL = 'tcp:192.168.0.30:6785'
+CRX_STARTUP_WAIT = 30
 
 
 # --------------------------------------------------------------------------------

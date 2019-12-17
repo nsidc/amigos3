@@ -53,6 +53,8 @@ def gpio_handler(args):
             gpio.turn_off(component)
     if args.all_off:
         gpio.all_off()
+    if args.list:
+        gpio.list()
 
 
 def add_gpio_parser(subparsers):
@@ -80,6 +82,10 @@ def add_gpio_parser(subparsers):
 
     group.add_argument(
         "--all-off", help="Turn off all gpio", action="store_true", dest='all_off'
+    )
+
+    group.add_argument(
+        "--list", help="List gpio status", action="store_true", dest='list'
     )
 
 
@@ -438,8 +444,10 @@ def add_camera_parser(subparsers):
     )
 
 
-def cr1000x_handler():
-    pass
+def cr1000x_handler(args):
+    cr1000x = import_task('cr1000x')
+    if args.run:
+        cr1000x.execute()
 
 
 def add_cr1000x_parser(subparsers):
