@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from serial import Serial
 
-from honcho.util import fail_gracefully, log_execution
+from honcho.util import fail_gracefully, log_execution, average_datetimes
 from honcho.config import (
     WXT_PORT,
     WXT_BAUD,
@@ -103,9 +103,7 @@ def get_samples(n=12):
 
 def average_samples(samples):
     n = len(samples)
-    timestamp = datetime.fromtimestamp(
-        sum(time.mktime(sample.TIMESTAMP.timetuple()) for sample in samples) / n
-    )
+    timestamp = average_datetimes([sample.timestamp for sample in samples])
     averaged = WeatherSample(
         timestamp=timestamp,
         **dict(

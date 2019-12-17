@@ -8,7 +8,12 @@ from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT
 from honcho.core.imm import active_line, imm_components, REMOTE_RESPONSE_END
 from honcho.tasks.sbd import queue_sbd
 import honcho.core.data as data
-from honcho.util import serial_request, fail_gracefully, log_execution
+from honcho.util import (
+    serial_request,
+    fail_gracefully,
+    log_execution,
+    average_datetimes,
+)
 
 logger = getLogger(__name__)
 
@@ -120,10 +125,7 @@ def get_averaged_samples(device_ids, n=6):
 
     for device_id in device_ids:
         device_samples = [sample for sample in samples if sample.device_id == device_id]
-        timestamp = datetime.fromtimestamp(
-            sum(time.mktime(sample.timestamp.timetuple()) for sample in device_samples)
-            / n
-        )
+        timestamp = average_datetimes([sample.timestamp for sample in device_samples])
         averaged = SeabirdSample(
             timestamp=timestamp,
             device_id=device_id,

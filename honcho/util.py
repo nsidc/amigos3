@@ -7,7 +7,7 @@ import traceback
 from inspect import getmodule
 from collections import MutableMapping
 from logging import getLogger
-from time import sleep, time
+from time import sleep, time, mktime
 import tarfile
 from netrc import netrc
 
@@ -242,3 +242,11 @@ def clear_directory(directory):
     for name in os.listdir(directory):
         path = os.path.join(directory, name)
         shutil.rmtree(path)
+
+
+def average_datetimes(datetimes):
+    averaged = datetime.fromtimestamp(
+        sum(mktime(dt.timetuple()) for dt in datetimes) / len(datetimes)
+    )
+
+    return averaged
