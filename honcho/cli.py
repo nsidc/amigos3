@@ -33,6 +33,8 @@ def sched_handler(args):
 
     if args.run:
         sched.execute()
+    if args.summary:
+        sched.print_summary()
 
 
 def add_schedule_parser(subparsers):
@@ -40,6 +42,9 @@ def add_schedule_parser(subparsers):
     parser.set_defaults(handler=sched_handler)
 
     parser.add_argument("--run", help="Run schedule", action="store_true", dest='run')
+    parser.add_argument(
+        "--summary", help="Show schedule summary", action="store_true", dest='summary'
+    )
 
 
 def gpio_handler(args):

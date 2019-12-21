@@ -1,6 +1,8 @@
 import os
+import json
 import shutil
 import logging
+from functools import wraps
 import re
 from datetime import datetime
 import traceback
@@ -19,8 +21,10 @@ from honcho.config import (
     SBD_QUEUE_DIR,
     ORDERS_DIR,
     RESULTS_DIR,
+    TIMESTAMP_FMT,
     DTS_RAW_DATA_DIR,
     UPLOAD_QUEUE_DIR,
+    EXECUTION_LOG_FILEPATH,
 )
 
 
@@ -150,13 +154,22 @@ class OrderedDict(dict, MutableMapping):
 
 def fail_gracefully(f, reraise=False):
     '''
-    Decorator that catches and logs any exception
+    Decorator that catches and logs any uncaught exception
     '''
 
+    @wraps(f)
     def wrapped(*args, **kwargs):
         try:
+            start = datetime.now()
             return f(*args, **kwargs)
         except Exception:
+            func_name = getmodule(f).__name__ + '.' + f.__name__
+            run_time = datetime.now() - start
+            logger.info(
+                'Execution of {0} failed after {1}'.format(
+                    func_name, format_timedelta(run_time)
+                )
+            )
             logger.error(traceback.format_exc())
             if reraise:
                 raise
@@ -184,10 +197,12 @@ def log_execution(f):
     Decorator that does basic logging and timing of function
     '''
 
+    @wraps(f)
     def wrapped(*args, **kwargs):
         logger = logging.getLogger(__name__)
 
-        func_name = getmodule(f).__name__ + '.' + f.__name__
+        module_name = getmodule(f).__name__
+        func_name = module_name + '.' + f.__name__
         logger.info('Running {0}'.format(func_name))
         start = datetime.now()
 
@@ -195,6 +210,21 @@ def log_execution(f):
 
         run_time = datetime.now() - start
         logger.info('Finished {0} in {1}'.format(func_name, format_timedelta(run_time)))
+
+        log_filepath = EXECUTION_LOG_FILEPATH(module_name)
+        with open(log_filepath, 'r') as f:
+            log_data = json.load(f)
+        if not log_data:
+            log_data['average_successful_runtime'] = run_time
+            log_data['successes'] = 1
+        else:
+            log_data['average_successful_runtime'] = log_data[
+                'average_successful_runtime'
+            ] * (log_data['successes'] / float(log_data['successes'] + 1))
+            log_data['successes'] = log_data['successes'] + 1
+        log_data['last_success'] = start.strftime(TIMESTAMP_FMT)
+        with open('{}.log'.format(func_name), 'w') as f:
+            json.dump(log_data, f)
 
         return result
 
@@ -206,12 +236,6 @@ def get_creds(host):
     user, _, passwd = nrc.hosts[host]
 
     return user, passwd
-
-
-def deserialize_timestamp(s):
-    dt = datetime.strftime(s, '%Y-%m-%dT%H:%M:%S')
-
-    return dt
 
 
 def convert_bytes(num):

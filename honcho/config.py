@@ -18,6 +18,12 @@ LOG_DIR = '/media/mmcblk0p1/logs'
 LOG_FORMATTER = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
+
+
+def EXECUTION_LOG_FILEPATH(name):
+    return os.path.join(LOG_DIR, '{}.log'.format(name))
+
+
 DEFAULT_LOG_LEVEL = 'INFO'
 LOG_LEVEL = getattr(logging, os.environ.get('LOG_LEVEL', DEFAULT_LOG_LEVEL))
 LOG_SIZE = 200000
@@ -133,7 +139,7 @@ SCHEDULES = {
     ),
 }
 
-START_SCHEDULE_COMMAND = 'source set_env_{0}.sh && run_schedule.sh'.format(MODE.lower())
+START_SCHEDULE_COMMAND = 'run_schedule.sh'
 MAINTENANCE_HOUR = 0
 
 # --------------------------------------------------------------------------------

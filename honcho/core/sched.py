@@ -49,6 +49,7 @@ def select_schedule(date):
 def load_schedule(scheduler, config):
     for spec, task_module in config:
         task = import_task(task_module)
+        task.execute.__name__ = task_module
         try:
             eval(spec).do(task.execute)
         except (SyntaxError, NameError):
@@ -60,6 +61,16 @@ def idle_check(scheduler):
     if idle_minutes > 2:
         logger.info('Schedule idle for {0:.0f} minutes'.format(idle_minutes))
         system_standby(min(int(idle_minutes - 1), MAX_SYSTEM_SLEEP))
+
+
+def print_summary():
+    name = select_schedule(datetime.now())
+    print('Schedule: {0}'.format(name))
+
+    scheduler = Scheduler()
+    load_schedule(scheduler, SCHEDULES[name])
+    for job in scheduler.jobs:
+        print(job)
 
 
 def execute():

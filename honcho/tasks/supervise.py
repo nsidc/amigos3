@@ -1,7 +1,8 @@
 import os
+import json
 import signal
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from logging import getLogger
 from collections import namedtuple
 
@@ -14,6 +15,7 @@ from honcho.config import (
     UPLOAD_QUEUE_DIR,
     DIRECTORIES_TO_MONITOR,
     START_SCHEDULE_COMMAND,
+    EXECUTION_LOG_FILEPATH,
     MAINTENANCE_HOUR,
     TIMESTAMP_FMT,
 )
@@ -109,11 +111,23 @@ def execute():
     queue_sbd(serialized, DATA_TAGS.MON)
 
     # If health critical
-    #     Reboot
-    #     Safe mode
+    #     (no orders run in x days)
+    #     (x failures in x days)
+    #       Reboot
+    #       Safe mode
+    #       Attempt normal mode after x days
 
     # Do daily maintenance
-    if timestamp.hour == MAINTENANCE_HOUR:
+    with open(EXECUTION_LOG_FILEPATH(__name__), 'r') as f:
+        log_data = json.load(f)
+
+    run_maintenance = (
+        timestamp.hour == MAINTENANCE_HOUR
+        or not log_data
+        or datetime.strptime(log_data['last_success'], TIMESTAMP_FMT)
+        < datetime.now() - timedelta(days=1)
+    )
+    if run_maintenance:
         os.kill(schedule_process['pid'], signal.SIGKILL)
         archive.execute()
         orders.execute()
