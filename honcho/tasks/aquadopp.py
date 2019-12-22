@@ -8,7 +8,8 @@ from honcho.core.imm import active_line, imm_components, REMOTE_RESPONSE_END
 import honcho.core.data as data
 
 from honcho.tasks.sbd import queue_sbd
-from honcho.util import serial_request, fail_gracefully, log_execution
+from honcho.util import serial_request
+from honcho.tasks.common import task
 
 logger = getLogger(__name__)
 
@@ -183,15 +184,10 @@ def print_samples(samples):
     data.print_samples(samples, CONVERSION_TO_STRING)
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     samples = get_recent_samples(UNIT.AQUADOPP_IDS)
     for sample in samples:
         serialized = data.serialize(sample, CONVERSION_TO_STRING)
         data.log_serialized(serialized, DATA_TAGS.AQD)
         queue_sbd(serialized, DATA_TAGS.AQD)
-
-
-if __name__ == '__main__':
-    execute()

@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-from contextlib import contextmanager
 from time import sleep
 
 import pytest

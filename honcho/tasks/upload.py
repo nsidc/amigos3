@@ -1,46 +1,39 @@
 import os
-from ftplib import FTP
 from logging import getLogger
-from contextlib import closing
 from datetime import datetime
 
 from honcho.config import (
     LOG_DIR,
-    GPIO,
-    FTP_HOST,
-    FTP_TIMEOUT,
-    FTP_CONNECT_RETRIES,
     DATA_DIR,
     UPLOAD_QUEUE_DIR,
     UPLOAD_DATA_TAGS,
     UPLOAD_CLEANUP,
     TIMESTAMP_FILENAME_FMT,
 )
-from honcho.util import (
-    get_creds,
-    fail_gracefully,
-    log_execution,
-    file_size,
-    make_tarfile,
-)
-from honcho.core.gpio import powered
+from honcho.util import file_size, make_tarfile
+from honcho.tasks.common import task
+from honcho.core.ftp import ftp_session
 
 logger = getLogger(__name__)
 
 
 def stage_path(path, prefix=None):
-    name = (
-        os.path.basename(path)
-        + '_'
-        + datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
-        + '.tgz'
-    )
-    if prefix is not None:
-        name = prefix + '_' + name
-    output_filepath = os.path.join(UPLOAD_QUEUE_DIR, name)
-    make_tarfile(output_filepath, path)
+    if os.listdir(path):
+        logger.debug('Staging {0}'.format(path))
+        name = (
+            os.path.basename(path)
+            + '_'
+            + datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
+            + '.tgz'
+        )
+        if prefix is not None:
+            name = '{0}_{1}'.format(prefix, name)
+        output_filepath = os.path.join(UPLOAD_QUEUE_DIR, name)
+        make_tarfile(output_filepath, path)
 
-    return output_filepath
+        return output_filepath
+    else:
+        logger.debug('Nothing in {0} to stage'.format(path))
 
 
 def stage_data():
@@ -59,27 +52,7 @@ def stage_logs():
     return staged
 
 
-def get_session(retries=FTP_CONNECT_RETRIES):
-    logger.debug('Attempting to connect to {0}'.format(FTP_HOST))
-    for attempt in xrange(1, retries + 2):
-        try:
-            session = FTP(FTP_HOST, timeout=FTP_TIMEOUT)
-            session.login(*get_creds(FTP_HOST))
-        except Exception:
-            logger.debug('Connection failed {0}/{1}'.format(attempt, retries + 1))
-            retries -= 1
-        else:
-            break
-
-    logger.debug('Session initiated on {0} attempt')
-
-    return session
-
-
-def upload(filepath, session=None):
-    if session is None:
-        session = get_session()
-
+def upload(filepath, session):
     filename = os.path.basename(filepath)
     with open(filepath, 'rb') as fi:
         logger.debug('Uploading {0} bytes: {1}'.format(file_size(filepath), filepath))
@@ -87,19 +60,13 @@ def upload(filepath, session=None):
         logger.debug('Upload successful')
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     staged_data_files = stage_data()
     staged_log_files = stage_logs()
-    with powered([GPIO.IRD, GPIO.HUB]):
-        with closing(get_session()) as session:
-            for filepath in staged_data_files + staged_log_files:
-                upload(filepath, session=session)
+    with ftp_session() as session:
+        for filepath in staged_data_files + staged_log_files:
+            upload(filepath, session=session)
 
-                if UPLOAD_CLEANUP:
-                    os.remove(filepath)
-
-
-if __name__ == "__main__":
-    execute()
+            if UPLOAD_CLEANUP:
+                os.remove(filepath)

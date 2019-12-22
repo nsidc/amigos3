@@ -1,11 +1,11 @@
-import time
 from datetime import datetime
 from contextlib import closing
 from collections import namedtuple
 
 from serial import Serial
 
-from honcho.util import fail_gracefully, log_execution, average_datetimes
+from honcho.util import average_datetimes
+from honcho.tasks.common import task
 from honcho.config import (
     WXT_PORT,
     WXT_BAUD,
@@ -115,15 +115,10 @@ def average_samples(samples):
     return averaged
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     samples = get_samples(n=WXT_SAMPLES)
     average = average_samples(samples)
     serialized = data.serialize(average, CONVERSION_TO_STRING)
     data.log_serialized(serialized, DATA_TAGS.WXT)
     queue_sbd(serialized, DATA_TAGS.WXT)
-
-
-if __name__ == '__main__':
-    execute()

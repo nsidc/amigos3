@@ -18,7 +18,7 @@ from honcho.config import (
 )
 from honcho.core.gpio import powered
 from honcho.core.iridium import send_sbd
-from honcho.util import fail_gracefully, log_execution
+from honcho.tasks.common import task
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def sbd_components():
     with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
-        logging.debug(
+        logger.debug(
             'Sleeping for {0} seconds for iridium startup'.format(SBD_STARTUP_WAIT)
         )
         sleep(SBD_STARTUP_WAIT)
@@ -35,7 +35,7 @@ def sbd_components():
 
 
 def send(message):
-    logging.info('Sending sbd message')
+    logger.info('Sending sbd message')
     with sbd_components():
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             send_sbd(serial, message)
@@ -54,7 +54,7 @@ def build_queue():
 def send_queue(serial, timeout=SBD_QUEUE_MAX_TIME):
     queue = build_queue()
     for filepath in queue:
-        logging.debug('Sending queued: {0}'.format(filepath))
+        logger.debug('Sending queued: {0}'.format(filepath))
         with open(filepath, 'r') as f:
             tag = os.path.split(filepath)[-2]
             send_sbd(serial=serial, message=tag + ',' + f.read())
@@ -63,7 +63,7 @@ def send_queue(serial, timeout=SBD_QUEUE_MAX_TIME):
 
 
 def queue_sbd(message, tag):
-    logging.debug('Queuing {0} message'.format(tag))
+    logger.debug('Queuing {0} message'.format(tag))
 
     filename = datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
     filepath = os.path.join(SBD_QUEUE_DIR(tag), filename)
@@ -77,20 +77,15 @@ def queue_sbd(message, tag):
 
 
 def clear_queue():
-    logging.debug('Clearing queue')
+    logger.debug('Clearing queue')
     queue = build_queue()
     for filepath in queue:
         os.remove(filepath)
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
-    logging.info('Sending queued sbds')
+    logger.info('Sending queued sbds')
     with sbd_components():
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             send_queue(serial)
-
-
-if __name__ == '__main__':
-    execute()

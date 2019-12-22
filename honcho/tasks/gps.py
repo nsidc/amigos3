@@ -6,7 +6,7 @@ from contextlib import closing
 
 from serial import Serial
 
-from honcho.util import fail_gracefully, log_execution
+from honcho.tasks.common import task
 from honcho.util import serial_request
 from honcho.core.gpio import powered
 from honcho.core.system import set_datetime
@@ -130,14 +130,9 @@ def get_gga():
     return sample
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     sample = get_gga()
     serialized = data.serialize(sample, CONVERSION_TO_STRING)
     data.log_serialized(serialized, DATA_TAGS.GGA)
     queue_sbd(serialized, DATA_TAGS.GGA)
-
-
-if __name__ == '__main__':
-    execute()

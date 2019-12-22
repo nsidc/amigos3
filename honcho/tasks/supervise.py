@@ -22,10 +22,11 @@ from honcho.config import (
 import honcho.core.data as data
 from honcho.core.system import get_top, get_disk_usage
 
-from honcho.tasks.sbd import queue_sbd
+import honcho.tasks.sbd as sbd
+import honcho.tasks.upload as upload
 import honcho.tasks.archive as archive
 import honcho.tasks.orders as orders
-from honcho.util import log_execution
+from honcho.tasks.common import task
 
 logger = getLogger(__name__)
 
@@ -33,34 +34,39 @@ MeasurementsCountSample = namedtuple('MeasurementsCountSample', DATA_TAGS)
 SBDQueueCountSample = namedtuple('SBDQueueCountSample', DATA_TAGS)
 UploadQueueCountSample = namedtuple('UploadQueueCountSample', 'files')
 DirectorySizeSample = namedtuple('DirectorySizeSample', DIRECTORIES_TO_MONITOR)
+HealthSample = namedtuple(
+    'HealthSample',
+    (
+        'timestamp',
+        'top',
+        'disk_usage',
+        'card_usage',
+        'measurement_counts',
+        'sbd_queue_counts',
+        'directory_sizes',
+    ),
+)
 
 
-def serialize(
-    timestamp, top, card_usage, measurement_counts, sbd_queue_counts, directory_sizes
-):
+def serialize(sample):
     serialized = SEP.join(
-        [timestamp.strftime(TIMESTAMP_FMT), UNIT.NAME]
-        + list(str(el) for el in top.mem)
-        + list(str(el) for el in top.cpu)
-        + list(str(el) for el in top.load_average)
-        + list(str(el) for el in card_usage)
-        + list(str(el) for el in measurement_counts)
-        + list(str(el) for el in sbd_queue_counts)
-        + list(str(el) for el in directory_sizes)
+        [sample.timestamp.strftime(TIMESTAMP_FMT), UNIT.NAME]
+        + list(str(el) for el in sample.top.mem)
+        + list(str(el) for el in sample.top.cpu)
+        + list(str(el) for el in sample.top.load_average)
+        + list(str(el) for el in sample.card_usage)
+        + list(str(el) for el in sample.measurement_counts)
+        + list(str(el) for el in sample.sbd_queue_counts)
+        + list(str(el) for el in sample.directory_sizes)
     )
     return serialized
 
 
-def check_schedule(top):
+def get_schedule_processes(top):
     schedule_processes = [
         sample for sample in top.processes if 'schedule --execute' in sample.command
     ]
-    if len(schedule_processes) > 1:
-        raise Exception('Multiple schedule processes running')
-    elif len(schedule_processes) == 1:
-        return schedule_processes[0]
-    else:
-        return None
+    return schedule_processes
 
 
 def get_measurement_counts():
@@ -88,55 +94,87 @@ def get_directory_sizes():
     )
 
 
-@log_execution
-def execute():
-    # Health check
+def check_health():
     timestamp = datetime.now()
     top = get_top()
-    schedule_process = check_schedule(top)
     disk_usage = get_disk_usage()
     card_usage = [el for el in disk_usage if el.mount == '/media/mmcblk0p1'][0]
     measurement_counts = get_measurement_counts()
     sbd_queue_counts = get_sbd_queue_counts()
     directory_sizes = get_directory_sizes()
-    serialized = serialize(
-        timestamp,
-        top,
-        card_usage,
-        measurement_counts,
-        sbd_queue_counts,
-        directory_sizes,
+
+    return HealthSample(
+        timestamp=timestamp,
+        top=top,
+        disk_usage=disk_usage,
+        card_usage=card_usage,
+        measurement_counts=measurement_counts,
+        sbd_queue_counts=sbd_queue_counts,
+        directory_sizes=directory_sizes,
     )
-    data.log_serialized(serialized, DATA_TAGS.MON)
-    queue_sbd(serialized, DATA_TAGS.MON)
 
-    # If health critical
-    #     (no orders run in x days)
-    #     (x failures in x days)
-    #       Reboot
-    #       Safe mode
-    #       Attempt normal mode after x days
 
-    # Do daily maintenance
-    with open(EXECUTION_LOG_FILEPATH(__name__), 'r') as f:
-        log_data = json.load(f)
+def is_time_for_maintenance():
+    log_filepath = EXECUTION_LOG_FILEPATH(__name__)
+    if os.path.exists(log_filepath):
+        with open(EXECUTION_LOG_FILEPATH(__name__), 'r') as f:
+            log_data = json.load(f)
+    else:
+        log_data = {}
 
-    run_maintenance = (
-        timestamp.hour == MAINTENANCE_HOUR
-        or not log_data
-        or datetime.strptime(log_data['last_success'], TIMESTAMP_FMT)
-        < datetime.now() - timedelta(days=1)
+    last_success = log_data.get('last_success', None)
+    last_failure = log_data.get('last_failure', None)
+
+    now = datetime.now()
+    result = (
+        now.hour == MAINTENANCE_HOUR
+        or last_success is None
+        or last_success < last_failure
+        or last_success < now - timedelta(days=1)
     )
-    if run_maintenance:
-        os.kill(schedule_process['pid'], signal.SIGKILL)
-        archive.execute()
-        orders.execute()
 
+    return result
+
+
+def run_maintenance():
+    top = get_top()
+    schedule_processes = get_schedule_processes(top)
+    if schedule_processes:
+        for schedule_process in schedule_processes:
+            os.kill(schedule_process.pid, signal.SIGKILL)
+
+    orders.execute()
+    sbd.execute()
+    upload.execute()
+    archive.execute()
+
+
+def ensure_schedule_running():
     # Start schedule if not running
-    top_sample = get_top()
-    if check_schedule(top_sample) is None:
+    top = get_top()
+    if not get_schedule_processes(top):
         subprocess.Popen([START_SCHEDULE_COMMAND], shell=True)
 
 
-if __name__ == '__main__':
-    execute()
+@task
+def execute():
+    try:
+        # Health check
+        health_check = check_health()
+        serialized = serialize(health_check)
+        data.log_serialized(serialized, DATA_TAGS.MON)
+        sbd.queue_sbd(serialized, DATA_TAGS.MON)
+
+        # If health critical:
+        #         (no orders run in x days)
+        #         (x failures in x days)
+        #     Reboot
+        #     Safe mode
+        #     Attempt normal mode after x days
+
+    finally:
+        # Do daily maintenance
+        if is_time_for_maintenance():
+            run_maintenance()
+
+        ensure_schedule_running()

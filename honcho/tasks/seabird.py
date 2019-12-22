@@ -2,18 +2,13 @@ import re
 from datetime import datetime
 from logging import getLogger
 from collections import namedtuple
-import time
 
 from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT
 from honcho.core.imm import active_line, imm_components, REMOTE_RESPONSE_END
 from honcho.tasks.sbd import queue_sbd
 import honcho.core.data as data
-from honcho.util import (
-    serial_request,
-    fail_gracefully,
-    log_execution,
-    average_datetimes,
-)
+from honcho.util import serial_request, average_datetimes
+from honcho.tasks.common import task
 
 logger = getLogger(__name__)
 
@@ -175,15 +170,10 @@ def set_interval(device_ids, interval):
                 )
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     samples = get_averaged_samples(UNIT.SEABIRD_IDS)
     for sample in samples:
         serialized = data.serialize(sample, CONVERSION_TO_STRING)
         data.log_serialized(serialized, DATA_TAGS.SBD)
         queue_sbd(serialized, DATA_TAGS.SBD)
-
-
-if __name__ == '__main__':
-    execute()

@@ -5,7 +5,7 @@ from bisect import bisect
 from time import sleep
 import xml.etree.ElementTree as ET
 
-from honcho.util import fail_gracefully, log_execution
+from honcho.tasks.common import task
 from honcho.core.gpio import powered
 from honcho.tasks.upload import stage_path
 from honcho.config import (
@@ -152,8 +152,7 @@ def shutdown_win(ssh):
     ssh.execute("shutdown --now")
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     logger.info("Turning on DTS and windows unit")
     with powered([GPIO.HUB, GPIO.WIN, GPIO.DTS]):
@@ -166,7 +165,3 @@ def execute():
     process_data(filepaths)
 
     stage_path(DATA_DIR(DATA_TAGS.DTS))
-
-
-if __name__ == "__main__":
-    execute()

@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 @contextmanager
 def ftp_session():
-    with powered([GPIO.IRD, GPIO.RTR]):
+    with powered([GPIO.IRD, GPIO.RTR, GPIO.HUB]):
         logger.debug(
             'Waiting {0} seconds before attempting ftp session'.format(DIALOUT_WAIT)
         )
@@ -34,11 +34,14 @@ def ftp_session():
                 with closing(FTP(FTP_HOST, timeout=FTP_TIMEOUT)) as ftp:
                     ftp.login(*get_creds(FTP_HOST))
                     yield ftp
+                    break
             except socket.error:
                 logger.debug(traceback.format_exc())
                 logger.debug('FTP connection failed')
                 if retries >= FTP_CONNECT_RETRIES:
-                    break
+                    raise Exception(
+                        'FTP failed after {0} retries'.format(FTP_CONNECT_RETRIES)
+                    )
                 retries += 1
                 logger.debug(
                     'Waiting {0} seconds before retrying ftp session'.format(
@@ -46,7 +49,3 @@ def ftp_session():
                     )
                 )
                 sleep(FTP_RETRY_WAIT)
-            else:
-                return
-        else:
-            raise Exception('FTP failed after {0} retries'.format(FTP_CONNECT_RETRIES))

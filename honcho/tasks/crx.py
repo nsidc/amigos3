@@ -1,15 +1,14 @@
 from collections import namedtuple
 from contextlib import contextmanager
-from datetime import datetime
 from time import sleep
 
 from pycampbellcr1000 import CR1000
 
 from honcho.config import CRX_URL, DATA_TAGS, GPIO, TIMESTAMP_FMT, CRX_STARTUP_WAIT
-from honcho.util import fail_gracefully, log_execution
 from honcho.tasks.sbd import queue_sbd
 from honcho.core.data import log_serialized, serialize
 from honcho.core.gpio import powered
+from honcho.tasks.common import task
 
 
 DATA_CONFIG = (
@@ -33,9 +32,9 @@ DATA_CONFIG = (
     {'name': 'T4_5', 'to_str': '{0:.6f}'},
     {'name': 'T6_5', 'to_str': '{0:.6f}'},
     {'name': 'T8_5', 'to_str': '{0:.6f}'},
-    {'name': 'DT', 'to_str': '{0}'},  #  Check
-    {'name': 'Q', 'to_str': '{0}'},  #  Check
-    {'name': 'TCDT', 'to_str': '{0}'},  #  Check
+    {'name': 'DT', 'to_str': '{0}'},  # Check
+    {'name': 'Q', 'to_str': '{0}'},  # Check
+    {'name': 'TCDT', 'to_str': '{0}'},  # Check
 )
 _DATA_KEYS = [el['name'] for el in DATA_CONFIG]
 DATA_KEYS = namedtuple('DATA_KEYS', _DATA_KEYS)(*_DATA_KEYS)
@@ -68,14 +67,9 @@ def get_last_sample():
     return sample
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     sample = get_last_sample()
     serialized = serialize(sample, CONVERSION_TO_STRING)
     log_serialized(serialized, DATA_TAGS.CRX)
     queue_sbd(serialized, DATA_TAGS.CRX)
-
-
-if __name__ == '__main__':
-    execute()

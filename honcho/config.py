@@ -21,7 +21,7 @@ LOG_FORMATTER = logging.Formatter(
 
 
 def EXECUTION_LOG_FILEPATH(name):
-    return os.path.join(LOG_DIR, '{}.log'.format(name))
+    return os.path.join(ARCHIVE_DIR, '{0}.log'.format(name))
 
 
 DEFAULT_LOG_LEVEL = 'INFO'
@@ -33,9 +33,7 @@ LOG_SIZE = 200000
 # UNIT SPECIFIC CONFIGURATION
 # --------------------------------------------------------------------------------
 
-_UNIT = namedtuple(
-    'UNIT', ('NAME', 'MAC_ADDRESS', 'SEABIRD_IDS', 'AQUADOPP_IDS', 'DATA_DIR')
-)
+_UNIT = namedtuple('UNIT', ('NAME', 'MAC_ADDRESS', 'SEABIRD_IDS', 'AQUADOPP_IDS'))
 
 UNITS = namedtuple('UNITS', ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC'))(
     _UNIT(
@@ -43,21 +41,18 @@ UNITS = namedtuple('UNITS', ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC'))(
         MAC_ADDRESS='70:b3:d5:65:46:05',
         SEABIRD_IDS=['05', '07', '09'],
         AQUADOPP_IDS=['20', '21', '22'],
-        DATA_DIR='amigos3a',
     ),
     _UNIT(
         NAME='AMIGOSIIIB',
         MAC_ADDRESS='70:b3:d5:65:46:00',
         SEABIRD_IDS=['06', '08'],
         AQUADOPP_IDS=['23', '24'],
-        DATA_DIR='amigos3b',
     ),
     _UNIT(
         NAME='AMIGOSIIIC',
         MAC_ADDRESS='70:b3:d5:65:46:03',
         SEABIRD_IDS=[],
         AQUADOPP_IDS=[],
-        DATA_DIR='amigos3c',
     ),
 )
 
@@ -200,10 +195,10 @@ FTP_TIMEOUT = 60
 DIALOUT_WAIT = 30
 FTP_CONNECT_RETRIES = 18
 FTP_RETRY_WAIT = 10
-FTP_ORDERS_DIR = 'orders'
-FTP_RESULTS_DIR = 'orders/results'
+FTP_ORDERS_DIR = '/orders'
+FTP_REPORTS_DIR = '/reports'
 ORDERS_DIR = '/media/mmcblk0p1/orders'
-RESULTS_DIR = '/media/mmcblk0p1/orders/results'
+REPORTS_DIR = '/media/mmcblk0p1/reports'
 
 
 # --------------------------------------------------------------------------------
@@ -274,6 +269,7 @@ _DATA_TAGS = (
     'TPS',
     'PWR',
     'MON',
+    'ORD',
 )
 DATA_TAGS = namedtuple('DATA_TAGS', _DATA_TAGS)(*_DATA_TAGS)
 
@@ -298,9 +294,9 @@ TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 # Upload
 # --------------------------------------------------------------------------------
 
-UPLOAD_QUEUE_DIR = '/media/mmcblk0p1/staged'
+UPLOAD_QUEUE_DIR = '/media/mmcblk0p1/upload'
 UPLOAD_CLEANUP = True
-UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.TPS, DATA_TAGS.CAM)
+UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.TPS, DATA_TAGS.CAM, DATA_TAGS.ORD)
 ARCHIVE_DIR = '/media/mmcblk0p1/archive'
 
 

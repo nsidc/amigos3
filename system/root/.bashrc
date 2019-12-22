@@ -7,3 +7,4 @@ umask 077
 set -o vi
 
 alias ls='ls -la --color=auto'
+alias cdc='cd /media/mmcblk0p1'

@@ -19,28 +19,28 @@ logger = logging.getLogger(__name__)
 def ping(serial):
     expected = re.escape('OK\r\n')
     try:
-        logging.debug('Pinging iridium')
+        logger.debug('Pinging iridium')
         serial_request(serial, 'AT', expected, timeout=IRD_DEFAULT_TIMEOUT)
     except Exception:
-        logging.error('Ping failed')
+        logger.error('Ping failed')
         raise Exception("Iridium did not respond correctly to ping")
     else:
-        logging.debug('Iridium ping ok')
+        logger.debug('Iridium ping ok')
 
 
 def check_signal(serial):
     expected = re.escape('+CSQ:') + r'(?P<strength>\d)' + re.escape('\r\n')
     try:
-        logging.debug('Checking signal')
+        logger.debug('Checking signal')
         response = serial_request(
             serial, 'AT+CSQ', expected, timeout=IRD_DEFAULT_TIMEOUT
         )
     except Exception:
-        logging.error('Signal check failed')
+        logger.error('Signal check failed')
         raise Exception("Iridium did not respond correctly to signal query")
 
     strength = int(re.search(expected, response).groupdict()['strength'])
-    logging.debug('Signal strength: {0}'.format(strength))
+    logger.debug('Signal strength: {0}'.format(strength))
 
     return strength
 
@@ -101,7 +101,7 @@ def send_sbd(serial, message):
 
 
 def clear_mo_buffer(serial):
-    logging.debug('Clearing MO buffer')
+    logger.debug('Clearing MO buffer')
     expected = r'(?P<status>\d)' + re.escape('\r\n')
     response = serial_request(
         serial, 'AT+SBDD0', re.escape('\r\n'), timeout=IRD_DEFAULT_TIMEOUT

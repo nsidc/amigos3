@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 import requests
 from requests.auth import HTTPDigestAuth
 
-from honcho.util import fail_gracefully, log_execution
+from honcho.tasks.common import task
 from honcho.config import (
     DATA_DIR,
     DATA_TAGS,
@@ -156,8 +156,7 @@ def reduce_image(input_filepath, output_filepath, factor=IMAGE_REDUCTION_FACTOR)
         )
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     for look in LOOK_SERIES:
         ptz = LOOK_PTZ[look]
@@ -178,7 +177,3 @@ def execute():
         reduce_image(full_res_filepath, low_res_filepath, IMAGE_REDUCTION_FACTOR)
 
     stage_path(low_res_filepath, prefix='CAM')
-
-
-if __name__ == '__main__':
-    execute()

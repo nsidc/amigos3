@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from collections import namedtuple
 
-from honcho.util import fail_gracefully, log_execution
+from honcho.tasks.common import task
 from honcho.core.onboard import get_voltage
 import honcho.core.data as data
 from honcho.config import MIN_SYSTEM_VOLTAGE, MAX_SYSTEM_SLEEP, DATA_TAGS, TIMESTAMP_FMT
@@ -37,11 +37,6 @@ def voltage_check():
     return voltage_ok
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     voltage_check()
-
-
-if __name__ == '__main__':
-    execute()

@@ -15,7 +15,7 @@ def serialize(sample, conversions):
         try:
             value = getattr(sample, key)
             converted.append(conversions[key].format(value))
-        except:
+        except Exception:
             converted.append(str(value))
     serialized = SEP.join(converted)
 

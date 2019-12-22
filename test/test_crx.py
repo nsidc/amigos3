@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 import pytest
 
-from honcho.config import DATA_TAGS
+from honcho.config import DATA_TAGS, LOG_DIR
 import honcho.tasks.crx as crx
 
 
@@ -52,7 +52,7 @@ def crx_mock(mocker):
     yield mock
 
 
-def test_execute(crx_mock, mocker):
+def test_get_last_sample(crx_mock, mocker):
     log_serialized = mocker.MagicMock()
     queue_sbd = mocker.MagicMock()
     mocker.patch('honcho.tasks.crx.sleep', mocker.stub())
@@ -86,9 +86,28 @@ def test_execute(crx_mock, mocker):
         DT='nan',  # TODO: handle and fix
         R20=-954313.5,
     )
-    expected_serialized = '2019-12-14T22:54:30,178,0.000,20.853,-1000506.4375,-994463.5625,-954313.5000,-994812.3125,-989970.9375,-951115.1875,-949568.5000,-950658.4375,-258624.562500,-258036.562500,-248824.390625,-257977.546875,-259087.578125,-248754.609375,-248710.578125,-248122.328125,nan,nan,nan'
+    expected_serialized = (
+        '2019-12-14T22:54:30,178,0.000,20.853,-1000506.4375,-994463.5625,'
+        '-954313.5000,-994812.3125,-989970.9375,-951115.1875,-949568.5000,'
+        '-950658.4375,-258624.562500,-258036.562500,-248824.390625,-257977.546875,'
+        '-259087.578125,-248754.609375,-248710.578125,-248122.328125,nan,nan,nan'
+    )
     assert crx.get_last_sample() == expected_sample
     # Assert correct data logged
     assert log_serialized.called_once_with(expected_serialized, DATA_TAGS.CRX)
     # Assert correct data queued for sbd
     assert queue_sbd.called_once_with(expected_serialized, DATA_TAGS.CRX)
+
+
+def test_execute_smoke(fs, crx_mock, mocker):
+    log_serialized = mocker.MagicMock()
+    queue_sbd = mocker.MagicMock()
+    mocker.patch('honcho.tasks.crx.sleep', mocker.stub())
+    mocker.patch('honcho.tasks.crx.powered', mocker.stub())
+    mocker.patch('honcho.tasks.crx.connection', crx_mock)
+    mocker.patch('honcho.tasks.crx.log_serialized', log_serialized)
+    mocker.patch('honcho.tasks.crx.queue_sbd', queue_sbd)
+    mocker.patch('honcho.tasks.crx.task', lambda f: f)
+
+    fs.makedirs(LOG_DIR)
+    crx.execute()

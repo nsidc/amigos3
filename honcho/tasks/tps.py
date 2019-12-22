@@ -8,7 +8,7 @@ from serial import Serial
 
 from honcho.core.gpio import powered
 from honcho.tasks.upload import stage_path
-from honcho.util import fail_gracefully, log_execution
+from honcho.tasks.common import task
 from honcho.config import (
     DATA_TAGS,
     DATA_LOG_FILENAME,
@@ -71,12 +71,7 @@ def get_tps():
             query_tps(serial, output_filepath)
 
 
-@fail_gracefully
-@log_execution
+@task
 def execute():
     get_tps()
     stage_path(DATA_DIR(DATA_TAGS.BNX))
-
-
-if __name__ == '__main__':
-    execute()

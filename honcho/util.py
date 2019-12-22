@@ -1,16 +1,12 @@
 import os
-import json
 import shutil
-import logging
-from functools import wraps
 import re
 from datetime import datetime
-import traceback
-from inspect import getmodule
 from collections import MutableMapping
 from logging import getLogger
 from time import sleep, time, mktime
 import tarfile
+from contextlib import closing
 from netrc import netrc
 
 from honcho.config import (
@@ -20,11 +16,9 @@ from honcho.config import (
     DATA_TAGS,
     SBD_QUEUE_DIR,
     ORDERS_DIR,
-    RESULTS_DIR,
-    TIMESTAMP_FMT,
+    REPORTS_DIR,
     DTS_RAW_DATA_DIR,
     UPLOAD_QUEUE_DIR,
-    EXECUTION_LOG_FILEPATH,
 )
 
 
@@ -44,7 +38,7 @@ def ensure_all_dirs():
         + [
             LOG_DIR,
             ORDERS_DIR,
-            RESULTS_DIR,
+            REPORTS_DIR,
             DTS_RAW_DATA_DIR,
             UPLOAD_QUEUE_DIR,
             ARCHIVE_DIR,
@@ -152,31 +146,6 @@ class OrderedDict(dict, MutableMapping):
         return d
 
 
-def fail_gracefully(f, reraise=False):
-    '''
-    Decorator that catches and logs any uncaught exception
-    '''
-
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        try:
-            start = datetime.now()
-            return f(*args, **kwargs)
-        except Exception:
-            func_name = getmodule(f).__name__ + '.' + f.__name__
-            run_time = datetime.now() - start
-            logger.info(
-                'Execution of {0} failed after {1}'.format(
-                    func_name, format_timedelta(run_time)
-                )
-            )
-            logger.error(traceback.format_exc())
-            if reraise:
-                raise
-
-    return wrapped
-
-
 def total_seconds(td):
     return td.days * 24 * 3600 + td.seconds
 
@@ -190,45 +159,6 @@ def format_timedelta(td):
         count = s / factor
         if count >= 1:
             return '{0:.2f} {1}'.format(count, label)
-
-
-def log_execution(f):
-    '''
-    Decorator that does basic logging and timing of function
-    '''
-
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        logger = logging.getLogger(__name__)
-
-        module_name = getmodule(f).__name__
-        func_name = module_name + '.' + f.__name__
-        logger.info('Running {0}'.format(func_name))
-        start = datetime.now()
-
-        result = f(*args, **kwargs)
-
-        run_time = datetime.now() - start
-        logger.info('Finished {0} in {1}'.format(func_name, format_timedelta(run_time)))
-
-        log_filepath = EXECUTION_LOG_FILEPATH(module_name)
-        with open(log_filepath, 'r') as f:
-            log_data = json.load(f)
-        if not log_data:
-            log_data['average_successful_runtime'] = run_time
-            log_data['successes'] = 1
-        else:
-            log_data['average_successful_runtime'] = log_data[
-                'average_successful_runtime'
-            ] * (log_data['successes'] / float(log_data['successes'] + 1))
-            log_data['successes'] = log_data['successes'] + 1
-        log_data['last_success'] = start.strftime(TIMESTAMP_FMT)
-        with open('{}.log'.format(func_name), 'w') as f:
-            json.dump(log_data, f)
-
-        return result
-
-    return wrapped
 
 
 def get_creds(host):
@@ -258,14 +188,17 @@ def file_size(file_path):
 
 
 def make_tarfile(output_filename, source_dir):
-    with tarfile.open(output_filename, "w:gz") as tar:
+    with closing(tarfile.open(output_filename, "w:gz")) as tar:
         tar.add(source_dir, arcname=os.path.basename(source_dir))
 
 
 def clear_directory(directory):
     for name in os.listdir(directory):
         path = os.path.join(directory, name)
-        shutil.rmtree(path)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
 
 
 def average_datetimes(datetimes):
