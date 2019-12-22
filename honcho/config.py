@@ -399,7 +399,7 @@ MEASUREMENTS = 40
 WATCHDOG_DEVICE = '/sys/class/gpio/wdt_ctl/data'
 MAX_SYSTEM_SLEEP = 59
 MIN_SYSTEM_VOLTAGE = 11
-HUB_ALWAYS_ON = MODE == MODES.TEST
+HUB_ALWAYS_ON = int(os.environ.get('HUB_ALWAYS_ON', 0))
 KEEP_AWAKE = int(os.environ.get('KEEP_AWAKE', 0))
 DIRECTORIES_TO_MONITOR = {
     'data': DATA_ROOT_DIR,
