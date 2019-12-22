@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-import honcho.logs as logs  # needs to be first!
+import honcho.logs  # noqa - has to be 1st
 from honcho.version import version
 from honcho.config import GPIO, UNIT
 from honcho.util import ensure_all_dirs
@@ -594,6 +594,8 @@ def build_parser():
 
 
 def main():
+    ensure_all_dirs()
+
     parser = build_parser()
     args = parser.parse_args()
 
