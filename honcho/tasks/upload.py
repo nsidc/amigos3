@@ -36,14 +36,6 @@ def stage_path(path, prefix=None):
         logger.debug('Nothing in {0} to stage'.format(path))
 
 
-def stage_data():
-    staged = []
-    for i, tag in enumerate(UPLOAD_DATA_TAGS):
-        staged.append(stage_path(DATA_DIR(tag), i))
-
-    return staged
-
-
 def stage_logs():
     staged = []
     for logfile in os.listdir(LOG_DIR):
@@ -62,7 +54,6 @@ def upload(filepath, session):
 
 @task
 def execute():
-    staged_data_files = stage_data()
     staged_log_files = stage_logs()
     with ftp_session() as session:
         for filepath in staged_data_files + staged_log_files:
