@@ -67,16 +67,16 @@ def list():
 def powered(components):
     for component in components:
         if is_on(component):
-            if component == GPIO.HUB and is_on(GPIO.HUB) and HUB_ALWAYS_ON:
-                continue
-            raise Exception('{0} requested but already powered on'.format(component))
-        logger.debug('Turning on {0}'.format(component))
-        turn_on(component)
+            logger.debug('Already on: {0}'.format(component))
+        else:
+            logger.debug('Turning on: {0}'.format(component))
+            turn_on(component)
     try:
         yield
     finally:
         for component in components:
             if component == GPIO.HUB and HUB_ALWAYS_ON:
+                logger.debug('Leaving on: {0}'.format(component))
                 continue
             logger.debug('Turning off {0}'.format(component))
             turn_off(component)

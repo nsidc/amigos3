@@ -1,4 +1,6 @@
 import os
+from logging import getLogger
+from time import sleep
 import subprocess
 from tempfile import NamedTemporaryFile
 from datetime import datetime
@@ -7,8 +9,11 @@ import xml.etree.ElementTree as ET
 import requests
 from requests.auth import HTTPDigestAuth
 
+from honcho.core.gpio import powered
+from honcho.util import ensure_dirs
 from honcho.tasks.common import task
 from honcho.config import (
+    GPIO,
     DATA_DIR,
     DATA_TAGS,
     SOAP_ACTIONS,
@@ -17,6 +22,7 @@ from honcho.config import (
     ONVIF_TEMPLATE_FILES,
     CAMERA_USERNAME,
     CAMERA_PASSWORD,
+    CAMERA_STARTUP_WAIT,
     IMAGE_REDUCTION_FACTOR,
     PTZ_SERVICE_URL,
     PTZ,
@@ -28,6 +34,9 @@ from honcho.config import (
     TIMESTAMP_FILENAME_FMT,
 )
 from honcho.tasks.upload import stage_path
+
+
+logger = getLogger(__name__)
 
 
 def ns(tag):
@@ -61,33 +70,24 @@ def get_ptz():
 
     response = requests.post(PTZ_SERVICE_URL, data=data, headers=headers)
 
-    root = ET.parse(response.content)
+    root = ET.fromstring(response.content)
 
-    pan_tilt = root.find(
+    position = root.find(
         '/'.join(
             [
                 ns('Body'),
                 ns('GetStatusResponse'),
                 ns('PTZStatus'),
-                ns('Position'),
-                ns('PanTilt'),
+                '{http://www.onvif.org/ver10/schema}Position',
             ]
         )
     )
+    pan_tilt = position.find(ns('PanTilt'))
     pan = float(pan_tilt.attrib['x'])
     tilt = float(pan_tilt.attrib['y'])
 
-    zoom = root.find(
-        '/'.join(
-            [
-                ns('Body'),
-                ns('GetStatusResponse'),
-                ns('PTZStatus'),
-                ns('Position'),
-                ns('PanTilt'),
-            ]
-        )
-    )
+    zoom = position.find(ns('Zoom'))
+    zoom = float(zoom.attrib['x'])
 
     return PTZ(pan=pan, tilt=tilt, zoom=zoom)
 
@@ -97,6 +97,7 @@ def serialize(value):
 
 
 def set_ptz(pan, tilt, zoom):
+    logger.debug('Moving to ptz: {0} {1} {2}'.format(pan, tilt, zoom))
     pan = 0 if pan is None else pan
     tilt = 0 if tilt is None else tilt
     zoom = 0 if zoom is None else zoom
@@ -111,16 +112,16 @@ def set_ptz(pan, tilt, zoom):
     tree = ET.parse(template_filepath)
     root = tree.getroot()
 
-    pan_tilt = root.find(
+    pan_tilt_el = root.find(
         '/'.join([ns('Body'), ns('AbsoluteMove'), ns('Position'), ns('PanTilt')])
     )
-    pan_tilt.attrib['x'] = serialize(pan)
-    pan_tilt.attrib['y'] = serialize(tilt)
+    pan_tilt_el.attrib['x'] = serialize(pan)
+    pan_tilt_el.attrib['y'] = serialize(tilt)
 
-    zoom = root.find(
+    zoom_el = root.find(
         '/'.join([ns('Body'), ns('AbsoluteMove'), ns('Position'), ns('Zoom')])
     )
-    zoom.attrib['x'] = serialize(zoom)
+    zoom_el.attrib['x'] = serialize(zoom)
 
     data = ET.tostring(root)
     requests.post(PTZ_SERVICE_URL, data=data, headers=headers)
@@ -130,14 +131,16 @@ def snapshot(filepath):
     response = requests.get(
         SNAPSHOP_URL, auth=HTTPDigestAuth(CAMERA_USERNAME, CAMERA_PASSWORD)
     )
+    logger.debug('Taking snapshot: filepath')
     with open(filepath, 'wb') as f:
         f.write(response.content)
 
 
 def reduce_image(input_filepath, output_filepath, factor=IMAGE_REDUCTION_FACTOR):
+    logger.debug('Reducing image by {0}'.format(factor))
     with NamedTemporaryFile() as temp_file:
         subprocess.check_call(
-            '{cmd} {factor} {inf} > {outf}'.format(
+            '{cmd} -scale {factor} {inf} > {outf}'.format(
                 cmd=DJPEG_COMMAND,
                 factor=factor,
                 inf=input_filepath,
@@ -146,7 +149,7 @@ def reduce_image(input_filepath, output_filepath, factor=IMAGE_REDUCTION_FACTOR)
             shell=True,
         )
         subprocess.check_call(
-            '{cmd} {factor} {inf} > {outf}'.format(
+            '{cmd} -scale {factor} {inf} > {outf}'.format(
                 cmd=CJPEG_COMMAND,
                 factor='1/1',
                 inf=temp_file.name,
@@ -158,22 +161,29 @@ def reduce_image(input_filepath, output_filepath, factor=IMAGE_REDUCTION_FACTOR)
 
 @task
 def execute():
-    for look in LOOK_SERIES:
-        ptz = LOOK_PTZ[look]
-        set_ptz(*ptz)
-
-        timestamp = datetime.now()
-        full_res_filename = '{timestamp}_{look}_full.jpg'.format(
-            timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
+    with powered([GPIO.CAM, GPIO.HUB]):
+        logger.debug(
+            'Sleeping {0} seconds for camera startup'.format(CAMERA_STARTUP_WAIT)
         )
-        full_res_filepath = os.path.join(DATA_DIR(DATA_TAGS.CAM), full_res_filename)
-        snapshot(full_res_filepath)
+        sleep(CAMERA_STARTUP_WAIT)
+        for look in LOOK_SERIES:
+            logger.debug('Looking at {0}'.format(look))
+            ptz = LOOK_PTZ[look]
+            set_ptz(*ptz)
 
-        low_res_dir = os.path.join(DATA_DIR(DATA_TAGS.CAM), 'low_res')
-        low_res_filename = '{timestamp}_{look}_low.jpg'.format(
-            timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
-        )
-        low_res_filepath = os.path.join(low_res_dir, low_res_filename)
-        reduce_image(full_res_filepath, low_res_filepath, IMAGE_REDUCTION_FACTOR)
+            timestamp = datetime.now()
+            full_res_filename = '{timestamp}_{look}_full.jpg'.format(
+                timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
+            )
+            full_res_filepath = os.path.join(DATA_DIR(DATA_TAGS.CAM), full_res_filename)
+            snapshot(full_res_filepath)
 
-    stage_path(low_res_filepath, prefix='CAM')
+            low_res_dir = os.path.join(DATA_DIR(DATA_TAGS.CAM), 'low_res')
+            ensure_dirs([low_res_dir])
+            low_res_filename = '{timestamp}_{look}_low.jpg'.format(
+                timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
+            )
+            low_res_filepath = os.path.join(low_res_dir, low_res_filename)
+            reduce_image(full_res_filepath, low_res_filepath, IMAGE_REDUCTION_FACTOR)
+
+    stage_path(low_res_dir, prefix='CAM')

@@ -3,7 +3,7 @@ import logging
 
 import honcho.logs  # noqa - has to be 1st
 from honcho.version import version
-from honcho.config import GPIO, UNIT
+from honcho.config import GPIO, UNIT, LOOK_PTZ
 from honcho.util import ensure_all_dirs
 from honcho.tasks import import_task
 
@@ -421,9 +421,17 @@ def camera_handler(args):
     camera = import_task('camera')
 
     if not all(el is None for el in (args.pan, args.tilt, args.zoom)):
-        camera.set_ptz(float(args.pan), float(args.tilt), float(args.zoom))
+        pan = float(args.pan) if args.pan is not None else None
+        tilt = float(args.tilt) if args.tilt is not None else None
+        zoom = float(args.zoom) if args.zoom is not None else None
+        camera.set_ptz(pan, tilt, zoom)
     if args.snapshot:
         camera.snapshot('snapshot.jpg')
+    if args.look:
+        ptz = LOOK_PTZ[args.look.upper()]
+        camera.set_ptz(*ptz)
+    if args.run:
+        camera.execute()
 
 
 def add_camera_parser(subparsers):
@@ -433,7 +441,6 @@ def add_camera_parser(subparsers):
     parser.add_argument(
         "--run", help="Execute routine", action="store_true", dest='run'
     )
-
     parser.add_argument(
         "--pan", help="Pan to value (-1 to 1)", action="store", dest='pan'
     )
@@ -446,6 +453,9 @@ def add_camera_parser(subparsers):
 
     parser.add_argument(
         "--snapshot", help="Take snapshot", action="store_true", dest='snapshot'
+    )
+    parser.add_argument(
+        "--look", help="Look at preconfigured location", action="store", dest='look'
     )
 
 

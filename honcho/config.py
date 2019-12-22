@@ -296,7 +296,7 @@ TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 
 UPLOAD_QUEUE_DIR = '/media/mmcblk0p1/upload'
 UPLOAD_CLEANUP = True
-UPLOAD_DATA_TAGS = (DATA_TAGS.DTS, DATA_TAGS.TPS, DATA_TAGS.CAM, DATA_TAGS.ORD)
+UPLOAD_DATA_TAGS = (DATA_TAGS.CAM, DATA_TAGS.DTS, DATA_TAGS.TPS, DATA_TAGS.ORD)
 ARCHIVE_DIR = '/media/mmcblk0p1/archive'
 
 
@@ -335,29 +335,30 @@ ONVIF_TEMPLATE_FILES = {
 CAMERA_USERNAME = 'admin'
 CAMERA_PASSWORD = '10iLtxyh'
 IMAGE_REDUCTION_FACTOR = '3/8'
+CAMERA_STARTUP_WAIT = 60
 
 _LOOKS = ('NORTH', 'EAST', 'WEST', 'DOWN', 'MIRROR', 'HOME')
 LOOKS = namedtuple('LOOKS', _LOOKS)(*_LOOKS)
 PTZ = namedtuple('PTZ', ('pan', 'tilt', 'zoom'))
 LOOK_PTZ = {
+    LOOKS.DOWN: PTZ(pan=0, tilt=-1, zoom=0),
     LOOKS.NORTH: PTZ(pan=0, tilt=0, zoom=0),
     LOOKS.EAST: PTZ(pan=0.5, tilt=0, zoom=0),
     LOOKS.WEST: PTZ(pan=-0.5, tilt=0, zoom=0),
-    LOOKS.DOWN: PTZ(pan=0, tilt=-0.25, zoom=0),
-    LOOKS.MIRROR: PTZ(pan=0, tilt=-0.25, zoom=1),
-    LOOKS.HOME: PTZ(pan=0, tilt=1, zoom=0),
+    LOOKS.MIRROR: PTZ(pan=0, tilt=-1, zoom=1),
+    LOOKS.HOME: PTZ(pan=0, tilt=-1, zoom=0),
 }
 LOOK_SERIES = (
+    LOOKS.DOWN,
+    LOOKS.MIRROR,
     LOOKS.NORTH,
     LOOKS.EAST,
     LOOKS.WEST,
-    LOOKS.DOWN,
-    LOOKS.MIRROR,
     LOOKS.HOME,
 )
 
-CJPEG_COMMAND = '/media/mmcblk0p1/honcho/scripts/cjpeg'
-DJPEG_COMMAND = '/media/mmcblk0p1/honcho/scripts/djpeg'
+CJPEG_COMMAND = '/media/mmcblk0p1/honcho/bin/cjpeg'
+DJPEG_COMMAND = '/media/mmcblk0p1/honcho/bin/djpeg'
 
 
 # --------------------------------------------------------------------------------
