@@ -62,9 +62,8 @@ def query_tps(serial, output_filepath):
 
 
 def get_tps():
-    output_filepath = os.path.join(
-        DATA_DIR(DATA_TAGS.TPS), DATA_LOG_FILENAME(DATA_TAGS.TPS)
-    )
+    filename = datetime.now().strftime(TIMESTAMP_FILENAME_FMT) + '.tps'
+    output_filepath = os.path.join(DATA_DIR(DATA_TAGS.TPS), filename)
     with powered([GPIO.SER, GPIO.GPS]):
         sleep(GPS_STARTUP_WAIT)
         with closing(Serial(GPS_PORT, GPS_BAUD)) as serial:

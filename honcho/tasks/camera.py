@@ -23,6 +23,8 @@ from honcho.config import (
     CAMERA_USERNAME,
     CAMERA_PASSWORD,
     CAMERA_STARTUP_WAIT,
+    CAMERA_RAW_DIR,
+    CAMERA_PROCESSED_DIR,
     IMAGE_REDUCTION_FACTOR,
     PTZ_SERVICE_URL,
     PTZ,
@@ -175,15 +177,13 @@ def execute():
             full_res_filename = '{timestamp}_{look}_full.jpg'.format(
                 timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
             )
-            full_res_filepath = os.path.join(DATA_DIR(DATA_TAGS.CAM), full_res_filename)
+            full_res_filepath = os.path.join(CAMERA_RAW_DIR, full_res_filename)
             snapshot(full_res_filepath)
 
-            low_res_dir = os.path.join(DATA_DIR(DATA_TAGS.CAM), 'low_res')
-            ensure_dirs([low_res_dir])
             low_res_filename = '{timestamp}_{look}_low.jpg'.format(
                 timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
             )
-            low_res_filepath = os.path.join(low_res_dir, low_res_filename)
+            low_res_filepath = os.path.join(CAMERA_PROCESSED_DIR, low_res_filename)
             reduce_image(full_res_filepath, low_res_filepath, IMAGE_REDUCTION_FACTOR)
 
-    stage_path(low_res_dir, prefix='CAM')
+    stage_path(CAMERA_PROCESSED_DIR, prefix='CAM')

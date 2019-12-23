@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source set_paths.sh
+source /media/mmcblk0p1/honcho/bin/set_paths.sh
 export LOG_LEVEL=INFO
 export MODE=NORMAL
 export KEEP_AWAKE=0

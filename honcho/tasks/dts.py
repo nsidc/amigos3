@@ -15,13 +15,14 @@ from honcho.config import (
     DATA_DIR,
     DATA_TAGS,
     DTS_PULL_DELAY,
-    DTS_WIN_DATA_DIR,
-    DTS_RAW_DATA_DIR,
+    DTS_WIN_DIR,
+    DTS_RAW_DIR,
+    DTS_PROCESSED_DIR,
     DTS_FULL_RES_RANGES,
     DTS_CLEANUP_LOCAL,
     DTS_CLEANUP_REMOTE,
 )
-from honcho.core.ssh import SSH
+from honcho.core.ssh import SSH, escape_spaces
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ def ns(tag):
 def output_filepath(filepath):
     filename = os.path.basename(filepath)
     stem = os.path.splitext(filename)[0]
-    return os.path.join(DATA_DIR(DATA_TAGS.DTS), stem.replace(' ', '_') + '.csv')
+    return os.path.join(DTS_PROCESSED_DIR, stem.replace(' ', '_') + '.csv')
 
 
 def parse_xml(filename):
@@ -108,30 +109,29 @@ def write(metadata, measurements, filepath):
             f.write(','.join([str(el) for el in row]) + '\n')
 
 
-def pull_data(ssh, cleanup=DTS_CLEANUP_REMOTE):
-    """Entry point of DTS files retrival and execution plus time update on windows unit
-    """
-    logger.info("Pulling files from windows unit")
-    win_data_glob = os.path.join(DTS_WIN_DATA_DIR, "*")
-
-    ssh.copy(win_data_glob, DTS_RAW_DATA_DIR, recursive=True)
-
+def query_latest(ssh, root=DTS_WIN_DIR):
     filepaths = []
-    for root, _, filenames in os.walk(DTS_RAW_DATA_DIR):
-        filepaths.extend(
-            [
-                os.path.join(root, filename)
-                for filename in filenames
-                if filename.endswith('xml')
-            ]
-        )
-    logger.info("Pulled {0} dts files".format(len(filepaths)))
-
-    if cleanup:
-        logger.info("Cleaning up remote raw DTS data")
-        ssh.execute("rm -rf {glob}".format(glob=win_data_glob))
+    for channel in (1, 3):
+        channel_dir = os.path.join(root, 'channel {0}'.format(channel))
+        filepaths.append(ssh.latest_file(channel_dir))
 
     return filepaths
+
+
+def pull_data(ssh, cleanup=DTS_CLEANUP_REMOTE):
+    logger.info("Pulling files from windows unit")
+
+    remote_filepaths = query_latest(ssh)
+    for filepath in remote_filepaths:
+        ssh.copy(filepath, DTS_RAW_DIR)
+
+    local_filepaths = [
+        os.path.join(DTS_RAW_DIR, os.path.basename(filepath))
+        for filepath in remote_filepaths
+    ]
+    logger.info("Pulled {0} dts files".format(len(local_filepaths)))
+
+    return local_filepaths
 
 
 def process_data(filepaths, cleanup=DTS_CLEANUP_LOCAL):
@@ -145,11 +145,11 @@ def process_data(filepaths, cleanup=DTS_CLEANUP_LOCAL):
 
     if cleanup:
         logger.info("Cleaning up local raw DTS data")
-        shutil.rmtree(DTS_RAW_DATA_DIR)
+        shutil.rmtree(DTS_RAW_DIR)
 
 
 def shutdown_win(ssh):
-    ssh.execute("shutdown --now")
+    ssh.execute("shutdown now")
 
 
 @task
@@ -164,4 +164,4 @@ def execute():
 
     process_data(filepaths)
 
-    stage_path(DATA_DIR(DATA_TAGS.DTS))
+    stage_path(DTS_PROCESSED_DIR, prefix=DATA_TAGS.DTS)

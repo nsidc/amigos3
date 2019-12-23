@@ -17,7 +17,10 @@ from honcho.config import (
     SBD_QUEUE_DIR,
     ORDERS_DIR,
     REPORTS_DIR,
-    DTS_RAW_DATA_DIR,
+    DTS_RAW_DIR,
+    DTS_PROCESSED_DIR,
+    CAMERA_RAW_DIR,
+    CAMERA_PROCESSED_DIR,
     UPLOAD_QUEUE_DIR,
 )
 
@@ -39,7 +42,10 @@ def ensure_all_dirs():
             LOG_DIR,
             ORDERS_DIR,
             REPORTS_DIR,
-            DTS_RAW_DATA_DIR,
+            DTS_RAW_DIR,
+            DTS_PROCESSED_DIR,
+            CAMERA_RAW_DIR,
+            CAMERA_PROCESSED_DIR,
             UPLOAD_QUEUE_DIR,
             ARCHIVE_DIR,
         ]

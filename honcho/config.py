@@ -225,32 +225,6 @@ def SBD_QUEUE_DIR(tag):
 
 
 # --------------------------------------------------------------------------------
-# DTS
-# --------------------------------------------------------------------------------
-
-DTS_HOST = "192.168.0.50"  # win
-DTS_USER = "admin"
-DTS_PULL_DELAY = 60 * 5
-DTS_WIN_DATA_DIR = 'Desktop/dts_data'
-DTS_RAW_DATA_DIR = "/media/mmcblk0p1/data/dts_raw"
-DTS_CLEANUP_LOCAL = True
-DTS_CLEANUP_REMOTE = True
-DTS_FULL_RES_RANGES = [(1000, 1200), (2000, 2200)]
-
-
-# --------------------------------------------------------------------------------
-# Onboard sensors
-# --------------------------------------------------------------------------------
-
-
-def VOLTAGE_CONVERTER(value):
-    '''
-    Calibrated to < .01 V
-    '''
-    return 0.0063926 * value + 0.21706913
-
-
-# --------------------------------------------------------------------------------
 # Data
 # --------------------------------------------------------------------------------
 
@@ -336,6 +310,8 @@ CAMERA_USERNAME = 'admin'
 CAMERA_PASSWORD = '10iLtxyh'
 IMAGE_REDUCTION_FACTOR = '3/8'
 CAMERA_STARTUP_WAIT = 60
+CAMERA_RAW_DIR = os.path.join(DATA_DIR(DATA_TAGS.CAM), 'full_res')
+CAMERA_PROCESSED_DIR = os.path.join(DATA_DIR(DATA_TAGS.CAM), 'low_res')
 
 _LOOKS = ('NORTH', 'EAST', 'WEST', 'DOWN', 'MIRROR', 'HOME')
 LOOKS = namedtuple('LOOKS', _LOOKS)(*_LOOKS)
@@ -405,3 +381,30 @@ DIRECTORIES_TO_MONITOR = {
     'upload': UPLOAD_QUEUE_DIR,
     'log': LOG_DIR,
 }
+
+
+# --------------------------------------------------------------------------------
+# DTS
+# --------------------------------------------------------------------------------
+
+DTS_HOST = "192.168.0.50"  # win
+DTS_USER = "admin"
+DTS_PULL_DELAY = 60 * 5
+DTS_WIN_DIR = 'Desktop/dts_data/xt19001/temperature/TARSAN - 300m test'
+DTS_RAW_DIR = os.path.join(DATA_DIR(DATA_TAGS.DTS), "raw")
+DTS_PROCESSED_DIR = os.path.join(DATA_DIR(DATA_TAGS.DTS), "processed")
+DTS_CLEANUP_LOCAL = False
+DTS_CLEANUP_REMOTE = False
+DTS_FULL_RES_RANGES = [(1000, 1200), (2000, 2200)]
+
+
+# --------------------------------------------------------------------------------
+# Onboard sensors
+# --------------------------------------------------------------------------------
+
+
+def VOLTAGE_CONVERTER(value):
+    '''
+    Calibrated to < .01 V
+    '''
+    return 0.0063926 * value + 0.21706913
