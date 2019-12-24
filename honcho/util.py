@@ -193,9 +193,10 @@ def file_size(file_path):
         return convert_bytes(file_info.st_size)
 
 
-def make_tarfile(output_filename, source_dir):
+def make_tarfile(output_filename, filepaths):
     with closing(tarfile.open(output_filename, "w:gz")) as tar:
-        tar.add(source_dir, arcname=os.path.basename(source_dir))
+        for filepath in filepaths:
+            tar.add(filepath, arcname=os.path.basename(filepath))
 
 
 def clear_directory(directory):

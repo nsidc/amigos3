@@ -7,7 +7,8 @@ from contextlib import closing
 from serial import Serial
 
 from honcho.core.gpio import powered
-from honcho.tasks.upload import stage_path
+from honcho.tasks.upload import queue_filepaths
+from honcho.tasks.archive import archive_filepaths
 from honcho.tasks.common import task
 from honcho.config import (
     DATA_TAGS,
@@ -64,8 +65,12 @@ def get_binex():
         with closing(Serial(GPS_PORT, GPS_BAUD)) as serial:
             query_binex(serial, output_filepath)
 
+    return output_filepath
+
 
 @task
 def execute():
-    get_binex()
-    stage_path(DATA_DIR(DATA_TAGS.BNX))
+    filepath = get_binex()
+    tag = DATA_TAGS.BNX
+    queue_filepaths([filepath], prefix=tag)
+    archive_filepaths([filepath], prefix=tag)

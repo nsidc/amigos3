@@ -7,11 +7,12 @@ from contextlib import closing
 from serial import Serial
 
 from honcho.core.gpio import powered
-from honcho.tasks.upload import stage_path
+from honcho.util import clear_directory
+from honcho.tasks.upload import queue_filepaths
+from honcho.tasks.archive import archive_filepaths
 from honcho.tasks.common import task
 from honcho.config import (
     DATA_TAGS,
-    DATA_LOG_FILENAME,
     DATA_DIR,
     GPS_PORT,
     GPS_BAUD,
@@ -19,6 +20,7 @@ from honcho.config import (
     GPIO,
     SECONDS_PER_MEASUREMENT,
     MEASUREMENTS,
+    TIMESTAMP_FILENAME_FMT,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,8 +71,13 @@ def get_tps():
         with closing(Serial(GPS_PORT, GPS_BAUD)) as serial:
             query_tps(serial, output_filepath)
 
+    return output_filepath
+
 
 @task
 def execute():
-    get_tps()
-    stage_path(DATA_DIR(DATA_TAGS.BNX))
+    filepath = get_tps()
+    tag = DATA_TAGS.TPS
+    queue_filepaths([filepath], prefix=tag)
+    archive_filepaths([filepath], prefix=tag)
+    clear_directory(DATA_DIR(tag))

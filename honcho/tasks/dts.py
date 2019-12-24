@@ -1,13 +1,14 @@
 import logging
 import os
-import shutil
 from bisect import bisect
 from time import sleep
 import xml.etree.ElementTree as ET
 
 from honcho.tasks.common import task
 from honcho.core.gpio import powered
-from honcho.tasks.upload import stage_path
+from honcho.util import clear_directory
+from honcho.tasks.archive import archive_filepaths
+from honcho.tasks.upload import queue_filepaths
 from honcho.config import (
     GPIO,
     DTS_HOST,
@@ -16,13 +17,10 @@ from honcho.config import (
     DATA_TAGS,
     DTS_PULL_DELAY,
     DTS_WIN_DIR,
-    DTS_RAW_DIR,
-    DTS_PROCESSED_DIR,
     DTS_FULL_RES_RANGES,
-    DTS_CLEANUP_LOCAL,
     DTS_CLEANUP_REMOTE,
 )
-from honcho.core.ssh import SSH, escape_spaces
+from honcho.core.ssh import SSH
 
 
 logger = logging.getLogger(__name__)
@@ -30,12 +28,6 @@ logger = logging.getLogger(__name__)
 
 def ns(tag):
     return "{http://www.witsml.org/schemas/1series}" + tag
-
-
-def output_filepath(filepath):
-    filename = os.path.basename(filepath)
-    stem = os.path.splitext(filename)[0]
-    return os.path.join(DTS_PROCESSED_DIR, stem.replace(' ', '_') + '.csv')
 
 
 def parse_xml(filename):
@@ -120,13 +112,14 @@ def query_latest(ssh, root=DTS_WIN_DIR):
 
 def pull_data(ssh, cleanup=DTS_CLEANUP_REMOTE):
     logger.info("Pulling files from windows unit")
+    data_dir = DATA_DIR(DATA_TAGS.DTS)
 
     remote_filepaths = query_latest(ssh)
     for filepath in remote_filepaths:
-        ssh.copy(filepath, DTS_RAW_DIR)
+        ssh.copy(filepath, data_dir)
 
     local_filepaths = [
-        os.path.join(DTS_RAW_DIR, os.path.basename(filepath))
+        os.path.join(data_dir, os.path.basename(filepath))
         for filepath in remote_filepaths
     ]
     logger.info("Pulled {0} dts files".format(len(local_filepaths)))
@@ -134,18 +127,22 @@ def pull_data(ssh, cleanup=DTS_CLEANUP_REMOTE):
     return local_filepaths
 
 
-def process_data(filepaths, cleanup=DTS_CLEANUP_LOCAL):
+def process_data(filepaths):
+    processed_filepaths = []
     for filepath in filepaths:
         logger.info("Processing {0}".format(filepath))
         metadata, measurements = parse_xml(filepath)
         measurements = process_measurements(measurements)
-        write(metadata, measurements, output_filepath(filepath))
+        filename = os.path.basename(filepath)
+        stem = os.path.splitext(filename)[0]
+        output_filepath = os.path.join(
+            DATA_DIR(DATA_TAGS.DTS), stem.replace(' ', '_') + '.csv'
+        )
+        write(metadata, measurements, output_filepath)
+        processed_filepaths.append(output_filepath)
 
     logger.info("Processing DTS complete")
-
-    if cleanup:
-        logger.info("Cleaning up local raw DTS data")
-        shutil.rmtree(DTS_RAW_DIR)
+    return processed_filepaths
 
 
 def shutdown_win(ssh):
@@ -159,9 +156,12 @@ def execute():
         logger.info("Sleeping {0} seconds for acquisition".format(DTS_PULL_DELAY))
         sleep(DTS_PULL_DELAY)
         ssh = SSH(DTS_USER, DTS_HOST)
-        filepaths = pull_data(ssh)
+        raw_filepaths = pull_data(ssh)
         shutdown_win(ssh)
 
-    process_data(filepaths)
+    processed_filepaths = process_data(raw_filepaths)
 
-    stage_path(DTS_PROCESSED_DIR, prefix=DATA_TAGS.DTS)
+    tag = DATA_TAGS.DTS
+    queue_filepaths(processed_filepaths, prefix=tag)
+    archive_filepaths(raw_filepaths, prefix=tag)
+    clear_directory(DATA_DIR(tag))

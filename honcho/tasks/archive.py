@@ -16,22 +16,31 @@ from honcho.tasks.common import task
 logger = getLogger(__name__)
 
 
+def archive_filepaths(filepaths, prefix, output_directory=ARCHIVE_DIR):
+    name = prefix + '_' + datetime.now().strftime(TIMESTAMP_FILENAME_FMT) + '.tgz'
+    output_filepath = os.path.join(output_directory, name)
+    make_tarfile(output_filepath, filepaths)
+
+
 def archive_data():
+    logger.debug('Archiving data')
     for tag in DATA_TAGS:
-        if os.listdir(DATA_DIR(tag)):
-            logger.debug('Archiving {0}'.format(tag))
-            name = tag + '_' + datetime.now().strftime(TIMESTAMP_FILENAME_FMT) + '.tgz'
-            output_filepath = os.path.join(ARCHIVE_DIR, name)
-            make_tarfile(output_filepath, DATA_DIR(tag))
+        filepaths = os.listdir(DATA_DIR(tag))
+        if filepaths:
+            logger.debug('Archiving files for {0}'.format(tag))
+            archive_filepaths(filepaths, tag)
         else:
-            logger.debug('No data to archive for {0}'.format(tag))
+            logger.debug('Nothing to archive for {0}'.format(tag))
 
 
 def archive_logs():
-    logger.debug('Archiving logs')
-    name = 'LOG_' + datetime.now().strftime(TIMESTAMP_FILENAME_FMT) + '.tgz'
-    output_filepath = os.path.join(ARCHIVE_DIR, name)
-    make_tarfile(output_filepath, LOG_DIR)
+    logger.debug('Archiving data')
+    filepaths = os.listdir(LOG_DIR)
+    if filepaths:
+        logger.debug('Archiving logs')
+        archive_filepaths(filepaths, prefix='LOGS')
+    else:
+        logger.debug('No logs to archive')
 
 
 @task

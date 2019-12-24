@@ -10,7 +10,7 @@ import requests
 from requests.auth import HTTPDigestAuth
 
 from honcho.core.gpio import powered
-from honcho.util import ensure_dirs
+from honcho.util import clear_directory
 from honcho.tasks.common import task
 from honcho.config import (
     GPIO,
@@ -23,8 +23,6 @@ from honcho.config import (
     CAMERA_USERNAME,
     CAMERA_PASSWORD,
     CAMERA_STARTUP_WAIT,
-    CAMERA_RAW_DIR,
-    CAMERA_PROCESSED_DIR,
     IMAGE_REDUCTION_FACTOR,
     PTZ_SERVICE_URL,
     PTZ,
@@ -35,7 +33,8 @@ from honcho.config import (
     CJPEG_COMMAND,
     TIMESTAMP_FILENAME_FMT,
 )
-from honcho.tasks.upload import stage_path
+from honcho.tasks.upload import queue_filepaths
+from honcho.tasks.archive import archive_filepaths
 
 
 logger = getLogger(__name__)
@@ -168,22 +167,30 @@ def execute():
             'Sleeping {0} seconds for camera startup'.format(CAMERA_STARTUP_WAIT)
         )
         sleep(CAMERA_STARTUP_WAIT)
+        raw_filepaths, processed_filepaths = [], []
         for look in LOOK_SERIES:
             logger.debug('Looking at {0}'.format(look))
             ptz = LOOK_PTZ[look]
             set_ptz(*ptz)
 
+            data_dir = DATA_DIR(DATA_TAGS.CAM)
+
             timestamp = datetime.now()
-            full_res_filename = '{timestamp}_{look}_full.jpg'.format(
+            raw_filename = '{timestamp}_{look}_full.jpg'.format(
                 timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
             )
-            full_res_filepath = os.path.join(CAMERA_RAW_DIR, full_res_filename)
-            snapshot(full_res_filepath)
+            raw_filepath = os.path.join(data_dir, raw_filename)
+            snapshot(raw_filepath)
+            raw_filepaths.append(raw_filepath)
 
-            low_res_filename = '{timestamp}_{look}_low.jpg'.format(
+            processed_filename = '{timestamp}_{look}_low.jpg'.format(
                 timestamp=timestamp.strftime(TIMESTAMP_FILENAME_FMT), look=look
             )
-            low_res_filepath = os.path.join(CAMERA_PROCESSED_DIR, low_res_filename)
-            reduce_image(full_res_filepath, low_res_filepath, IMAGE_REDUCTION_FACTOR)
+            processed_filepath = os.path.join(data_dir, processed_filename)
+            reduce_image(raw_filepath, processed_filepath, IMAGE_REDUCTION_FACTOR)
+            processed_filepaths.append(processed_filepath)
 
-    stage_path(CAMERA_PROCESSED_DIR, prefix='CAM')
+    tag = DATA_TAGS.CAM
+    queue_filepaths(processed_filepaths, prefix=tag)
+    archive_filepaths(raw_filepaths, prefix=tag)
+    clear_directory(data_dir)
