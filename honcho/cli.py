@@ -173,10 +173,12 @@ def sbd_handler(args):
 
     if args.message:
         sbd.send(args.message)
-    elif args.send_queued:
-        sbd.execute()
-    elif args.clear_queued:
+    elif args.list:
+        sbd.print_queue()
+    elif args.clear:
         sbd.clear_queue()
+    elif args.run:
+        sbd.execute()
 
 
 def add_sbd_parser(subparsers):
@@ -188,16 +190,13 @@ def add_sbd_parser(subparsers):
         "--send", help="Send sbd message", action="store", dest='message', default=''
     )
     group.add_argument(
-        "--send-queued",
-        help="Send queued SBDs",
-        action="store_true",
-        dest='send_queued',
+        "--list", help="List queued SBDs", action="store_true", dest='list'
     )
     group.add_argument(
-        "--clear-queued",
-        help="Clear queued SBDs",
-        action="store_true",
-        dest='clear_queued',
+        "--clear", help="Clear queued SBDs", action="store_true", dest='clear'
+    )
+    group.add_argument(
+        "--run", help="Send queued SBDs", action="store_true", dest='run'
     )
 
 
@@ -368,24 +367,21 @@ def add_dts_parser(subparsers):
     )
 
 
-def data_handler(args):
-    archive = import_task('archive')
+def upload_handler(args):
+    upload = import_task('upload')
 
     if args.upload_filepath:
-        archive.upload([args.upload_filepath])
-    if args.archive:
-        archive.archive()
-    if args.archive_data:
-        archive.archive_data()
-    if args.archive:
-        archive.archive_logs()
+        with upload.ftp_session() as session:
+            upload.upload(args.upload_filepath, session)
+    if args.list:
+        upload.print_queue()
     if args.run:
-        archive.execute()
+        upload.execute()
 
 
-def add_data_parser(subparsers):
-    parser = subparsers.add_parser('data')
-    parser.set_defaults(handler=dts_handler)
+def add_upload_parser(subparsers):
+    parser = subparsers.add_parser('upload')
+    parser.set_defaults(handler=upload_handler)
 
     parser.add_argument(
         "--run", help="Execute routine", action="store_true", dest='run'
@@ -396,24 +392,7 @@ def add_data_parser(subparsers):
     )
 
     parser.add_argument(
-        "--archive",
-        help="Rotate data and logs into archive",
-        action="store_true",
-        dest='archive',
-    )
-
-    parser.add_argument(
-        "--archive-data",
-        help="Rotate data into archive",
-        action="store_true",
-        dest='archive_data',
-    )
-
-    parser.add_argument(
-        "--archive-logs",
-        help="Rotate logs into archive",
-        action="store_true",
-        dest='archive_logs',
+        "--list", help="List files queued to upload", action="store_true", dest='list'
     )
 
 
@@ -591,7 +570,7 @@ def build_parser():
     add_aquadopp_parser(subparsers)
     add_seabird_parser(subparsers)
     add_dts_parser(subparsers)
-    add_data_parser(subparsers)
+    add_upload_parser(subparsers)
     add_imm_parser(subparsers)
     add_camera_parser(subparsers)
     add_crx_parser(subparsers)

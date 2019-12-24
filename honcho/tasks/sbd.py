@@ -76,6 +76,12 @@ def queue_sbd(message, tag):
         f.write(tag + ',' + message)
 
 
+def print_queue():
+    queue = build_queue()
+    for el in queue:
+        print(el)
+
+
 def clear_queue():
     logger.debug('Clearing queue')
     queue = build_queue()
