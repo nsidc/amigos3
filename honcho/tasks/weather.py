@@ -1,3 +1,5 @@
+import re
+from logging import getLogger
 from datetime import datetime
 from contextlib import closing
 from collections import namedtuple
@@ -15,8 +17,10 @@ from honcho.config import (
     TIMESTAMP_FMT,
 )
 from honcho.tasks.sbd import queue_sbd
-import honcho.core.data as data
+from honcho.core.data import log_serialized, serialize
 from honcho.core.gpio import powered
+
+logger = getLogger(__name__)
 
 _DATA_KEYS = (
     'timestamp',
@@ -77,31 +81,54 @@ CONVERSION_TO_STRING = {
 }
 WeatherSample = namedtuple('WeatherSample', DATA_KEYS)
 
+PATTERN = (
+    r'0R0,'
+    r'Dm=(?P<wind_direction>[\d\.]+)D,'
+    r'Sm=(?P<wind_speed>[\d\.]+)M,'
+    r'Ta=(?P<temperature>[\+\-\d\.]+)C,'
+    r'Ua=(?P<humidity>[\d\.]+)P,'
+    r'Pa=(?P<pressure>[\d\.]+)H,'
+    r'Rc=(?P<rain_accumulation>[\d\.]+)M,'
+    r'Rd=(?P<rain_duration>[\d\.]+)s,'
+    r'Ri=(?P<rain_intensity>[\d\.]+)M,'
+    r'Hc=(?P<hail_accumulation>[\d\.]+)M,'
+    r'Hd=(?P<hail_duration>[\d\.]+)s,'
+    r'Hi=(?P<hail_intensity>[\d\.]+)M,'
+    r'Rp=(?P<rain_peak_intensity>[\d\.]+)M,'
+    r'Hp=(?P<hail_peak_intensity>[\d\.]+)M,'
+    r'Th=(?P<heater_temperature>[\+\-\d\.]+)C,'
+    r'Vh=(?P<heater_voltage>[\+\-\d\.]+)N,'
+    r'Vs=(?P<supply_voltage>[\+\-\d\.]+)V'
+)
+
 
 def parse_sample(s):
-    row = s.split()
+    row = re.match(PATTERN, s).groupdict()
     sample = WeatherSample(
-        TIMESTAMP=datetime.strptime(' '.join(row[4:-1]), '%d %b %Y %H:%M:%S'),
-        **dict(
-            (key, CONVERSION_TO_VALUE[key](row[i]))
-            for i, key in enumerate(DATA_KEYS[1:])
-        )
+        timestamp=datetime.now(),
+        **dict((key, CONVERSION_TO_VALUE[key](value)) for key, value in row.items())
     )
 
     return sample
 
 
 def get_samples(n=12):
+    logger.debug('Getting {0} samples'.format(n))
     samples = []
-    with powered([GPIO.WXT, GPIO.SER]):
+    with powered([GPIO.WXT]):
         with closing(Serial(WXT_PORT, WXT_BAUD)) as serial:
-            while len(samples) < 12:
-                samples.append(parse_sample(serial.readline()))
+            while len(samples) < n:
+                line = serial.readline()
+                logger.debug('Read line from vaisala: {0}'.format(line))
+                if line.startswith('0R0') and len(line.split(',')) == 17:
+                    logger.debug('{0} of {1} samples collected'.format(len(samples), n))
+                    samples.append(parse_sample(line))
 
     return samples
 
 
 def average_samples(samples):
+    logger.debug('Averaging {0} samples'.format(len(samples)))
     n = len(samples)
     timestamp = average_datetimes([sample.timestamp for sample in samples])
     averaged = WeatherSample(
@@ -119,6 +146,6 @@ def average_samples(samples):
 def execute():
     samples = get_samples(n=WXT_SAMPLES)
     average = average_samples(samples)
-    serialized = data.serialize(average, CONVERSION_TO_STRING)
-    data.log_serialized(serialized, DATA_TAGS.WXT)
+    serialized = serialize(average, CONVERSION_TO_STRING)
+    log_serialized(serialized, DATA_TAGS.WXT)
     queue_sbd(serialized, DATA_TAGS.WXT)
