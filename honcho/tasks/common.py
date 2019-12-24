@@ -25,12 +25,11 @@ def task(func):
         logger.info('Running {0}'.format(func_name))
         start = datetime.now()
         try:
-            return func(*args, **kwargs)
+            result = func(*args, **kwargs)
+            success = True
         except Exception:
             error_traceback = traceback.format_exc()
             success = False
-        else:
-            success = True
 
         run_time = datetime.now() - start
         logger.info(
@@ -62,5 +61,7 @@ def task(func):
         # Dump log data
         with open(log_filepath, 'w') as f:
             json.dump(log_data, f)
+
+        return result
 
     return wrapped
