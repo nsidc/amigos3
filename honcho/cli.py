@@ -459,15 +459,15 @@ def add_camera_parser(subparsers):
     )
 
 
-def cr1000x_handler(args):
-    cr1000x = import_task('cr1000x')
+def crx_handler(args):
+    crx = import_task('crx')
     if args.run:
-        cr1000x.execute()
+        crx.execute()
 
 
-def add_cr1000x_parser(subparsers):
-    parser = subparsers.add_parser('cr1000x')
-    parser.set_defaults(handler=cr1000x_handler)
+def add_crx_parser(subparsers):
+    parser = subparsers.add_parser('crx')
+    parser.set_defaults(handler=crx_handler)
 
     parser.add_argument(
         "--run", help="Execute routine", action="store_true", dest='run'
@@ -594,7 +594,7 @@ def build_parser():
     add_data_parser(subparsers)
     add_imm_parser(subparsers)
     add_camera_parser(subparsers)
-    add_cr1000x_parser(subparsers)
+    add_crx_parser(subparsers)
     add_weather_parser(subparsers)
     add_gps_parser(subparsers)
     add_supervise_parser(subparsers)

@@ -1,6 +1,7 @@
 from collections import namedtuple
 from contextlib import contextmanager
 from time import sleep
+import logging
 
 from pycampbellcr1000 import CR1000
 
@@ -13,7 +14,6 @@ from honcho.tasks.common import task
 
 DATA_CONFIG = (
     {'name': 'timestamp', 'to_str': '{0:' + TIMESTAMP_FMT + '}'},
-    {'name': 'RecNbr', 'to_str': '{0:d}'},
     {'name': 'Batt_volt', 'to_str': '{0:.3f}'},
     {'name': 'Ptemp_C', 'to_str': '{0:.3f}'},
     {'name': 'R6', 'to_str': '{0:.4f}'},
@@ -32,15 +32,20 @@ DATA_CONFIG = (
     {'name': 'T4_5', 'to_str': '{0:.6f}'},
     {'name': 'T6_5', 'to_str': '{0:.6f}'},
     {'name': 'T8_5', 'to_str': '{0:.6f}'},
-    {'name': 'DT', 'to_str': '{0}'},  # Check
-    {'name': 'Q', 'to_str': '{0}'},  # Check
-    {'name': 'TCDT', 'to_str': '{0}'},  # Check
+    {'name': 'DT', 'to_str': '{0:.6f}'},
+    {'name': 'Q', 'to_str': '{0}'},
+    {'name': 'TCDT', 'to_str': '{0:.6f}'},
 )
 _DATA_KEYS = [el['name'] for el in DATA_CONFIG]
 DATA_KEYS = namedtuple('DATA_KEYS', _DATA_KEYS)(*_DATA_KEYS)
 CONVERSION_TO_STRING = dict((el['name'], el['to_str']) for el in DATA_CONFIG)
 
 CRXSample = namedtuple('CRXSample', DATA_KEYS)
+
+
+logger = logging.getLogger(__name__)
+logging.getLogger('pylink').setLevel(logging.ERROR)
+logging.getLogger('pycampbellcr1000').setLevel(logging.ERROR)
 
 
 @contextmanager
@@ -57,11 +62,13 @@ def connection():
 
 def get_last_sample():
     with powered([GPIO.HUB, GPIO.CRX]):
+        logger.debug('Waiting {0} seconds for crx startup'.format(CRX_STARTUP_WAIT))
         sleep(CRX_STARTUP_WAIT)
         with connection() as device:
-            data = device.get_data("Public")[-1]
-            data['timestamp'] = data['Datetime']
-            del data['Datetime']
+            logger.debug('Getting last sample from CRX')
+            recfrag = device.get_raw_packets("Public")[-1]['RecFrag'][-1]
+            data = {'timestamp': recfrag['TimeOfRec']}
+            data.update(**recfrag['Fields'])
             sample = CRXSample(**data)
 
     return sample
