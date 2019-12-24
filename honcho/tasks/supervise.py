@@ -17,6 +17,7 @@ from honcho.config import (
     START_SCHEDULE_COMMAND,
     EXECUTION_LOG_FILEPATH,
     MAINTENANCE_HOUR,
+    SKIP_MAINTENANCE,
     TIMESTAMP_FMT,
 )
 import honcho.core.data as data
@@ -131,7 +132,7 @@ def is_time_for_maintenance():
         or last_success is None
         or last_success < last_failure
         or last_success < now - timedelta(days=1)
-    )
+    ) and not SKIP_MAINTENANCE
 
     return result
 

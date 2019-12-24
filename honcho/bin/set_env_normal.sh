@@ -4,3 +4,4 @@ export LOG_LEVEL=INFO
 export MODE=NORMAL
 export KEEP_AWAKE=0
 export HUB_ALWAYS_ON=0
+export SKIP_MAINTENANCE=0

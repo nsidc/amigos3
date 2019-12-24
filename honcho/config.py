@@ -123,14 +123,18 @@ SCHEDULES = {
         ('scheduler.every().day.at("18:10")', 'upload'),
     ),
     SCHEDULE_NAMES.TEST: (
-        ('scheduler.every(15).minutes', 'tps'),
-        ('scheduler.every(15).minutes', 'weather'),
-        ('scheduler.every(15).minutes', 'camera'),
         ('scheduler.every(15).minutes', 'crx'),
+        ('scheduler.every(15).minutes', 'gps'),
         ('scheduler.every(15).minutes', 'seabird'),
         ('scheduler.every(15).minutes', 'aquadopp'),
+        ('scheduler.every(15).minutes', 'camera'),
         ('scheduler.every(15).minutes', 'dts'),
+        ('scheduler.every(15).minutes', 'weather'),
+        ('scheduler.every(15).minutes', 'tps'),
+        ('scheduler.every(15).minutes', 'sbd'),
         ('scheduler.every(15).minutes', 'upload'),
+        ('scheduler.every(15).minutes', 'orders'),
+        ('scheduler.every(15).minutes', 'archive'),
     ),
     SCHEDULE_NAMES.SAFE: (
         ('scheduler.every(6).hours', 'power'),
@@ -274,7 +278,6 @@ TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 
 UPLOAD_QUEUE_DIR = '/media/mmcblk0p1/upload'
 UPLOAD_CLEANUP = True
-UPLOAD_DATA_TAGS = (DATA_TAGS.CAM, DATA_TAGS.DTS, DATA_TAGS.TPS, DATA_TAGS.ORD)
 ARCHIVE_DIR = '/media/mmcblk0p1/archive'
 
 
@@ -378,6 +381,7 @@ MAX_SYSTEM_SLEEP = 59
 MIN_SYSTEM_VOLTAGE = 11
 HUB_ALWAYS_ON = int(os.environ.get('HUB_ALWAYS_ON', 0))
 KEEP_AWAKE = int(os.environ.get('KEEP_AWAKE', 0))
+SKIP_MAINTENANCE = int(os.environ.get('SKIP_MAINTENANCE', 0))
 DIRECTORIES_TO_MONITOR = {
     'data': DATA_ROOT_DIR,
     'archive': ARCHIVE_DIR,
