@@ -123,8 +123,8 @@ def is_time_for_maintenance():
     else:
         log_data = {}
 
-    last_success = log_data.get('last_success', None)
-    last_failure = log_data.get('last_failure', None)
+    last_success = datetime.strptime(log_data.get('last_success', None), TIMESTAMP_FMT)
+    last_failure = datetime.strptime(log_data.get('last_failure', None), TIMESTAMP_FMT)
 
     now = datetime.now()
     result = (
