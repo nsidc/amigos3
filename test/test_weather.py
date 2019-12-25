@@ -4,15 +4,20 @@ from time import sleep
 
 import pytest
 
-from honcho.config import DATA_TAGS, LOG_DIR
 import honcho.tasks.weather as weather
 
 
 @pytest.fixture
 def weather_mock(mocker, serial_mock):
     outputs = [
-        '0R0,Dm=192D,Sm=8.0M,Ta=-1.1C,Ua=65.5P,Pa=986.8H,Rc=0.00M,Rd=0s,Ri=0.0M,Hc=0.0M,Hd=0s,Hi=0.0M,Rp=0.0M,Hp=0.0M,Th=-1.1C,Vh=0.0N,Vs=11.8V\n',
-        '0R0,Dm=189D,Sm=9.4M,Ta=-1.1C,Ua=65.5P,Pa=986.9H,Rc=0.00M,Rd=0s,Ri=0.0M,Hc=0.0M,Hd=0s,Hi=0.0M,Rp=0.0M,Hp=0.0M,Th=-1.1C,Vh=0.0N,Vs=11.8V\n',
+        (
+            '0R0,Dm=192D,Sm=8.0M,Ta=-1.1C,Ua=65.5P,Pa=986.8H,Rc=0.00M,Rd=0s,Ri=0.0M,'
+            'Hc=0.0M,Hd=0s,Hi=0.0M,Rp=0.0M,Hp=0.0M,Th=-1.1C,Vh=0.0N,Vs=11.8V\n'
+        ),
+        (
+            '0R0,Dm=189D,Sm=9.4M,Ta=-1.1C,Ua=65.5P,Pa=986.9H,Rc=0.00M,Rd=0s,Ri=0.0M,'
+            'Hc=0.0M,Hd=0s,Hi=0.0M,Rp=0.0M,Hp=0.0M,Th=-1.1C,Vh=0.0N,Vs=11.8V\n'
+        ),
     ]
 
     def weather_listener(port):

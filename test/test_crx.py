@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 import pytest
 
-from honcho.config import DATA_TAGS, LOG_DIR
+from honcho.config import DATA_TAGS, LOG_DIR, ARCHIVE_DIR
 import honcho.tasks.crx as crx
 
 
@@ -119,4 +119,5 @@ def test_execute_smoke(fs, crx_mock, mocker):
     mocker.patch('honcho.tasks.crx.task', lambda f: f)
 
     fs.makedirs(LOG_DIR)
+    fs.makedirs(ARCHIVE_DIR)
     crx.execute()
