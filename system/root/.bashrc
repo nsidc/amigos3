@@ -8,3 +8,5 @@ set -o vi
 
 alias ls='ls -la --color=auto'
 alias cdc='cd /media/mmcblk0p1'
+
+source /media/mmcblk0p1/honcho/bin/set_env.sh
