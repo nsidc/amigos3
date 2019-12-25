@@ -15,12 +15,9 @@ from honcho.config import (
     DATA_DIR,
     DATA_TAGS,
     SBD_QUEUE_DIR,
+    NETRC_FILEPATH,
     ORDERS_DIR,
     REPORTS_DIR,
-    DTS_RAW_DIR,
-    DTS_PROCESSED_DIR,
-    CAMERA_RAW_DIR,
-    CAMERA_PROCESSED_DIR,
     UPLOAD_QUEUE_DIR,
 )
 
@@ -38,17 +35,7 @@ def ensure_all_dirs():
     ensure_dirs(
         [DATA_DIR(tag) for tag in DATA_TAGS]
         + [SBD_QUEUE_DIR(tag) for tag in DATA_TAGS]
-        + [
-            LOG_DIR,
-            ORDERS_DIR,
-            REPORTS_DIR,
-            DTS_RAW_DIR,
-            DTS_PROCESSED_DIR,
-            CAMERA_RAW_DIR,
-            CAMERA_PROCESSED_DIR,
-            UPLOAD_QUEUE_DIR,
-            ARCHIVE_DIR,
-        ]
+        + [LOG_DIR, ORDERS_DIR, REPORTS_DIR, UPLOAD_QUEUE_DIR, ARCHIVE_DIR]
     )
 
 

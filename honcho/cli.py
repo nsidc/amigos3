@@ -122,22 +122,29 @@ def add_system_parser(subparsers):
 def onboard_handler(args):
     import honcho.core.onboard as onboard
 
-    if args.voltage:
+    if args.voltage or args.all:
         print('Voltage: {0}'.format(onboard.get_voltage()))
 
-    if args.current:
+    if args.current or args.all:
         print('Current: {0}'.format(onboard.get_current()))
 
-    if args.temperature:
+    if args.temperature or args.all:
         print('Temperature: {0}'.format(onboard.get_temperature()))
 
-    if args.humidity:
+    if args.humidity or args.all:
         print('Humidity: {0}'.format(onboard.get_humidity()))
+
+    if args.solar or args.all:
+        print('Solar: {0}'.format(onboard.get_solar()))
 
 
 def add_onboard_parser(subparsers):
     parser = subparsers.add_parser('onboard')
     parser.set_defaults(handler=onboard_handler)
+
+    parser.add_argument(
+        "-a", "--all", help="Check all onboard sensors", action="store_true", dest='all'
+    )
 
     parser.add_argument(
         "-v",
@@ -165,6 +172,10 @@ def add_onboard_parser(subparsers):
 
     parser.add_argument(
         "-H", "--humidity", help="Check humidity", action="store_true", dest='humidity'
+    )
+
+    parser.add_argument(
+        "-s", "--solar", help="Check solar", action="store_true", dest='solar'
     )
 
 

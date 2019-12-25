@@ -40,6 +40,7 @@ _DATA_KEYS = (
 )
 DATA_KEYS = namedtuple('DATA_KEYS', (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)
 CONVERSION_TO_VALUE = {
+    DATA_KEYS.TIMESTAMP: lambda v: v,
     DATA_KEYS.LATITUDE: float,
     DATA_KEYS.LATITUDE_HEMI: str,
     DATA_KEYS.LONGITUDE: float,

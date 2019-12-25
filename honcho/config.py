@@ -123,6 +123,7 @@ SCHEDULES = {
         ('scheduler.every().day.at("18:10")', 'upload'),
     ),
     SCHEDULE_NAMES.TEST: (
+        ('scheduler.every(15).minutes', 'solar'),
         ('scheduler.every(15).minutes', 'crx'),
         ('scheduler.every(15).minutes', 'gps'),
         ('scheduler.every(15).minutes', 'seabird'),
@@ -136,10 +137,7 @@ SCHEDULES = {
         ('scheduler.every(15).minutes', 'orders'),
         ('scheduler.every(15).minutes', 'archive'),
     ),
-    SCHEDULE_NAMES.SAFE: (
-        ('scheduler.every(6).hours', 'power'),
-        ('scheduler.every(12).hours', 'orders'),
-    ),
+    SCHEDULE_NAMES.SAFE: (('scheduler.every(12).hours', 'orders'),),
 }
 
 START_SCHEDULE_COMMAND = 'run_schedule.sh'
@@ -198,21 +196,6 @@ GPIO_CONFIG = {
 # Up/downlink
 # --------------------------------------------------------------------------------
 
-FTP_HOST = 'restricted_ftp'
-FTP_TIMEOUT = 60
-DIALOUT_WAIT = 30
-FTP_CONNECT_RETRIES = 18
-FTP_RETRY_WAIT = 10
-FTP_ORDERS_DIR = '/orders'
-FTP_REPORTS_DIR = '/reports'
-ORDERS_DIR = '/media/mmcblk0p1/orders'
-REPORTS_DIR = '/media/mmcblk0p1/reports'
-
-
-# --------------------------------------------------------------------------------
-# Up/downlink
-# --------------------------------------------------------------------------------
-
 SBD_PORT = '/dev/ttyS1'
 SBD_BAUD = 9600
 SBD_STARTUP_WAIT = 30
@@ -233,6 +216,22 @@ def SBD_QUEUE_DIR(tag):
 
 
 # --------------------------------------------------------------------------------
+# Up/downlink
+# --------------------------------------------------------------------------------
+
+FTP_HOST = 'restricted_ftp'
+NETRC_FILEPATH = '/root/.netrc'
+FTP_TIMEOUT = 60
+DIALOUT_WAIT = 30
+FTP_CONNECT_RETRIES = 18
+FTP_RETRY_WAIT = 10
+FTP_ORDERS_DIR = '/orders'
+FTP_REPORTS_DIR = '/reports'
+ORDERS_DIR = '/media/mmcblk0p1/orders'
+REPORTS_DIR = '/media/mmcblk0p1/reports'
+
+
+# --------------------------------------------------------------------------------
 # Data
 # --------------------------------------------------------------------------------
 
@@ -246,6 +245,7 @@ _DATA_TAGS = (
     'GGA',
     'CAM',
     'WXT',
+    'SOL',
     'CRX',
     'BNX',
     'TPS',
@@ -317,8 +317,6 @@ CAMERA_USERNAME = 'admin'
 CAMERA_PASSWORD = '10iLtxyh'
 IMAGE_REDUCTION_FACTOR = '3/8'
 CAMERA_STARTUP_WAIT = 60
-CAMERA_RAW_DIR = os.path.join(DATA_DIR(DATA_TAGS.CAM), 'full_res')
-CAMERA_PROCESSED_DIR = os.path.join(DATA_DIR(DATA_TAGS.CAM), 'low_res')
 
 _LOOKS = ('NORTH', 'EAST', 'WEST', 'DOWN', 'MIRROR', 'HOME')
 LOOKS = namedtuple('LOOKS', _LOOKS)(*_LOOKS)
@@ -399,8 +397,6 @@ DTS_HOST = "192.168.0.50"  # win
 DTS_USER = "admin"
 DTS_PULL_DELAY = 60 * 5
 DTS_WIN_DIR = 'Desktop/dts_data/xt19001/temperature/TARSAN - 300m test'
-DTS_RAW_DIR = os.path.join(DATA_DIR(DATA_TAGS.DTS), "raw")
-DTS_PROCESSED_DIR = os.path.join(DATA_DIR(DATA_TAGS.DTS), "processed")
 DTS_CLEANUP_LOCAL = False
 DTS_CLEANUP_REMOTE = False
 DTS_FULL_RES_RANGES = [(1000, 1200), (2000, 2200)]
@@ -416,3 +412,7 @@ def VOLTAGE_CONVERTER(value):
     Calibrated to < .01 V
     '''
     return 0.0063926 * value + 0.21706913
+
+
+SOLAR_SAMPLES = 12
+SOLAR_SAMPLE_WAIT = 5
