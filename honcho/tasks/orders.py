@@ -7,8 +7,11 @@ from logging import getLogger
 
 from honcho.tasks.common import task
 from honcho.tasks.sbd import queue_sbd
+from honcho.tasks.upload import queue_filepaths
+from honcho.tasks.archive import archive_filepaths
+from honcho.util import clear_directory
 from honcho.core.data import log_serialized
-from honcho.config import SEP, DATA_DIR, DATA_TAGS, FTP_ORDERS_DIR, ORDERS_DIR
+from honcho.config import SEP, DATA_DIR, DATA_TAGS, FTP_ORDERS_DIR
 from honcho.core.ftp import ftp_session
 
 
@@ -21,12 +24,17 @@ Result = namedtuple('Result', _RESULT_KEYS)
 def get_orders():
     with ftp_session() as ftp:
         ftp.cwd(FTP_ORDERS_DIR)
-        orders_scripts = [el for el in ftp.nlst() if el not in ('.', '..')]
-        for filename in orders_scripts:
+        orders_filenames = [el for el in ftp.nlst() if el not in ('.', '..')]
+        local_filepaths = []
+        for filename in orders_filenames:
             logger.info('Retrieving orders: {0}'.format(filename))
-            local_script_filepath = os.path.join(ORDERS_DIR, filename)
-            with open(local_script_filepath, 'w') as fo:
+            local_filepath = os.path.join(DATA_DIR(DATA_TAGS.ORD), filename)
+            with open(local_filepath, 'w') as fo:
                 ftp.retrlines('RETR ' + filename, lambda line: fo.write(line + '\n'))
+
+            local_filepaths.append(local_filepath)
+
+    return local_filepaths
 
 
 def run_script(script_filepath):
@@ -60,12 +68,15 @@ def serialize(result):
     )
 
 
-def perform_orders():
-    script_filenames = [
-        el for el in os.listdir(ORDERS_DIR) if el.endswith('.sh') or el.endswith('.py')
+def perform_orders(orders_filepaths):
+    script_filepaths = [
+        filepath
+        for filepath in orders_filepaths
+        if filepath.endswith('.sh') or filepath.endswith('.py')
     ]
-    for script_filename in script_filenames:
-        script_filepath = os.path.join(os.path.abspath(ORDERS_DIR), script_filename)
+    result_filepaths = []
+    for script_filepath in script_filepaths:
+        script_filename = os.path.basename(script_filepath)
         logger.info('Running orders script: {0}'.format(script_filename))
         result = run_script(script_filepath)
 
@@ -78,21 +89,24 @@ def perform_orders():
             fo.write('# Return code: {0}\n'.format(result.return_code))
             fo.write(result.output)
 
+        result_filepaths.append(result_filepath)
+
         serialized = serialize(result)
         log_serialized(serialized, DATA_TAGS.ORD)
-        queue_sbd(serialize(result), DATA_TAGS.ORD)
+        queue_sbd(serialized, DATA_TAGS.ORD)
 
-
-def cleanup():
-    orders_filepaths = [os.path.join(ORDERS_DIR, el) for el in os.listdir(ORDERS_DIR)]
-
-    for filepath in orders_filepaths:
-        logger.info('Cleaning up: {0}'.format(filepath))
-        os.remove(filepath)
+    return result_filepaths
 
 
 @task
 def execute():
-    get_orders()
-    perform_orders()
-    cleanup()
+    tag = DATA_TAGS.ORD
+    clear_directory(DATA_DIR(tag))
+
+    orders_filepaths = get_orders()
+    result_filepaths = perform_orders(orders_filepaths)
+
+    filepaths = orders_filepaths + result_filepaths
+    queue_filepaths(filepaths, prefix=tag)
+    archive_filepaths(result_filepaths, prefix=tag)
+    clear_directory(DATA_DIR(tag))

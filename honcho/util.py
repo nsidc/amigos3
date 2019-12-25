@@ -16,8 +16,6 @@ from honcho.config import (
     DATA_TAGS,
     SBD_QUEUE_DIR,
     NETRC_FILEPATH,
-    ORDERS_DIR,
-    REPORTS_DIR,
     UPLOAD_QUEUE_DIR,
 )
 
@@ -35,7 +33,7 @@ def ensure_all_dirs():
     ensure_dirs(
         [DATA_DIR(tag) for tag in DATA_TAGS]
         + [SBD_QUEUE_DIR(tag) for tag in DATA_TAGS]
-        + [LOG_DIR, ORDERS_DIR, REPORTS_DIR, UPLOAD_QUEUE_DIR, ARCHIVE_DIR]
+        + [LOG_DIR, UPLOAD_QUEUE_DIR, ARCHIVE_DIR]
     )
 
 

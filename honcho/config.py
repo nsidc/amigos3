@@ -28,6 +28,13 @@ DEFAULT_LOG_LEVEL = 'INFO'
 LOG_LEVEL = getattr(logging, os.environ.get('LOG_LEVEL', DEFAULT_LOG_LEVEL))
 LOG_SIZE = 200000
 
+MAX_SYSTEM_SLEEP = 59
+MIN_SYSTEM_VOLTAGE = 11
+HUB_ALWAYS_ON = int(os.environ.get('HUB_ALWAYS_ON', 0))
+KEEP_AWAKE = int(os.environ.get('KEEP_AWAKE', 0))
+SKIP_MAINTENANCE = int(os.environ.get('SKIP_MAINTENANCE', 0))
+IGNORE_LOW_VOLTAGE = int(os.environ.get('IGNORE_LOW_VOLTAGE', 0))
+
 
 # --------------------------------------------------------------------------------
 # UNIT SPECIFIC CONFIGURATION
@@ -226,9 +233,6 @@ DIALOUT_WAIT = 30
 FTP_CONNECT_RETRIES = 18
 FTP_RETRY_WAIT = 10
 FTP_ORDERS_DIR = '/orders'
-FTP_REPORTS_DIR = '/reports'
-ORDERS_DIR = '/media/mmcblk0p1/orders'
-REPORTS_DIR = '/media/mmcblk0p1/reports'
 
 
 # --------------------------------------------------------------------------------
@@ -371,16 +375,10 @@ MEASUREMENTS = 40
 
 
 # --------------------------------------------------------------------------------
-# System
+# Monitoring
 # --------------------------------------------------------------------------------
 
 WATCHDOG_DEVICE = '/sys/class/gpio/wdt_ctl/data'
-MAX_SYSTEM_SLEEP = 59
-MIN_SYSTEM_VOLTAGE = 11
-HUB_ALWAYS_ON = int(os.environ.get('HUB_ALWAYS_ON', 0))
-KEEP_AWAKE = int(os.environ.get('KEEP_AWAKE', 0))
-SKIP_MAINTENANCE = int(os.environ.get('SKIP_MAINTENANCE', 0))
-IGNORE_LOW_VOLTAGE = int(os.environ.get('IGNORE_LOW_VOLTAGE', 0))
 DIRECTORIES_TO_MONITOR = {
     'data': DATA_ROOT_DIR,
     'archive': ARCHIVE_DIR,
