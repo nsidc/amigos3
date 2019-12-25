@@ -25,8 +25,10 @@ def archive_filepaths(filepaths, prefix, output_directory=ARCHIVE_DIR):
 def archive_data():
     logger.debug('Archiving data')
     for tag in DATA_TAGS:
-        filepaths = os.listdir(DATA_DIR(tag))
-        if filepaths:
+        data_dir = DATA_DIR(tag)
+        filenames = os.listdir(data_dir)
+        if filenames:
+            filepaths = [os.path.join(data_dir, filename) for filename in filenames]
             logger.debug('Archiving files for {0}'.format(tag))
             archive_filepaths(filepaths, tag)
         else:
@@ -35,8 +37,9 @@ def archive_data():
 
 def archive_logs():
     logger.debug('Archiving data')
-    filepaths = os.listdir(LOG_DIR)
-    if filepaths:
+    filenames = os.listdir(LOG_DIR)
+    if filenames:
+        filepaths = [os.path.join(LOG_DIR, filename) for filename in filenames]
         logger.debug('Archiving logs')
         archive_filepaths(filepaths, prefix='LOGS')
     else:
