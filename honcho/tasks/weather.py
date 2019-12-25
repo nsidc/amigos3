@@ -81,29 +81,29 @@ CONVERSION_TO_STRING = {
 }
 WeatherSample = namedtuple('WeatherSample', DATA_KEYS)
 
-PATTERN = (
+LINE_PATTERN = (
     r'0R0,'
-    r'Dm=(?P<wind_direction>[\d\.]+)D,'
-    r'Sm=(?P<wind_speed>[\d\.]+)M,'
-    r'Ta=(?P<temperature>[\+\-\d\.]+)C,'
-    r'Ua=(?P<humidity>[\d\.]+)P,'
-    r'Pa=(?P<pressure>[\d\.]+)H,'
-    r'Rc=(?P<rain_accumulation>[\d\.]+)M,'
-    r'Rd=(?P<rain_duration>[\d\.]+)s,'
-    r'Ri=(?P<rain_intensity>[\d\.]+)M,'
-    r'Hc=(?P<hail_accumulation>[\d\.]+)M,'
-    r'Hd=(?P<hail_duration>[\d\.]+)s,'
-    r'Hi=(?P<hail_intensity>[\d\.]+)M,'
-    r'Rp=(?P<rain_peak_intensity>[\d\.]+)M,'
-    r'Hp=(?P<hail_peak_intensity>[\d\.]+)M,'
-    r'Th=(?P<heater_temperature>[\+\-\d\.]+)C,'
-    r'Vh=(?P<heater_voltage>[\+\-\d\.]+)N,'
-    r'Vs=(?P<supply_voltage>[\+\-\d\.]+)V'
+    r'Dm=(?P<wind_direction>[\d\.]+).,'
+    r'Sm=(?P<wind_speed>[\d\.]+).,'
+    r'Ta=(?P<temperature>[\+\-\d\.]+).,'
+    r'Ua=(?P<humidity>[\d\.]+).,'
+    r'Pa=(?P<pressure>[\d\.]+).,'
+    r'Rc=(?P<rain_accumulation>[\d\.]+).,'
+    r'Rd=(?P<rain_duration>[\d\.]+).,'
+    r'Ri=(?P<rain_intensity>[\d\.]+).,'
+    r'Hc=(?P<hail_accumulation>[\d\.]+).,'
+    r'Hd=(?P<hail_duration>[\d\.]+).,'
+    r'Hi=(?P<hail_intensity>[\d\.]+).,'
+    r'Rp=(?P<rain_peak_intensity>[\d\.]+).,'
+    r'Hp=(?P<hail_peak_intensity>[\d\.]+).,'
+    r'Th=(?P<heater_temperature>[\+\-\d\.]+).,'
+    r'Vh=(?P<heater_voltage>[\+\-\d\.]+).,'
+    r'Vs=(?P<supply_voltage>[\+\-\d\.]+).'
 )
 
 
 def parse_sample(s):
-    row = re.match(PATTERN, s).groupdict()
+    row = re.match(LINE_PATTERN, s).groupdict()
     sample = WeatherSample(
         timestamp=datetime.now(),
         **dict((key, CONVERSION_TO_VALUE[key](value)) for key, value in row.items())
@@ -120,9 +120,9 @@ def get_samples(n=12):
             while len(samples) < n:
                 line = serial.readline()
                 logger.debug('Read line from vaisala: {0}'.format(line))
-                if line.startswith('0R0') and len(line.split(',')) == 17:
-                    logger.debug('{0} of {1} samples collected'.format(len(samples), n))
+                if re.search(LINE_PATTERN, line):
                     samples.append(parse_sample(line))
+                    logger.debug('{0} of {1} samples collected'.format(len(samples), n))
 
     return samples
 
