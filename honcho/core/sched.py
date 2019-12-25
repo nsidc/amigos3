@@ -85,12 +85,13 @@ def execute():
     load_schedule(scheduler, SCHEDULES[name])
 
     while True:
+        sleep(SCHEDULE_IDLE_CHECK_INTERVAL)
         if not voltage_check():
+            # System just wokeup, so skip schedule check and do another voltage check
             continue
 
         scheduler.run_pending()
         idle_check(scheduler)
-        sleep(SCHEDULE_IDLE_CHECK_INTERVAL)
 
 
 if __name__ == '__main__':
