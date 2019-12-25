@@ -11,8 +11,6 @@ from honcho.config import (
     SEP,
     DATA_TAGS,
     DATA_DIR,
-    SBD_QUEUE_DIR,
-    UPLOAD_QUEUE_DIR,
     DIRECTORIES_TO_MONITOR,
     START_SCHEDULE_COMMAND,
     EXECUTION_LOG_FILEPATH,
@@ -21,6 +19,7 @@ from honcho.config import (
     TIMESTAMP_FMT,
 )
 import honcho.core.data as data
+from honcho.core.sched import get_schedule_processes
 from honcho.core.system import get_top, get_disk_usage
 
 import honcho.tasks.sbd as sbd
@@ -31,9 +30,7 @@ from honcho.tasks.common import task
 
 logger = getLogger(__name__)
 
-MeasurementsCountSample = namedtuple('MeasurementsCountSample', DATA_TAGS)
-SBDQueueCountSample = namedtuple('SBDQueueCountSample', DATA_TAGS)
-UploadQueueCountSample = namedtuple('UploadQueueCountSample', 'files')
+TaskExecutionsSample = namedtuple('TaskExecutionsSample', DATA_TAGS)
 DirectorySizeSample = namedtuple('DirectorySizeSample', DIRECTORIES_TO_MONITOR)
 HealthSample = namedtuple(
     'HealthSample',
@@ -63,27 +60,10 @@ def serialize(sample):
     return serialized
 
 
-def get_schedule_processes(top):
-    schedule_processes = [
-        sample for sample in top.processes if 'schedule' in sample.command
-    ]
-    return schedule_processes
-
-
 def get_measurement_counts():
-    return MeasurementsCountSample(
+    return TaskExecutionsSample(
         **dict((tag, len(os.listdir(DATA_DIR(tag)))) for tag in DATA_TAGS)
     )
-
-
-def get_sbd_queue_counts():
-    return SBDQueueCountSample(
-        **dict((tag, len(os.listdir(SBD_QUEUE_DIR(tag)))) for tag in DATA_TAGS)
-    )
-
-
-def get_upload_queue_count():
-    return UploadQueueCountSample(os.listdir(UPLOAD_QUEUE_DIR))
 
 
 def get_directory_sizes():
@@ -101,7 +81,7 @@ def check_health():
     disk_usage = get_disk_usage()
     card_usage = [el for el in disk_usage if el.mount == '/media/mmcblk0p1'][0]
     measurement_counts = get_measurement_counts()
-    sbd_queue_counts = get_sbd_queue_counts()
+    sbd_queue_counts = sbd.get_queue_counts()
     directory_sizes = get_directory_sizes()
 
     return HealthSample(
@@ -123,15 +103,29 @@ def is_time_for_maintenance():
     else:
         log_data = {}
 
-    last_success = datetime.strptime(log_data.get('last_success', None), TIMESTAMP_FMT)
-    last_failure = datetime.strptime(log_data.get('last_failure', None), TIMESTAMP_FMT)
+    last_success = log_data.get('last_success', None)
+    if last_success is not None:
+        last_success = datetime.strptime(last_success, TIMESTAMP_FMT)
+    last_failure = log_data.get('last_failure', None)
+    if last_failure is not None:
+        last_failure = datetime.strptime(last_failure, TIMESTAMP_FMT)
 
     now = datetime.now()
+
+    is_maintenance_hour = now.hour == MAINTENANCE_HOUR
+    no_logged_success = last_success is None
+    failed_last_time = (None not in (last_failure, last_success)) and (
+        last_success < last_failure
+    )
+    no_success_past_day = (last_success is not None) and (
+        last_success < now - timedelta(days=1)
+    )
+
     result = (
-        now.hour == MAINTENANCE_HOUR
-        or last_success is None
-        or last_success < last_failure
-        or last_success < now - timedelta(days=1)
+        is_maintenance_hour
+        or no_logged_success
+        or failed_last_time
+        or no_success_past_day
     ) and not SKIP_MAINTENANCE
 
     return result

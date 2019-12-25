@@ -1,5 +1,6 @@
 import logging
 import os
+from collections import namedtuple
 from contextlib import closing, contextmanager
 from datetime import datetime
 from time import sleep
@@ -7,6 +8,7 @@ from time import sleep
 from serial import Serial
 
 from honcho.config import (
+    DATA_TAGS,
     SBD_PORT,
     SBD_BAUD,
     SBD_QUEUE_DIR,
@@ -22,6 +24,8 @@ from honcho.tasks.common import task
 
 
 logger = logging.getLogger(__name__)
+
+SBDQueueCountSample = namedtuple('SBDQueueCountSample', DATA_TAGS)
 
 
 @contextmanager
@@ -77,9 +81,23 @@ def queue_sbd(message, tag):
 
 
 def print_queue():
+    counts = get_queue_counts()
+    print(
+        '\n'.join(
+            '{0}: {1}'.format(name, count)
+            for name, count in zip(SBDQueueCountSample._fields, counts)
+        )
+    )
+    print('-' * 80)
     queue = build_queue()
     for el in queue:
         print(el)
+
+
+def get_queue_counts():
+    return SBDQueueCountSample(
+        **dict((tag, len(os.listdir(SBD_QUEUE_DIR(tag)))) for tag in DATA_TAGS)
+    )
 
 
 def clear_queue():

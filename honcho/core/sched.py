@@ -73,6 +73,13 @@ def print_summary():
         print(job)
 
 
+def get_schedule_processes(top):
+    schedule_processes = [
+        sample for sample in top.processes if 'schedule' in sample.command
+    ]
+    return schedule_processes
+
+
 def execute():
     ensure_all_dirs()
     init_logging()

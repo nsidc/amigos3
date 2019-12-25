@@ -1,5 +1,6 @@
 import os
 from logging import getLogger
+from collections import namedtuple
 
 from honcho.config import UPLOAD_QUEUE_DIR, UPLOAD_CLEANUP
 from honcho.util import file_size
@@ -8,6 +9,8 @@ from honcho.tasks.archive import archive_filepaths
 from honcho.core.ftp import ftp_session
 
 logger = getLogger(__name__)
+
+UploadQueueCountSample = namedtuple('UploadQueueCountSample', 'files')
 
 
 def queue_filepaths(filepaths, prefix):
@@ -26,6 +29,10 @@ def print_queue():
     for filename in os.listdir(UPLOAD_QUEUE_DIR):
         filepath = os.path.join(UPLOAD_QUEUE_DIR, filename)
         print('\t'.join([file_size(filepath), filepath]))
+
+
+def get_upload_queue_count():
+    return UploadQueueCountSample(os.listdir(UPLOAD_QUEUE_DIR))
 
 
 @task
