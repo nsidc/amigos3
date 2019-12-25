@@ -143,11 +143,27 @@ def get_disk_usage():
     return results
 
 
+def get_ps():
+    p = subprocess.Popen(TOP_CMD, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+    output, _ = p.communicate()
+    output = output.strip().split('\n')
+    processes = []
+    for row in output[4:]:
+        pos = 0
+        values = {}
+        for key, length in PROCESS_FIELDS.items():
+            end_pos = pos + length
+            values[key] = row[pos:end_pos].strip()
+            pos = pos + length
+        processes.append(ProcessSample(**values))
+
+    return processes
+
+
 def get_top():
     p = subprocess.Popen(TOP_CMD, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
     output, _ = p.communicate()
     output = output.strip().split('\n')
-
     mem_sample = MemSample(**re.search(MEM_PATTERN, output[0]).groupdict())
     cpu_sample = CPUSample(**re.search(CPU_PATTERN, output[1]).groupdict())
     load_average_sample = LoadAverageSample(
@@ -162,7 +178,7 @@ def get_top():
             end_pos = pos + length
             values[key] = row[pos:end_pos].strip()
             pos = pos + length
-    processes.append(ProcessSample(**values))
+        processes.append(ProcessSample(**values))
 
     return TopSample(
         mem=mem_sample,
