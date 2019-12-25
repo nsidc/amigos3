@@ -155,7 +155,7 @@ def format_timedelta(td):
 
 
 def get_creds(host):
-    nrc = netrc()
+    nrc = netrc(NETRC_FILEPATH)
     user, _, passwd = nrc.hosts[host]
 
     return user, passwd
