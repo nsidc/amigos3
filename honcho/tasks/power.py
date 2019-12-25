@@ -22,7 +22,7 @@ CONVERSION_TO_STRING = {
 
 def voltage_check():
     sample = PowerSample(timestamp=datetime.now(), voltage=get_voltage())
-    logger.info('Current voltage {0:.2f}'.format(sample.voltage))
+    logger.debug('Current voltage {0:.2f}'.format(sample.voltage))
     serialized = data.serialize(sample, CONVERSION_TO_STRING)
     data.log_serialized(serialized, DATA_TAGS.PWR)
     voltage_ok = sample.voltage >= MIN_SYSTEM_VOLTAGE

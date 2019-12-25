@@ -6,7 +6,7 @@ from functools import wraps
 from inspect import getmodule
 from datetime import datetime
 
-from honcho.config import EXECUTION_LOG_FILEPATH
+from honcho.config import EXECUTION_LOG_FILEPATH, TIMESTAMP_FMT
 from honcho.util import format_timedelta, total_seconds
 
 
@@ -28,8 +28,9 @@ def task(func):
             result = func(*args, **kwargs)
             success = True
         except Exception:
-            error_traceback = traceback.format_exc()
+            result = None
             success = False
+            error_traceback = traceback.format_exc()
 
         run_time = datetime.now() - start
         logger.info(
@@ -53,10 +54,12 @@ def task(func):
         # Update
         count_key = 'successes' if success else 'failures'
         average_key = 'success_runtime' if success else 'failure_runtime'
+        last_key = 'last_success' if success else 'last_failure'
         n = log_data.get(count_key, 0)
         avg = log_data.get(average_key, 0)
         log_data[average_key] = (avg * n + total_seconds(run_time)) / (n + 1)
         log_data[count_key] = n + 1
+        log_data[last_key] = start.strftime(TIMESTAMP_FMT)
 
         # Dump log data
         with open(log_filepath, 'w') as f:

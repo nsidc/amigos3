@@ -34,7 +34,6 @@ _DATA_KEYS = (
     'altitude_units',
     'geoid_sep',
     'geoid_sep_units',
-    'age',
     'ref_id',
     'checksum',
 )
@@ -52,9 +51,8 @@ CONVERSION_TO_VALUE = {
     DATA_KEYS.ALTITUDE_UNITS: str,
     DATA_KEYS.GEOID_SEP: float,
     DATA_KEYS.GEOID_SEP_UNITS: str,
-    DATA_KEYS.AGE: float,
     DATA_KEYS.REF_ID: str,
-    DATA_KEYS.CHECKSUM: lambda x: int(x, 16),
+    DATA_KEYS.CHECKSUM: lambda x: int(x[1:], 16),
 }
 CONVERSION_TO_STRING = {
     DATA_KEYS.TIMESTAMP: '{0:' + TIMESTAMP_FMT + '}',
@@ -69,7 +67,6 @@ CONVERSION_TO_STRING = {
     DATA_KEYS.ALTITUDE_UNITS: '{0}',
     DATA_KEYS.GEOID_SEP: '{0:.4f}',
     DATA_KEYS.GEOID_SEP_UNITS: '{0:.2f}',
-    DATA_KEYS.AGE: '{0:.1f}',
     DATA_KEYS.REF_ID: '{0}',
     DATA_KEYS.CHECKSUM: '{0:02X}',
 }
@@ -110,7 +107,6 @@ def parse_gga(raw, timestamp):
         hour=time.hour, minute=time.minute, second=time.second
     )
     data = [timestamp] + data[1:]
-
     sample = GGASample(
         **dict(
             (key, CONVERSION_TO_VALUE[key](data[i])) for i, key in enumerate(DATA_KEYS)

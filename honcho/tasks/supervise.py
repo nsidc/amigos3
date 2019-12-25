@@ -65,7 +65,7 @@ def serialize(sample):
 
 def get_schedule_processes(top):
     schedule_processes = [
-        sample for sample in top.processes if 'schedule --execute' in sample.command
+        sample for sample in top.processes if 'schedule' in sample.command
     ]
     return schedule_processes
 
