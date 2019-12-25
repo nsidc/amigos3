@@ -380,6 +380,7 @@ MIN_SYSTEM_VOLTAGE = 11
 HUB_ALWAYS_ON = int(os.environ.get('HUB_ALWAYS_ON', 0))
 KEEP_AWAKE = int(os.environ.get('KEEP_AWAKE', 0))
 SKIP_MAINTENANCE = int(os.environ.get('SKIP_MAINTENANCE', 0))
+IGNORE_LOW_VOLTAGE = int(os.environ.get('IGNORE_LOW_VOLTAGE', 0))
 DIRECTORIES_TO_MONITOR = {
     'data': DATA_ROOT_DIR,
     'archive': ARCHIVE_DIR,

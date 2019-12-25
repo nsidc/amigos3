@@ -5,7 +5,13 @@ from collections import namedtuple
 from honcho.tasks.common import task
 from honcho.core.onboard import get_voltage
 import honcho.core.data as data
-from honcho.config import MIN_SYSTEM_VOLTAGE, MAX_SYSTEM_SLEEP, DATA_TAGS, TIMESTAMP_FMT
+from honcho.config import (
+    MIN_SYSTEM_VOLTAGE,
+    MAX_SYSTEM_SLEEP,
+    DATA_TAGS,
+    TIMESTAMP_FMT,
+    IGNORE_LOW_VOLTAGE,
+)
 from honcho.core.system import system_standby
 
 logger = logging.getLogger(__name__)
@@ -25,7 +31,7 @@ def voltage_check():
     logger.debug('Current voltage {0:.2f}'.format(sample.voltage))
     serialized = data.serialize(sample, CONVERSION_TO_STRING)
     data.log_serialized(serialized, DATA_TAGS.PWR)
-    voltage_ok = sample.voltage >= MIN_SYSTEM_VOLTAGE
+    voltage_ok = (sample.voltage >= MIN_SYSTEM_VOLTAGE) or IGNORE_LOW_VOLTAGE
     if not voltage_ok:
         logger.warning(
             'System voltage {0} supply below minimum {1}'.format(

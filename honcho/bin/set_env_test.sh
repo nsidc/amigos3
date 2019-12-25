@@ -5,4 +5,4 @@ export MODE=TEST
 export KEEP_AWAKE=1
 export HUB_ALWAYS_ON=1
 export SKIP_MAINTENANCE=1
-
+export IGNORE_LOW_VOLTAGE=0
