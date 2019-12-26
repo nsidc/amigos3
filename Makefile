@@ -1,4 +1,4 @@
-.PHONY: env submodules clean lint test serial-con ssh-con sync
+.PHONY: env submodules clean lint test serial-con ssh-con sync backup
 .DEFAULT_GOAL := help
 
 SHELL=/bin/bash
