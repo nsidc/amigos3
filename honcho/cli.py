@@ -120,6 +120,7 @@ def add_system_parser(subparsers):
 
 
 def onboard_handler(args):
+    import honcho.core.gpio as gpio
     import honcho.core.onboard as onboard
 
     if args.voltage or args.all:
@@ -135,7 +136,8 @@ def onboard_handler(args):
         print('Humidity: {0}'.format(onboard.get_humidity()))
 
     if args.solar or args.all:
-        print('Solar: {0}'.format(onboard.get_solar()))
+        with gpio.powered([GPIO.SOL]):
+            print('Solar: {0}'.format(onboard.get_solar()))
 
 
 def add_onboard_parser(subparsers):
@@ -208,6 +210,22 @@ def add_sbd_parser(subparsers):
     )
     group.add_argument(
         "--run", help="Send queued SBDs", action="store_true", dest='run'
+    )
+
+
+def solar_handler(args):
+    solar = import_task('solar')
+
+    if args.run:
+        solar.execute()
+
+
+def add_solar_parser(subparsers):
+    parser = subparsers.add_parser('solar')
+    parser.set_defaults(handler=solar_handler)
+
+    parser.add_argument(
+        "--run", help="Execute routine", action="store_true", dest='run'
     )
 
 
@@ -586,6 +604,7 @@ def build_parser():
     add_camera_parser(subparsers)
     add_crx_parser(subparsers)
     add_weather_parser(subparsers)
+    add_solar_parser(subparsers)
     add_gps_parser(subparsers)
     add_supervise_parser(subparsers)
     add_monitor_parser(subparsers)

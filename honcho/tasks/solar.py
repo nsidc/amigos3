@@ -1,10 +1,18 @@
 from time import sleep
+from datetime import datetime
 from logging import getLogger
 from collections import namedtuple
 
 from honcho.util import average_datetimes
+from honcho.core.gpio import powered
 from honcho.tasks.common import task
-from honcho.config import SOLAR_SAMPLES, SOLAR_SAMPLE_WAIT, DATA_TAGS, TIMESTAMP_FMT
+from honcho.config import (
+    SOLAR_SAMPLES,
+    SOLAR_SAMPLE_WAIT,
+    DATA_TAGS,
+    TIMESTAMP_FMT,
+    GPIO,
+)
 from honcho.tasks.sbd import queue_sbd
 from honcho.core.data import log_serialized, serialize
 from honcho.core.onboard import get_solar
@@ -17,7 +25,7 @@ DATA_CONFIG = (
     {'name': 'solar_down', 'to_str': '{0}'},
 )
 _DATA_KEYS = [el['name'] for el in DATA_CONFIG]
-DATA_KEYS = namedtuple('DATA_KEYS', _DATA_KEYS)(*_DATA_KEYS)
+DATA_KEYS = namedtuple('DATA_KEYS', (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)
 CONVERSION_TO_STRING = dict((el['name'], el['to_str']) for el in DATA_CONFIG)
 
 SolarSample = namedtuple('SolarSample', DATA_KEYS)
@@ -25,9 +33,11 @@ SolarSample = namedtuple('SolarSample', DATA_KEYS)
 
 def get_samples(n=SOLAR_SAMPLES, wait=SOLAR_SAMPLE_WAIT):
     samples = []
-    for _ in xrange(n):
-        samples.append(SolarSample(get_solar()))
-        sleep(SOLAR_SAMPLE_WAIT)
+    with powered([GPIO.SOL]):
+        for _ in xrange(n):
+            timestamp = datetime.now()
+            samples.append(SolarSample(timestamp, *get_solar()))
+            sleep(SOLAR_SAMPLE_WAIT)
 
     return samples
 
@@ -40,7 +50,7 @@ def average_samples(samples):
         timestamp=timestamp,
         **dict(
             (key, sum(getattr(sample, key) for sample in samples) / float(n))
-            for key in (set(DATA_KEYS) - DATA_KEYS.TIMESTAMP)
+            for key in (set(DATA_KEYS) - set([DATA_KEYS.TIMESTAMP]))
         )
     )
 
