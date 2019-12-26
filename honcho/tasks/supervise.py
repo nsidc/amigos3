@@ -10,6 +10,7 @@ from honcho.config import (
     UNIT,
     SEP,
     DATA_TAGS,
+    ARCHIVE_DIR,
     DATA_DIR,
     DIRECTORIES_TO_MONITOR,
     START_SCHEDULE_COMMAND,
@@ -147,12 +148,33 @@ def run_maintenance():
 
 def ensure_schedule_running():
     # Start schedule if not running
-    top = get_top()
-    if not get_schedule_processes(top):
+    if not get_schedule_processes():
         logger.info('No schedule running, starting')
         subprocess.Popen([START_SCHEDULE_COMMAND], shell=True)
     else:
         logger.info('Schedule already running')
+
+
+def print_task_history():
+    execution_log_filenames = [
+        filename
+        for filename in os.listdir(ARCHIVE_DIR)
+        if filename.startswith('honcho.tasks')
+    ]
+    for filename in execution_log_filenames:
+        with open(os.path.join(ARCHIVE_DIR, filename), 'r') as f:
+            data = json.load(f)
+        task_name = filename.replace('.log', '').replace('honcho.tasks.', '')
+        print('-' * 80)
+        print('task: {0}'.format(task_name))
+        for key, value in data.items():
+            print('{0}: {1}'.format(key, value))
+
+
+def print_health():
+    health = check_health()
+    for field in health._fields:
+        print('{0}: {1}'.format(field, getattr(health, field)))
 
 
 @task

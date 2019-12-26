@@ -567,6 +567,10 @@ def supervise_handler(args):
 
     if args.run:
         supervise.execute()
+    if args.history:
+        supervise.print_task_history()
+    if args.health:
+        supervise.print_health()
 
 
 def add_supervise_parser(subparsers):
@@ -576,21 +580,11 @@ def add_supervise_parser(subparsers):
     parser.add_argument(
         "--run", help="Execute supervise routine", action="store_true", dest='run'
     )
-
-
-def monitor_handler(args):
-    monitor = import_task('monitor')
-
-    if args.run:
-        monitor.execute()
-
-
-def add_monitor_parser(subparsers):
-    parser = subparsers.add_parser('monitor')
-    parser.set_defaults(handler=monitor_handler)
-
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--history", help="Print task history", action="store_true", dest='history'
+    )
+    parser.add_argument(
+        "--health", help="Print health check", action="store_true", dest='health'
     )
 
 
@@ -613,7 +607,6 @@ def build_parser():
     add_solar_parser(subparsers)
     add_gps_parser(subparsers)
     add_supervise_parser(subparsers)
-    add_monitor_parser(subparsers)
 
     return parser
 
