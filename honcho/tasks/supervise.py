@@ -134,8 +134,7 @@ def is_time_for_maintenance():
 
 def run_maintenance():
     logger.info('Performing maintenance routine')
-    top = get_top()
-    schedule_processes = get_schedule_processes(top)
+    schedule_processes = get_schedule_processes()
     if schedule_processes:
         for schedule_process in schedule_processes:
             os.kill(int(schedule_process.pid), signal.SIGKILL)

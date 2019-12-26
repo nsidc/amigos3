@@ -10,6 +10,7 @@ from honcho.util import OrderedDict
 logger = logging.getLogger(__name__)
 
 TOP_CMD = ['top', '-n', '1']
+PS_CMD = ['ps']
 DF_CMD = ['df']
 
 DISK_USAGE_FIELDS = OrderedDict(
@@ -144,7 +145,7 @@ def get_disk_usage():
 
 
 def get_ps():
-    p = subprocess.Popen(TOP_CMD, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+    p = subprocess.Popen(PS_CMD, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
     output, _ = p.communicate()
     output = output.strip().split('\n')
     processes = []

@@ -16,7 +16,7 @@ from honcho.config import (
     MAX_SYSTEM_SLEEP,
 )
 from honcho.tasks import import_task
-from honcho.core.system import system_standby
+from honcho.core.system import system_standby, get_ps
 from honcho.tasks.power import voltage_check
 from honcho.core.gpio import set_awake_gpio_state
 
@@ -73,10 +73,9 @@ def print_summary():
         print(job)
 
 
-def get_schedule_processes(top):
-    schedule_processes = [
-        sample for sample in top.processes if 'schedule' in sample.command
-    ]
+def get_schedule_processes():
+    ps = get_ps()
+    schedule_processes = [process for process in ps if 'schedule' in process.command]
     return schedule_processes
 
 
