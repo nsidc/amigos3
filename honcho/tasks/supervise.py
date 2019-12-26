@@ -121,22 +121,23 @@ def is_time_for_maintenance():
         last_success < now - timedelta(days=1)
     )
 
-    result = (
+    is_time = (
         is_maintenance_hour
         or no_logged_success
         or failed_last_time
         or no_success_past_day
     ) and not SKIP_MAINTENANCE
 
-    return result
+    return is_time
 
 
 def run_maintenance():
+    logger.info('Performing maintenance routine')
     top = get_top()
     schedule_processes = get_schedule_processes(top)
     if schedule_processes:
         for schedule_process in schedule_processes:
-            os.kill(schedule_process.pid, signal.SIGKILL)
+            os.kill(int(schedule_process.pid), signal.SIGKILL)
 
     orders.execute()
     sbd.execute()
@@ -148,7 +149,10 @@ def ensure_schedule_running():
     # Start schedule if not running
     top = get_top()
     if not get_schedule_processes(top):
+        logger.info('No schedule running, starting')
         subprocess.Popen([START_SCHEDULE_COMMAND], shell=True)
+    else:
+        logger.info('Schedule already running')
 
 
 @task

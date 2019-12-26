@@ -67,8 +67,7 @@ def get_temperature():
 
 
 def get_solar():
-    with powered([GPIO.SOL]):
-        solar_1 = _get_supply_value(0)
-        solar_2 = _get_supply_value(1)
+    solar_1 = _get_supply_value(0)
+    solar_2 = _get_supply_value(1)
 
     return (solar_1, solar_2)

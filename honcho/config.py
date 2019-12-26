@@ -130,24 +130,24 @@ SCHEDULES = {
         ('scheduler.every().day.at("18:10")', 'upload'),
     ),
     SCHEDULE_NAMES.TEST: (
-        ('scheduler.every(15).minutes', 'solar'),
-        ('scheduler.every(15).minutes', 'crx'),
-        ('scheduler.every(15).minutes', 'gps'),
-        ('scheduler.every(15).minutes', 'seabird'),
-        ('scheduler.every(15).minutes', 'aquadopp'),
-        ('scheduler.every(15).minutes', 'camera'),
-        ('scheduler.every(15).minutes', 'dts'),
-        ('scheduler.every(15).minutes', 'weather'),
-        ('scheduler.every(15).minutes', 'tps'),
-        ('scheduler.every(15).minutes', 'sbd'),
-        ('scheduler.every(15).minutes', 'upload'),
-        ('scheduler.every(15).minutes', 'orders'),
-        ('scheduler.every(15).minutes', 'archive'),
+        ('scheduler.every(1).seconds', 'solar'),
+        ('scheduler.every(1).seconds', 'tps'),
+        ('scheduler.every(1).seconds', 'crx'),
+        ('scheduler.every(1).seconds', 'gps'),
+        ('scheduler.every(1).seconds', 'weather'),
+        ('scheduler.every(1).seconds', 'camera'),
+        ('scheduler.every(1).seconds', 'dts'),
+        ('scheduler.every(1).seconds', 'seabird'),
+        ('scheduler.every(1).seconds', 'aquadopp'),
+        ('scheduler.every(1).seconds', 'sbd'),
+        ('scheduler.every(1).seconds', 'upload'),
+        ('scheduler.every(1).seconds', 'orders'),
+        ('scheduler.every(1).seconds', 'archive'),
     ),
     SCHEDULE_NAMES.SAFE: (('scheduler.every(12).hours', 'orders'),),
 }
 
-START_SCHEDULE_COMMAND = 'run_schedule.sh'
+START_SCHEDULE_COMMAND = '/media/mmcblk0p1/honcho/bin/run_schedule.sh'
 MAINTENANCE_HOUR = 0
 
 # --------------------------------------------------------------------------------
@@ -413,5 +413,5 @@ def VOLTAGE_CONVERTER(value):
     return 0.0063926 * value + 0.21706913
 
 
-SOLAR_SAMPLES = 12
+SOLAR_SAMPLES = 6
 SOLAR_SAMPLE_WAIT = 5
