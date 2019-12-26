@@ -4,9 +4,7 @@ from honcho.config import (
     HUMIDITY_DATA_DEVICE,
     TEMPERATURE_DATA_DEVICE,
     VOLTAGE_CONVERTER,
-    GPIO,
 )
-from honcho.core.gpio import powered
 
 
 def _set_supply_index(index):

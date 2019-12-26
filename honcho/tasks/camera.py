@@ -132,7 +132,7 @@ def snapshot(filepath):
     response = requests.get(
         SNAPSHOP_URL, auth=HTTPDigestAuth(CAMERA_USERNAME, CAMERA_PASSWORD)
     )
-    logger.debug('Taking snapshot: {0)'.format(filepath))
+    logger.debug('Taking snapshot: {0}'.format(filepath))
     with open(filepath, 'wb') as f:
         f.write(response.content)
 

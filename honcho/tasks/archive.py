@@ -41,7 +41,7 @@ def archive_logs():
     if filenames:
         filepaths = [os.path.join(LOG_DIR, filename) for filename in filenames]
         logger.debug('Archiving logs')
-        archive_filepaths(filepaths, prefix='LOGS')
+        archive_filepaths(filepaths, prefix='LOG')
     else:
         logger.debug('No logs to archive')
 
