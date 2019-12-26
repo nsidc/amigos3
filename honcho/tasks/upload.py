@@ -3,7 +3,7 @@ from logging import getLogger
 from collections import namedtuple
 
 from honcho.config import UPLOAD_QUEUE_DIR, UPLOAD_CLEANUP
-from honcho.util import file_size
+from honcho.util import file_size, clear_directory
 from honcho.tasks.common import task
 from honcho.tasks.archive import archive_filepaths
 from honcho.core.ftp import ftp_session
@@ -29,6 +29,10 @@ def print_queue():
     for filename in os.listdir(UPLOAD_QUEUE_DIR):
         filepath = os.path.join(UPLOAD_QUEUE_DIR, filename)
         print('\t'.join([file_size(filepath), filepath]))
+
+
+def clear_queue():
+    clear_directory(UPLOAD_QUEUE_DIR)
 
 
 def get_upload_queue_count():

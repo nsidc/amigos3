@@ -404,6 +404,8 @@ def upload_handler(args):
             upload.upload(args.upload_filepath, session)
     if args.list:
         upload.print_queue()
+    if args.clear:
+        upload.clear_queue()
     if args.run:
         upload.execute()
 
@@ -422,6 +424,10 @@ def add_upload_parser(subparsers):
 
     parser.add_argument(
         "--list", help="List files queued to upload", action="store_true", dest='list'
+    )
+
+    parser.add_argument(
+        "--clear", help="Clear upload queue", action="store_true", dest='clear'
     )
 
 
