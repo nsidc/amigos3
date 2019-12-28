@@ -2,6 +2,7 @@ import subprocess
 import logging
 import re
 from collections import namedtuple
+from time import sleep
 
 from honcho.core.gpio import all_off, set_awake_gpio_state
 from honcho.config import WATCHDOG_DEVICE, MAX_SYSTEM_SLEEP, KEEP_AWAKE
@@ -109,20 +110,26 @@ def system_standby(minutes):
 def watchdog_tick_3min():
     with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(1))
+    sleep(1)
     with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(0))
+    sleep(1)
     with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(1))
+
     logger.info('Watchdog ticked for 3 minutes')
 
 
 def watchdog_tick_1hour():
     with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(3))
+    sleep(1)
     with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(2))
+    sleep(1)
     with open(WATCHDOG_DEVICE, 'wb') as f:
         f.write(hex(3))
+
     logger.info('Watchdog ticked for 1 hour')
 
 
