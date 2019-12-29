@@ -400,8 +400,8 @@ DIRECTORIES_TO_MONITOR = {
 
 DTS_HOST = "192.168.0.50"  # win
 DTS_USER = "admin"
-DTS_PULL_DELAY = 60 * 5
-DTS_WIN_DIR = 'Desktop/dts_data/xt19001/temperature/TARSAN - 300m test'
+DTS_PULL_DELAY = 60 * 4
+DTS_WIN_DIR = 'Desktop/dts_data/xt19001/temperature/TARSAN'
 DTS_CLEANUP_LOCAL = False
 DTS_CLEANUP_REMOTE = False
 DTS_FULL_RES_RANGES = [(1000, 1200), (2000, 2200)]
