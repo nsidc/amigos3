@@ -103,7 +103,7 @@ LINE_PATTERN = (
 
 
 def parse_sample(s):
-    row = re.match(LINE_PATTERN, s).groupdict()
+    row = re.search(LINE_PATTERN, s).groupdict()
     sample = WeatherSample(
         timestamp=datetime.now(),
         **dict((key, CONVERSION_TO_VALUE[key](value)) for key, value in row.items())
