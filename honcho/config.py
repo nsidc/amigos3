@@ -289,7 +289,6 @@ TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 # Upload
 # --------------------------------------------------------------------------------
 
-UPLOAD_MAX_TIME = timedelta(minutes=30)
 UPLOAD_QUEUE_DIR = '/media/mmcblk0p1/upload'
 UPLOAD_CLEANUP = True
 ARCHIVE_DIR = '/media/mmcblk0p1/archive'

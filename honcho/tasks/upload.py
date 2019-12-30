@@ -1,9 +1,8 @@
 import os
 import shutil
-from datetime import datetime
 from logging import getLogger
 
-from honcho.config import UPLOAD_QUEUE_DIR, UPLOAD_CLEANUP, UPLOAD_MAX_TIME
+from honcho.config import UPLOAD_QUEUE_DIR, UPLOAD_CLEANUP
 from honcho.util import file_size, clear_directory
 from honcho.tasks.common import task
 from honcho.tasks.archive import archive_filepaths
@@ -65,17 +64,10 @@ def execute():
     if not filenames:
         logger.debug('No files queued for upload')
         return
-    start = datetime.now()
-    while datetime.now() - start < UPLOAD_MAX_TIME:
-        try:
-            with ftp_session() as session:
-                for filename in filenames:
-                    filepath = os.path.join(UPLOAD_QUEUE_DIR, filename)
-                    upload(filepath, session=session)
+    with ftp_session() as session:
+        for filename in filenames:
+            filepath = os.path.join(UPLOAD_QUEUE_DIR, filename)
+            upload(filepath, session=session)
 
-                    if UPLOAD_CLEANUP:
-                        os.remove(filepath)
-        except RuntimeError:
-            pass
-        else:
-            return
+            if UPLOAD_CLEANUP:
+                os.remove(filepath)
