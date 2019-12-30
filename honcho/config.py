@@ -1,4 +1,5 @@
 from collections import namedtuple
+from datetime import timedelta
 import logging
 import os
 import uuid
@@ -234,7 +235,7 @@ def SBD_QUEUE_DIR(tag):
 
 FTP_HOST = 'restricted_ftp'
 NETRC_FILEPATH = '/root/.netrc'
-FTP_TIMEOUT = 10 * 60
+FTP_TIMEOUT = 3 * 60
 DIALOUT_WAIT = 30
 FTP_CONNECT_RETRIES = 18
 FTP_RETRY_WAIT = 10
@@ -288,6 +289,7 @@ TIMESTAMP_FILENAME_FMT = '%Y_%m_%d_%H_%M_%S'
 # Upload
 # --------------------------------------------------------------------------------
 
+UPLOAD_MAX_TIME = timedelta(minutes=30)
 UPLOAD_QUEUE_DIR = '/media/mmcblk0p1/upload'
 UPLOAD_CLEANUP = True
 ARCHIVE_DIR = '/media/mmcblk0p1/archive'
