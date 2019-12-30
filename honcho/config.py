@@ -1,5 +1,4 @@
 from collections import namedtuple
-from datetime import timedelta
 import logging
 import os
 import uuid
@@ -331,25 +330,17 @@ CAMERA_PASSWORD = '10iLtxyh'
 IMAGE_REDUCTION_FACTOR = '3/8'
 CAMERA_STARTUP_WAIT = 60
 
-_LOOKS = ('NORTH', 'EAST', 'WEST', 'DOWN', 'MIRROR', 'HOME')
+_LOOKS = ('SOUTH', 'EAST', 'WEST', 'MIRROR', 'DOWN')
 LOOKS = namedtuple('LOOKS', _LOOKS)(*_LOOKS)
 PTZ = namedtuple('PTZ', ('pan', 'tilt', 'zoom'))
 LOOK_PTZ = {
-    LOOKS.DOWN: PTZ(pan=0, tilt=-1, zoom=0),
-    LOOKS.NORTH: PTZ(pan=0, tilt=0, zoom=0),
-    LOOKS.EAST: PTZ(pan=0.5, tilt=0, zoom=0),
-    LOOKS.WEST: PTZ(pan=-0.5, tilt=0, zoom=0),
-    LOOKS.MIRROR: PTZ(pan=0, tilt=-1, zoom=1),
-    LOOKS.HOME: PTZ(pan=0, tilt=-1, zoom=0),
+    LOOKS.DOWN: PTZ(pan=-0.09, tilt=-1, zoom=0),
+    LOOKS.SOUTH: PTZ(pan=0.91, tilt=0.65, zoom=0),
+    LOOKS.EAST: PTZ(pan=0.41, tilt=0.65, zoom=0),
+    LOOKS.WEST: PTZ(pan=-0.61, tilt=0.65, zoom=0),
+    LOOKS.MIRROR: PTZ(pan=-0.09, tilt=-1, zoom=1),
 }
-LOOK_SERIES = (
-    LOOKS.DOWN,
-    LOOKS.MIRROR,
-    LOOKS.NORTH,
-    LOOKS.EAST,
-    LOOKS.WEST,
-    LOOKS.HOME,
-)
+LOOK_SERIES = (LOOKS.MIRROR, LOOKS.SOUTH, LOOKS.EAST, LOOKS.WEST, LOOKS.DOWN)
 
 CJPEG_COMMAND = '/media/mmcblk0p1/honcho/bin/cjpeg'
 DJPEG_COMMAND = '/media/mmcblk0p1/honcho/bin/djpeg'
