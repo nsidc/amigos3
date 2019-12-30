@@ -3,7 +3,7 @@ from datetime import datetime
 from logging import getLogger
 from collections import namedtuple
 
-from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT
+from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT, AQUADOPP_RECENT_SAMPLES
 from honcho.core.imm import active_line, imm_components, REMOTE_RESPONSE_END
 import honcho.core.data as data
 
@@ -162,7 +162,7 @@ def parse_sample_list(raw):
     return ids
 
 
-def get_recent_samples(device_ids, n=1):
+def get_recent_samples(device_ids, n=AQUADOPP_RECENT_SAMPLES):
     samples = []
     with imm_components():
         with active_line() as serial:
@@ -186,7 +186,7 @@ def print_samples(samples):
 
 @task
 def execute():
-    samples = get_recent_samples(UNIT.AQUADOPP_IDS)
+    samples = get_recent_samples(UNIT.AQUADOPP_IDS, AQUADOPP_RECENT_SAMPLES)
     for sample in samples:
         serialized = data.serialize(sample, CONVERSION_TO_STRING)
         data.log_serialized(serialized, DATA_TAGS.AQD)

@@ -3,7 +3,7 @@ from datetime import datetime
 from logging import getLogger
 from collections import namedtuple
 
-from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT
+from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT, SEABIRD_RECENT_SAMPLES
 from honcho.core.imm import active_line, imm_components, REMOTE_RESPONSE_END
 from honcho.tasks.sbd import queue_sbd
 import honcho.core.data as data
@@ -38,7 +38,7 @@ CONVERSION_TO_STRING = {
 SeabirdSample = namedtuple('SeabirdSample', DATA_KEYS)
 
 
-def query_samples(serial, device_id, n=6):
+def query_samples(serial, device_id, n=SEABIRD_RECENT_SAMPLES):
     raw = serial_request(
         serial, '#{0}DN{1}'.format(device_id, n), REMOTE_RESPONSE_END, timeout=10
     )
@@ -103,7 +103,7 @@ def parse_status(raw):
     return match.groupdict()
 
 
-def get_recent_samples(device_ids, n=6):
+def get_recent_samples(device_ids, n=SEABIRD_RECENT_SAMPLES):
     samples = []
     with imm_components():
         with active_line() as serial:
@@ -114,7 +114,7 @@ def get_recent_samples(device_ids, n=6):
     return samples
 
 
-def get_averaged_samples(device_ids, n=6):
+def get_averaged_samples(device_ids, n=SEABIRD_RECENT_SAMPLES):
     samples = get_recent_samples(device_ids, n)
     averaged_samples = []
 
@@ -176,7 +176,7 @@ def print_samples(samples):
 
 @task
 def execute():
-    samples = get_averaged_samples(UNIT.SEABIRD_IDS)
+    samples = get_averaged_samples(UNIT.SEABIRD_IDS, SEABIRD_RECENT_SAMPLES)
     for sample in samples:
         serialized = data.serialize(sample, CONVERSION_TO_STRING)
         data.log_serialized(serialized, DATA_TAGS.SBD)

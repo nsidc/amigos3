@@ -26,7 +26,6 @@ def EXECUTION_LOG_FILEPATH(name):
 
 DEFAULT_LOG_LEVEL = 'INFO'
 LOG_LEVEL = getattr(logging, os.environ.get('LOG_LEVEL', DEFAULT_LOG_LEVEL))
-LOG_SIZE = 200000
 
 MAX_SYSTEM_SLEEP = 59
 MIN_SYSTEM_VOLTAGE = 11
@@ -415,3 +414,12 @@ def VOLTAGE_CONVERTER(value):
 
 SOLAR_SAMPLES = 6
 SOLAR_SAMPLE_WAIT = 5
+
+
+# --------------------------------------------------------------------------------
+# Ocean sensors
+# --------------------------------------------------------------------------------
+
+
+AQUADOPP_RECENT_SAMPLES = 1
+SEABIRD_RECENT_SAMPLES = 6
