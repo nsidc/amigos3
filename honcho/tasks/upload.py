@@ -34,8 +34,12 @@ def clear_queue():
 
 @task
 def execute():
+    filenames = os.listdir(UPLOAD_QUEUE_DIR)
+    if not filenames:
+        logger.debug('No files queued for upload')
+        return
     with ftp_session() as session:
-        for filename in os.listdir(UPLOAD_QUEUE_DIR):
+        for filename in filenames:
             filepath = os.path.join(UPLOAD_QUEUE_DIR, filename)
             upload(filepath, session=session)
 
