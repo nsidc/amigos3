@@ -60,8 +60,7 @@ def send_queue(serial, timeout=SBD_QUEUE_MAX_TIME):
     for filepath in queue:
         logger.debug('Sending queued: {0}'.format(filepath))
         with open(filepath, 'r') as f:
-            tag = os.path.split(filepath)[-2]
-            send_sbd(serial=serial, message=tag + ',' + f.read())
+            send_sbd(serial=serial, message=f.read())
 
         os.remove(filepath)
 
