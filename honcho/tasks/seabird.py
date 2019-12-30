@@ -170,6 +170,10 @@ def set_interval(device_ids, interval):
                 )
 
 
+def print_samples(samples):
+    data.print_samples(samples, CONVERSION_TO_STRING)
+
+
 @task
 def execute():
     samples = get_averaged_samples(UNIT.SEABIRD_IDS)
