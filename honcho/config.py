@@ -404,7 +404,7 @@ DTS_PULL_DELAY = 60 * 6.5
 DTS_WIN_DIR = 'Desktop/dts_data/xt19001/temperature/TARSAN'
 DTS_CLEANUP_LOCAL = False
 DTS_CLEANUP_REMOTE = False
-DTS_FULL_RES_RANGES = [(1000, 1200), (2000, 2200)]
+DTS_FULL_RES_RANGES = [(250, 350), (3229 - 350, 3229 - 250)]
 
 
 # --------------------------------------------------------------------------------
