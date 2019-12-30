@@ -46,8 +46,8 @@ UNITS = namedtuple('UNITS', ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC'))(
     _UNIT(
         NAME='AMIGOSIIIA',
         MAC_ADDRESS='70:b3:d5:65:46:05',
-        SEABIRD_IDS=['05', '07', '09'],
-        AQUADOPP_IDS=['20', '21', '22'],
+        SEABIRD_IDS=['05', '06', '07'],
+        AQUADOPP_IDS=['20', '22', '24'],
     ),
     _UNIT(
         NAME='AMIGOSIIIB',
