@@ -8,7 +8,7 @@ from honcho.tasks.common import task
 from honcho.core.gpio import powered
 from honcho.util import clear_directory
 from honcho.tasks.archive import archive_filepaths
-from honcho.tasks.upload import queue_filepaths
+from honcho.tasks.upload import queue_filepaths_chunked
 from honcho.config import (
     GPIO,
     DTS_HOST,
@@ -162,6 +162,6 @@ def execute():
     processed_filepaths = process_data(raw_filepaths)
 
     tag = DATA_TAGS.DTS
-    queue_filepaths(processed_filepaths, prefix=tag)
+    queue_filepaths_chunked(processed_filepaths, prefix=tag)
     archive_filepaths(raw_filepaths, prefix=tag)
     clear_directory(DATA_DIR(tag))

@@ -21,6 +21,8 @@ def archive_filepaths(filepaths, prefix, output_directory=ARCHIVE_DIR):
     output_filepath = os.path.join(output_directory, name)
     make_tarfile(output_filepath, filepaths)
 
+    return output_filepath
+
 
 def archive_data():
     logger.debug('Archiving data')

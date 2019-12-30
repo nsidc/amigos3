@@ -239,6 +239,8 @@ DIALOUT_WAIT = 30
 FTP_CONNECT_RETRIES = 18
 FTP_RETRY_WAIT = 10
 FTP_ORDERS_DIR = '/orders'
+FTP_CHUNK_SIZE = 10000
+JOINER_TEMPLATE = '/media/mmcblk0p1/honcho/core/joiner.pytemplate'
 
 
 # --------------------------------------------------------------------------------
