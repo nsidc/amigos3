@@ -3,5 +3,5 @@
 # (Cron version -- $Id: crontab.c,v 2.13 1994/01/17 03:20:37 vixie Exp $)
 SHELL=/bin/bash
 
-0 0,12 * * * /media/mmcblk0p1/honcho/bin/supervise.sh
+52 0,12 * * * /media/mmcblk0p1/honcho/bin/supervise.sh
 */30 * * * * /media/mmcblk0p1/honcho/bin/wdtick_1h.sh

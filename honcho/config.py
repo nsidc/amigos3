@@ -89,46 +89,59 @@ SCHEDULE_IDLE_CHECK_INTERVAL = 30
 
 SCHEDULES = {
     SCHEDULE_NAMES.WINTER: (
-        ('scheduler.every().day.at("23:10")', 'tps'),
-        ('scheduler.every().day.at("20:10")', 'camera'),
-        ('scheduler.every().hour.at(":57")', 'weather'),
         ('scheduler.every().hour.at(":50")', 'seabird'),
         ('scheduler.every().hour.at(":52")', 'aquadopp'),
         ('scheduler.every().hour.at(":55")', 'crx'),
-        ('scheduler.every().day.at("21:05")', 'dts'),
-        ('scheduler.every().day.at("06:10")', 'upload'),
-        ('scheduler.every().day.at("12:10")', 'upload'),
-        ('scheduler.every().day.at("18:10")', 'upload'),
+        ('scheduler.every().hour.at(":50")', 'weather'),
+        ('scheduler.every().hour.at(":52")', 'solar'),
+        ('scheduler.every().hour.at(":54")', 'sbd'),
         ('scheduler.every().day.at("00:10")', 'upload'),
-        ('scheduler.every().day.at("00:00")', 'supervise'),
+        ('scheduler.every().day.at("06:10")', 'upload'),
+        ('scheduler.every().day.at("18:10")', 'upload'),
+        ('scheduler.every().day.at("20:10")', 'camera'),
+        ('scheduler.every().day.at("21:05")', 'dts'),
+        ('scheduler.every().day.at("23:10")', 'tps'),
+        ('scheduler.every().day.at("12:10")', 'upload'),
     ),
     SCHEDULE_NAMES.SUMMER: (
-        ('scheduler.every().day.at("05:10")', 'tps'),
-        ('scheduler.every().day.at("11:10")', 'tps'),
-        ('scheduler.every().day.at("17:10")', 'tps'),
-        ('scheduler.every().day.at("23:10")', 'tps'),
-        ('scheduler.every().day.at("04:10")', 'camera'),
-        ('scheduler.every().day.at("12:10")', 'camera'),
-        ('scheduler.every().day.at("20:10")', 'camera'),
-        ('scheduler.every().hour.at(":57")', 'weather'),
-        ('scheduler.every().hour.at(":50")', 'seabird'),
-        ('scheduler.every().hour.at(":52")', 'aquadopp'),
-        ('scheduler.every().hour.at(":55")', 'crx'),
-        ('scheduler.every().day.at("03:05")', 'dts'),
-        ('scheduler.every().day.at("07:05")', 'dts'),
-        ('scheduler.every().day.at("11:05")', 'dts'),
-        ('scheduler.every().day.at("15:05")', 'dts'),
-        ('scheduler.every().day.at("19:05")', 'dts'),
-        ('scheduler.every().day.at("23:05")', 'dts'),
-        ('scheduler.every().day.at("00:05")', 'sbd'),
-        ('scheduler.every().day.at("06:05")', 'sbd'),
-        ('scheduler.every().day.at("12:05")', 'sbd'),
-        ('scheduler.every().day.at("18:05")', 'sbd'),
-        ('scheduler.every().day.at("00:10")', 'upload'),
-        ('scheduler.every().day.at("06:10")', 'upload'),
-        ('scheduler.every().day.at("12:10")', 'upload'),
-        ('scheduler.every().day.at("18:10")', 'upload'),
-        ('scheduler.every().day.at("00:00")', 'supervise'),
+        ('scheduler.every().hour.at(":45")', 'seabird'),  # 2 mins?
+        ('scheduler.every().hour.at(":47")', 'aquadopp'),  # 2 mins?
+        ('scheduler.every().hour.at(":49")', 'crx'),  # 1 min
+        ('scheduler.every().hour.at(":50")', 'weather'),  # 2 min
+        ('scheduler.every().hour.at(":52")', 'solar'),  # 2 min
+        ('scheduler.every().hour.at(":54")', 'sbd'),
+        #
+        #
+        #
+        ('scheduler.every().day.at("03:00")', 'dts'),  # 6 mins
+        ('scheduler.every().day.at("03:06")', 'upload'),
+        ('scheduler.every().day.at("04:10")', 'camera'),  # 2 mins
+        ('scheduler.every().day.at("04:15")', 'upload'),
+        ('scheduler.every().day.at("05:10")', 'tps'),  # 20 mins
+        #
+        ('scheduler.every().day.at("07:00")', 'dts'),  # 6 mins
+        ('scheduler.every().day.at("07:10")', 'upload'),
+        #
+        #
+        #
+        ('scheduler.every().day.at("11:05")', 'dts'),  # 6 mins
+        ('scheduler.every().day.at("11:10")', 'tps'),  # 20 mins
+        ('scheduler.every().day.at("12:10")', 'camera'),  # 2 mins
+        ('scheduler.every().day.at("12:15")', 'upload'),
+        #
+        #
+        ('scheduler.every().day.at("15:00")', 'dts'),  # 6 mins
+        #
+        ('scheduler.every().day.at("17:10")', 'tps'),  # 20 mins
+        #
+        ('scheduler.every().day.at("19:00")', 'dts'),  # 6 mins
+        ('scheduler.every().day.at("20:00")', 'upload'),
+        ('scheduler.every().day.at("20:10")', 'camera'),  # 2 mins
+        ('scheduler.every().day.at("20:15")', 'upload'),
+        #
+        #
+        ('scheduler.every().day.at("23:00")', 'dts'),  # 6 mins
+        ('scheduler.every().day.at("23:10")', 'tps'),  # 20 mins
     ),
     SCHEDULE_NAMES.TEST: (
         ('scheduler.every(1).minutes', 'solar'),
@@ -144,12 +157,8 @@ SCHEDULES = {
         ('scheduler.every(1).minutes', 'upload'),
         ('scheduler.every(1).minutes', 'orders'),
         ('scheduler.every(1).minutes', 'archive'),
-        ('scheduler.every(1).minutes', 'supervise'),
     ),
-    SCHEDULE_NAMES.SAFE: (
-        ('scheduler.every().day.at("11:00")', 'orders'),
-        ('scheduler.every().day.at("00:00")', 'supervise'),
-    ),
+    SCHEDULE_NAMES.SAFE: (('scheduler.every().day.at("11:00")', 'orders'),),
 }
 
 START_SCHEDULE_COMMAND = '/media/mmcblk0p1/honcho/bin/run_schedule.sh'
