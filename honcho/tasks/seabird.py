@@ -1,7 +1,8 @@
 import re
 from datetime import datetime
 from logging import getLogger
-from collections import namedtuple
+from collections import namedtuple, defaultdict
+import xml.etree.ElementTree as ET
 
 from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT, SEABIRD_RECENT_SAMPLES
 from honcho.core.imm import active_line, imm_components, REMOTE_RESPONSE_END
@@ -46,14 +47,6 @@ def query_samples(serial, device_id, n=SEABIRD_RECENT_SAMPLES):
     return raw
 
 
-def query_status(serial, device_id):
-    raw = serial_request(
-        serial, '#{0}GetSD'.format(device_id), REMOTE_RESPONSE_END, timeout=10
-    )
-
-    return raw
-
-
 def parse_samples(device_id, raw):
     pattern = (
         re.escape('<RemoteReply>')
@@ -68,7 +61,7 @@ def parse_samples(device_id, raw):
     values = [[el.strip() for el in row.split(',')] for row in values.split('\r\n')]
     samples = [
         SeabirdSample(
-            timestamp=datetime.strptime(' '.join(row[4:-1]), '%d %b %Y %H:%M:%S'),
+            timestamp=datetime.strptime(' '.join(row[4:6]), '%H:%M:%S %d-%m-%Y'),
             device_id=device_id,
             **dict(
                 (key, CONVERSION_TO_VALUE[key](row[i]))
@@ -79,28 +72,6 @@ def parse_samples(device_id, raw):
     ]
 
     return samples
-
-
-def parse_status(raw):
-    pattern = (
-        re.escape('<RemoteReply>')
-        + re.escape('<StatusData')
-        + r".*SerialNumber='(?P<serial>\d+)'"
-        + re.escape('>')
-        + re.escape('<DateTime>')
-        + '(?P<DateTime>.*)'
-        + re.escape('</DateTime>')
-        + re.escape('<vMain>')
-        + '(?P<vMain>.*)'
-        + re.escape('</vMain>')
-        + re.escape('<vLith>')
-        + '(?P<vLith>.*)'
-        + re.escape('</vLith>')
-        + re.escape('<Executed/>\r\n</RemoteReply>')
-    )
-    match = re.search(pattern, raw)
-
-    return match.groupdict()
 
 
 def get_recent_samples(device_ids, n=SEABIRD_RECENT_SAMPLES):
@@ -168,6 +139,66 @@ def set_interval(device_ids, interval):
                     REMOTE_RESPONSE_END,
                     timeout=10,
                 )
+
+
+def _get_status(serial, device_id):
+    raw = serial_request(
+        serial, '#{0}GetSD'.format(device_id), REMOTE_RESPONSE_END, timeout=10
+    )
+    xml_like = re.search(
+        re.escape('<StatusData') + r'.*' + re.escape('</StatusData>'),
+        raw,
+        flags=re.DOTALL,
+    ).group(0)
+
+    status_data = ET.fromstring(xml_like)
+    status = status_data.attrib
+    status['datetime'] = datetime.strptime(
+        status_data.find('DateTime').text, '%Y-%m-%dT%H:%M:%S'
+    )
+    status['voltage'] = float(status_data.find('Power/vMain').text)
+    status['voltage_li'] = float(status_data.find('Power/vLith').text)
+    status['bytes'] = int(status_data.find('MemorySummary/Bytes').text)
+    status['samples'] = int(status_data.find('MemorySummary/Samples').text)
+    status['samples_free'] = int(status_data.find('MemorySummary/SamplesFree').text)
+    status['samples_length'] = int(status_data.find('MemorySummary/SampleLength').text)
+    status['sampling'] = status_data.find('AutonomousSampling').text
+
+    return status
+
+
+def _get_sample_range(serial, device_id, begin, end):
+    raw = serial_request(
+        serial,
+        '#{0}DD{1},{2}'.format(device_id, begin, end),
+        REMOTE_RESPONSE_END,
+        timeout=10,
+    )
+    samples = parse_samples(device_id, raw)
+
+    return samples
+
+
+def get_all_samples(device_ids):
+    sample_chunk_size = 100
+    samples = []
+    with imm_components():
+        with active_line() as serial:
+            for device_id in device_ids:
+                status = _get_status(serial, device_id)
+                for i in xrange(1, status['samples'], sample_chunk_size):
+                    samples.extend(
+                        _get_sample_range(serial, device_id, i, i + sample_chunk_size)
+                    )
+
+    return samples
+
+
+def print_status(device_ids):
+    with imm_components():
+        with active_line() as serial:
+            for device_id in device_ids:
+                print(_get_status(serial, device_id))
 
 
 def print_samples(samples):

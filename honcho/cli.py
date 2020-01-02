@@ -332,12 +332,15 @@ def seabird_handler(args):
         seabird.start(device_ids)
 
     if args.get:
-        if args.average:
-            samples = seabird.get_averaged_samples(device_ids, args.n)
+        if args.all:
+            samples = seabird.get_all_samples(device_ids)
         else:
             samples = seabird.get_recent_samples(device_ids, args.n)
 
         seabird.print_samples(samples)
+
+    if args.status:
+        print(seabird.print_status(device_ids))
 
     if args.run:
         seabird.execute()
@@ -356,12 +359,15 @@ def add_seabird_parser(subparsers):
     )
 
     parser.add_argument("--get", help="Get sample(s)", action="store_true", dest='get')
-    parser.add_argument(
-        "--average", help="Get averaged sample(s)", action="store_true", dest='average'
-    )
     parser.add_argument("--id", help="Device id", action="store", dest='device_id')
     parser.add_argument(
         "-n", help="Number of samples", action="store", dest='n', type=int, default=5
+    )
+    parser.add_argument(
+        "--all", help="Get all samples", action="store_true", dest='all'
+    )
+    parser.add_argument(
+        "--status", help="Get device status", action="store_true", dest='status'
     )
 
     parser.add_argument("--set", help="Set parameters", action="store_true", dest='set')
