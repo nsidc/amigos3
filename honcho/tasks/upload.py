@@ -1,6 +1,7 @@
 import os
 import shutil
 from logging import getLogger
+from datetime import datetime
 
 from honcho.config import UPLOAD_QUEUE_DIR, UPLOAD_CLEANUP
 from honcho.util import file_size, clear_directory
@@ -44,8 +45,9 @@ def upload(filepath, session):
     filename = os.path.basename(filepath)
     with open(filepath, 'rb') as fi:
         logger.debug('Uploading {0} bytes: {1}'.format(file_size(filepath), filepath))
+        start = datetime.now()
         session.storbinary('STOR {0}'.format(filename), fi)
-        logger.debug('Upload successful')
+        logger.debug('Upload successful: {0}'.format(datetime.now() - start))
 
 
 def print_queue():
@@ -65,6 +67,7 @@ def execute():
         logger.debug('No files queued for upload')
         return
     with ftp_session() as session:
+        logger.debug('Queued files for upload: {0}'.format(len(filenames)))
         for filename in filenames:
             filepath = os.path.join(UPLOAD_QUEUE_DIR, filename)
             upload(filepath, session=session)

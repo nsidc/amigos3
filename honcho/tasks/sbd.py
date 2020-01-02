@@ -57,8 +57,9 @@ def build_queue():
 
 def send_queue(serial, timeout=SBD_QUEUE_MAX_TIME):
     queue = build_queue()
+    logger.info('Sending {0} queued sbds'.format(len(queue)))
     for filepath in queue:
-        logger.debug('Sending queued: {0}'.format(filepath))
+        logger.debug('Sending: {0}'.format(filepath))
         with open(filepath, 'r') as f:
             send_sbd(serial=serial, message=f.read())
 
@@ -108,7 +109,6 @@ def clear_queue():
 
 @task
 def execute():
-    logger.info('Sending queued sbds')
     with sbd_components():
         with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
             send_queue(serial)
