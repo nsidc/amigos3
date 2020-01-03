@@ -38,12 +38,12 @@ def imm_mock(serial_mock):
                         b'<RemoteReply>start sample number = 7770\r\n'
                         b'start time = 09 Oct 2019 14:50:01\r\n'
                         b'\r\n'
-                        b'19.0395,  1.45496,   -1.627, 34.184, 09 Oct 2019, 14:50:01, 7775\r\n'  # noqa
-                        b'19.1149,  1.45735,   -1.649, 34.284, 09 Oct 2019, 15:00:01, 7775\r\n'  # noqa
-                        b'19.2158,  1.46027,   -1.644, 34.384, 09 Oct 2019, 15:10:01, 7775\r\n'  # noqa
-                        b'19.2948,  1.46287,   -1.639, 34.484, 09 Oct 2019, 15:20:01, 7775\r\n'  # noqa
-                        b'19.3569,  1.46486,   -1.635, 34.584, 09 Oct 2019, 15:30:01, 7775\r\n'  # noqa
-                        b'19.4796,  1.46918,   -1.608, 34.684, 09 Oct 2019, 15:40:01, 7775\r\n'  # noqa
+                        b'3.00008,   1.0374,  713.998,  34.6688, 01:47:11, 31-12-2019, 3261\r\n'
+                        b'3.00027,   1.0386,  715.494,  34.6690, 01:47:21, 31-12-2019, 3261\r\n'
+                        b'3.00029,   1.0385,  715.544,  34.6694, 01:47:31, 31-12-2019, 3261\r\n'
+                        b'3.00028,   1.0383,  715.544,  34.6695, 01:47:41, 31-12-2019, 3261\r\n'
+                        b'3.00032,   1.0383,  716.070,  34.6697, 01:47:51, 31-12-2019, 3261\r\n'
+                        b'3.00031,   1.0382,  716.070,  34.6697, 01:48:01, 31-12-2019, 3261\r\n'
                         b'<Executed/>\r\n'
                         b'</RemoteReply>\r\n'
                         b'<Executed/>\r\n'
@@ -90,22 +90,52 @@ def test_get_recent_samples(imm_mock, mocker):
     device_id = '06'
     expected = [
         seabird.SeabirdSample(
-            datetime(2019, 10, 9, 14, 50, 1), '06', 19.0395, 1.45496, -1.627, 34.184
+            timestamp=datetime(2019, 12, 31, 1, 47, 11),
+            device_id='06',
+            conductivity=3.00008,
+            temperature=1.0374,
+            pressure=713.998,
+            salinity=34.6688,
         ),
         seabird.SeabirdSample(
-            datetime(2019, 10, 9, 15, 00, 1), '06', 19.1149, 1.45735, -1.649, 34.284
+            timestamp=datetime(2019, 12, 31, 1, 47, 21),
+            device_id='06',
+            conductivity=3.00027,
+            temperature=1.0386,
+            pressure=715.494,
+            salinity=34.669,
         ),
         seabird.SeabirdSample(
-            datetime(2019, 10, 9, 15, 10, 1), '06', 19.2158, 1.46027, -1.644, 34.384
+            timestamp=datetime(2019, 12, 31, 1, 47, 31),
+            device_id='06',
+            conductivity=3.00029,
+            temperature=1.0385,
+            pressure=715.544,
+            salinity=34.6694,
         ),
         seabird.SeabirdSample(
-            datetime(2019, 10, 9, 15, 20, 1), '06', 19.2948, 1.46287, -1.639, 34.484
+            timestamp=datetime(2019, 12, 31, 1, 47, 41),
+            device_id='06',
+            conductivity=3.00028,
+            temperature=1.0383,
+            pressure=715.544,
+            salinity=34.6695,
         ),
         seabird.SeabirdSample(
-            datetime(2019, 10, 9, 15, 30, 1), '06', 19.3569, 1.46486, -1.635, 34.584
+            timestamp=datetime(2019, 12, 31, 1, 47, 51),
+            device_id='06',
+            conductivity=3.00032,
+            temperature=1.0383,
+            pressure=716.07,
+            salinity=34.6697,
         ),
         seabird.SeabirdSample(
-            datetime(2019, 10, 9, 15, 40, 1), '06', 19.4796, 1.46918, -1.608, 34.684
+            timestamp=datetime(2019, 12, 31, 1, 48, 1),
+            device_id='06',
+            conductivity=3.00031,
+            temperature=1.0382,
+            pressure=716.07,
+            salinity=34.6697,
         ),
     ]
     result = seabird.get_recent_samples([device_id], n=6)
@@ -119,12 +149,12 @@ def test_get_averaged_sample(imm_mock, mocker):
 
     expected = [
         seabird.SeabirdSample(
-            datetime(2019, 10, 9, 15, 15, 1),
-            '06',
-            19.250249999999998,
-            1.4615816666666666,
-            -1.6336666666666668,
-            34.434,
+            timestamp=datetime(2019, 12, 31, 1, 47, 36),
+            device_id='06',
+            conductivity=3.0002583333333335,
+            temperature=1.0382166666666668,
+            pressure=715.4533333333334,
+            salinity=34.66935,
         )
     ]
     result = seabird.get_averaged_samples(['06'], n=6)

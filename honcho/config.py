@@ -105,11 +105,11 @@ SCHEDULES = {
     ),
     SCHEDULE_NAMES.SUMMER: (
         ('scheduler.every().hour.at(":45")', 'seabird'),  # 2 mins?
-        ('scheduler.every().hour.at(":47")', 'aquadopp'),  # 2 mins?
-        ('scheduler.every().hour.at(":49")', 'crx'),  # 1 min
-        ('scheduler.every().hour.at(":50")', 'weather'),  # 2 min
-        ('scheduler.every().hour.at(":52")', 'solar'),  # 2 min
-        ('scheduler.every().hour.at(":54")', 'sbd'),
+        ('scheduler.every().hour.at(":47")', 'solar'),  # 2 min
+        ('scheduler.every().hour.at(":49")', 'aquadopp'),  # 2 mins?
+        ('scheduler.every().hour.at(":50")', 'crx'),  # 1 min
+        ('scheduler.every().hour.at(":52")', 'weather'),  # 2 min
+        ('scheduler.every().hour.at(":55")', 'sbd'),
         #
         #
         #
@@ -126,6 +126,7 @@ SCHEDULES = {
         #
         ('scheduler.every().day.at("11:05")', 'dts'),  # 6 mins
         ('scheduler.every().day.at("11:10")', 'tps'),  # 20 mins
+        ('scheduler.every().day.at("12:00")', 'orders'),  # 20 mins
         ('scheduler.every().day.at("12:10")', 'camera'),  # 2 mins
         ('scheduler.every().day.at("12:15")', 'upload'),
         #
@@ -144,21 +145,21 @@ SCHEDULES = {
         ('scheduler.every().day.at("23:10")', 'tps'),  # 20 mins
     ),
     SCHEDULE_NAMES.TEST: (
+        ('scheduler.every(1).minutes', 'seabird'),
         ('scheduler.every(1).minutes', 'solar'),
-        ('scheduler.every(1).minutes', 'tps'),
+        ('scheduler.every(1).minutes', 'aquadopp'),
         ('scheduler.every(1).minutes', 'crx'),
         ('scheduler.every(1).minutes', 'gps'),
         ('scheduler.every(1).minutes', 'weather'),
-        ('scheduler.every(1).minutes', 'camera'),
         ('scheduler.every(1).minutes', 'dts'),
-        ('scheduler.every(1).minutes', 'seabird'),
-        ('scheduler.every(1).minutes', 'aquadopp'),
+        ('scheduler.every(1).minutes', 'camera'),
+        ('scheduler.every(1).minutes', 'tps'),
         ('scheduler.every(1).minutes', 'sbd'),
         ('scheduler.every(1).minutes', 'upload'),
         ('scheduler.every(1).minutes', 'orders'),
         ('scheduler.every(1).minutes', 'archive'),
     ),
-    SCHEDULE_NAMES.SAFE: (('scheduler.every().day.at("11:00")', 'orders'),),
+    SCHEDULE_NAMES.SAFE: (('scheduler.every().day.at("12:00")', 'orders'),),
 }
 
 START_SCHEDULE_COMMAND = '/media/mmcblk0p1/honcho/bin/run_schedule.sh'
@@ -306,6 +307,7 @@ ARCHIVE_DIR = '/media/mmcblk0p1/archive'
 # --------------------------------------------------------------------------------
 
 IMM_STARTUP_WAIT = 5
+IMM_SHUTDOWN_WAIT = 20
 IMM_COMMAND_TIMEOUT = 30
 IMM_PORT = '/dev/ttyS4'
 IMM_BAUD = 9600

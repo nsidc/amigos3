@@ -10,6 +10,7 @@ from honcho.config import (
     IMM_PORT,
     IMM_BAUD,
     IMM_STARTUP_WAIT,
+    IMM_SHUTDOWN_WAIT,
     IMM_COMMAND_TIMEOUT,
 )
 from honcho.util import serial_request
@@ -37,6 +38,7 @@ def power(serial):
         yield
     finally:
         serial_request(serial, '\r\nPwrOff', RESPONSE_END, timeout=IMM_COMMAND_TIMEOUT)
+        sleep(IMM_SHUTDOWN_WAIT)
 
 
 @contextmanager

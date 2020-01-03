@@ -1,7 +1,7 @@
 import re
 from datetime import datetime
 from logging import getLogger
-from collections import namedtuple, defaultdict
+from collections import namedtuple
 import xml.etree.ElementTree as ET
 
 from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT, SEABIRD_RECENT_SAMPLES
@@ -16,8 +16,8 @@ logger = getLogger(__name__)
 _DATA_KEYS = (
     'timestamp',
     'device_id',
-    'temperature',
     'conductivity',
+    'temperature',
     'pressure',
     'salinity',
 )

@@ -291,7 +291,7 @@ def aquadopp_handler(args):
         device_ids = UNIT.AQUADOPP_IDS
 
     if args.get:
-        samples = aquadopp.get_recent_samples(device_ids, args.n)
+        samples = aquadopp.get_recent_samples(device_ids, n=args.n)
 
         aquadopp.print_samples(samples)
 
@@ -308,7 +308,7 @@ def add_aquadopp_parser(subparsers):
     parser.add_argument("--get", help="Get sample(s)", action="store_true", dest='get')
     parser.add_argument("--id", help="Device id", action="store", dest='device_id')
     parser.add_argument(
-        "-n", help="Number of samples", action="store", dest='n', type=int, default=5
+        "-n", help="Number of samples", action="store", dest='n', type=int, default=1
     )
 
     parser.add_argument(

@@ -186,7 +186,9 @@ def print_samples(samples):
 
 @task
 def execute():
-    samples = get_recent_samples(UNIT.AQUADOPP_IDS, AQUADOPP_RECENT_SAMPLES)
+    samples = get_recent_samples(
+        device_ids=UNIT.AQUADOPP_IDS, n=AQUADOPP_RECENT_SAMPLES
+    )
     for sample in samples:
         serialized = data.serialize(sample, CONVERSION_TO_STRING)
         data.log_serialized(serialized, DATA_TAGS.AQD)
