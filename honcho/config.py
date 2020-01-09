@@ -39,35 +39,16 @@ IGNORE_LOW_VOLTAGE = int(os.environ.get('IGNORE_LOW_VOLTAGE', 0))
 # UNIT SPECIFIC CONFIGURATION
 # --------------------------------------------------------------------------------
 
-_UNIT = namedtuple('UNIT', ('NAME', 'MAC_ADDRESS', 'SEABIRD_IDS', 'AQUADOPP_IDS'))
+_UNITS = ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC')
+UNITS = namedtuple('UNITS', _UNITS)(*_UNITS)
 
-UNITS = namedtuple('UNITS', ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC'))(
-    _UNIT(
-        NAME='AMIGOSIIIA',
-        MAC_ADDRESS='70:b3:d5:65:46:05',
-        SEABIRD_IDS=['05', '06', '07'],
-        AQUADOPP_IDS=['20', '22', '24'],
-    ),
-    _UNIT(
-        NAME='AMIGOSIIIB',
-        MAC_ADDRESS='70:b3:d5:65:46:00',
-        SEABIRD_IDS=['06', '08'],
-        AQUADOPP_IDS=['23', '24'],
-    ),
-    _UNIT(
-        NAME='AMIGOSIIIC',
-        MAC_ADDRESS='70:b3:d5:65:46:03',
-        SEABIRD_IDS=[],
-        AQUADOPP_IDS=[],
-    ),
+MAC_ADDRESSES = namedtuple('MAC_ADDRESSES', UNITS)(
+    '70:b3:d5:65:46:05', '70:b3:d5:65:46:00', '70:b3:d5:65:46:03',
 )
 
-MAC_ADDRESS = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
-try:
-    UNIT = [unit for unit in UNITS if unit.MAC_ADDRESS == MAC_ADDRESS].pop()
-except Exception:
-    UNIT = UNITS.AMIGOSIIIA
 
+MAC_ADDRESS = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
+UNIT = [unit for unit in UNITS if getattr(MAC_ADDRESSES, unit) == MAC_ADDRESS].pop()
 
 # --------------------------------------------------------------------------------
 # SCHEDULE CONFIGURATION
@@ -405,7 +386,11 @@ DIRECTORIES_TO_MONITOR = {
 DTS_HOST = "192.168.0.50"  # win
 DTS_USER = "admin"
 DTS_PULL_DELAY = 60 * 6.5
-DTS_WIN_DIR = 'Desktop/dts_data/xt19001/temperature/TARSAN'
+DTS_WIN_DIR = {
+    UNITS.AMIGOSIIIA: 'Desktop/dts_data/xt19001/temperature/TARSAN',
+    UNITS.AMIGOSIIIB: 'Desktop/dts_data/xt19002/temperature/TARSAN',
+    UNITS.AMIGOSIIIC: 'Desktop/dts_data/xt19003/temperature/TARSAN',
+}.get(UNIT)
 DTS_CLEANUP_LOCAL = False
 DTS_CLEANUP_REMOTE = False
 DTS_FULL_RES_RANGES = [(250, 350), (3229 - 350, 3229 - 250)]
@@ -434,3 +419,5 @@ SOLAR_SAMPLE_WAIT = 5
 
 AQUADOPP_RECENT_SAMPLES = 1
 SEABIRD_RECENT_SAMPLES = 6
+SEABIRD_IDS = {UNITS.AMIGOSIIIA: ['05', '06', '07'], UNITS.AMIGOSIIIB: []}.get(UNIT)
+AQUADOPP_IDS = {UNITS.AMIGOSIIIA: ['20', '22', '24'], UNITS.AMIGOSIIIB: []}.get(UNIT)

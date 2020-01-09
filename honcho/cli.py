@@ -3,7 +3,7 @@ import logging
 
 import honcho.logs  # noqa - has to be 1st
 from honcho.version import version
-from honcho.config import GPIO, UNIT, LOOK_PTZ
+from honcho.config import GPIO, SEABIRD_IDS, AQUADOPP_IDS, LOOK_PTZ
 from honcho.util import ensure_all_dirs
 from honcho.tasks import import_task
 
@@ -288,7 +288,7 @@ def aquadopp_handler(args):
     if args.device_id:
         device_ids = [args.device_id]
     else:
-        device_ids = UNIT.AQUADOPP_IDS
+        device_ids = AQUADOPP_IDS
 
     if args.get:
         samples = aquadopp.get_recent_samples(device_ids, n=args.n)
@@ -322,7 +322,7 @@ def seabird_handler(args):
     if args.device_id:
         device_ids = [args.device_id]
     else:
-        device_ids = UNIT.SEABIRD_IDS
+        device_ids = SEABIRD_IDS
 
     if args.set:
         if args.interval:
