@@ -32,8 +32,7 @@ def ensure_dirs(directories):
 def ensure_all_dirs():
     ensure_dirs(
         [DATA_DIR(tag) for tag in DATA_TAGS]
-        + [SBD_QUEUE_DIR(tag) for tag in DATA_TAGS]
-        + [LOG_DIR, UPLOAD_QUEUE_DIR, ARCHIVE_DIR]
+        + [SBD_QUEUE_DIR, LOG_DIR, UPLOAD_QUEUE_DIR, ARCHIVE_DIR]
     )
 
 
@@ -42,10 +41,11 @@ def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
         command += '\r\n'
 
     logger.debug('Sending command to {0}: {1}'.format(serial.port, command.strip()))
+    serial.flushInput()
+    sleep(1)
     serial.write(command)
-    serial.flush()
+    sleep(1)
     start_time = time()
-    sleep(0.1)
     response = ''
     response_length = len(response)
     while time() - start_time < timeout:

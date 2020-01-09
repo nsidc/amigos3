@@ -220,21 +220,19 @@ GPIO_CONFIG = {
 
 SBD_PORT = '/dev/ttyS1'
 SBD_BAUD = 9600
-SBD_STARTUP_WAIT = 30
+SBD_STARTUP_WAIT = 15
 SBD_MAX_SIZE = 1960
 SBD_SIGNAL_WAIT = 10
 SBD_SIGNAL_TRIES = 6
 SBD_WRITE_TIMEOUT = 30
-SBD_TRANSMISSION_TIMEOUT = 60 * 5
+SBD_TRANSMISSION_TIMEOUT = 60
 IRD_DEFAULT_TIMEOUT = 10
 SBD_QUEUE_MAX_TIME = 60 * 10
-SBD_QUEUE_ROOT_DIR = '/media/mmcblk0p1/sbd_queue'
+SBD_QUEUE_DIR = '/media/mmcblk0p1/sbd_queue'
 
 
-def SBD_QUEUE_DIR(tag):
-    queue_dir = os.path.join(SBD_QUEUE_ROOT_DIR, tag)
-
-    return queue_dir
+def SBD_QUEUE_FILENAME(timestamp, tag):
+    return timestamp.strftime(TIMESTAMP_FILENAME_FMT) + '_' + tag
 
 
 # --------------------------------------------------------------------------------
@@ -392,7 +390,7 @@ WATCHDOG_DEVICE = '/sys/class/gpio/wdt_ctl/data'
 DIRECTORIES_TO_MONITOR = {
     'data': DATA_ROOT_DIR,
     'archive': ARCHIVE_DIR,
-    'sbd': SBD_QUEUE_ROOT_DIR,
+    'sbd': SBD_QUEUE_DIR,
     'upload': UPLOAD_QUEUE_DIR,
     'log': LOG_DIR,
 }

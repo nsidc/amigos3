@@ -51,33 +51,26 @@ def message_size(message):
 
 
 def send_sbd(serial, message):
+    clear_mo_buffer(serial)
+    sleep(1)
+
     size = message_size(message)
     assert size <= SBD_MAX_SIZE, "Message is too large: {0} > {1}".format(
         size, SBD_MAX_SIZE
     )
 
-    for _ in xrange(SBD_SIGNAL_TRIES):
-        signal = check_signal(serial)
-        if signal >= 4:
-            break
-        sleep(SBD_SIGNAL_WAIT)
-    else:
-        raise Exception(
-            'Signal strength still too low after {0} tries, aborting'.format(
-                SBD_SIGNAL_TRIES
-            )
-        )
-
     # Initiate write text
     expected = 'READY\r\n'
     serial_request(serial, 'AT+SBDWT', expected, timeout=IRD_DEFAULT_TIMEOUT)
+    sleep(5)
 
     # Submit message
-    expected = r'(?P<status>\d)' + re.escape('\r\n')
+    expected = r'(?P<status>\d)' + re.escape('\r\n\r\n') + r'OK' + re.escape('\r\n')
     response = serial_request(serial, message, expected, timeout=SBD_WRITE_TIMEOUT)
     status = int(re.search(expected, response).groupdict()['status'])
     if status:
         raise Exception('SBD write command returned error status')
+    sleep(3)
 
     # Initiate transfer to GSS
     expected = (

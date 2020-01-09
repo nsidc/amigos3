@@ -41,7 +41,6 @@ HealthSample = namedtuple(
         'disk_usage',
         'card_usage',
         'measurement_counts',
-        'sbd_queue_counts',
         'directory_sizes',
     ),
 )
@@ -55,7 +54,6 @@ def serialize(sample):
         + list(str(el) for el in sample.top.load_average)
         + list(str(el) for el in sample.card_usage)
         + list(str(el) for el in sample.measurement_counts)
-        + list(str(el) for el in sample.sbd_queue_counts)
         + list(str(el) for el in sample.directory_sizes)
     )
     return serialized
@@ -82,7 +80,6 @@ def check_health():
     disk_usage = get_disk_usage()
     card_usage = [el for el in disk_usage if el.mount == '/media/mmcblk0p1'][0]
     measurement_counts = get_measurement_counts()
-    sbd_queue_counts = sbd.get_queue_counts()
     directory_sizes = get_directory_sizes()
 
     return HealthSample(
@@ -91,7 +88,6 @@ def check_health():
         disk_usage=disk_usage,
         card_usage=card_usage,
         measurement_counts=measurement_counts,
-        sbd_queue_counts=sbd_queue_counts,
         directory_sizes=directory_sizes,
     )
 

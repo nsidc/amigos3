@@ -12,15 +12,17 @@ from honcho.config import (
     SBD_PORT,
     SBD_BAUD,
     SBD_QUEUE_DIR,
-    SBD_QUEUE_ROOT_DIR,
+    SBD_QUEUE_FILENAME,
     SBD_QUEUE_MAX_TIME,
     SBD_STARTUP_WAIT,
+    SBD_SIGNAL_TRIES,
+    SBD_SIGNAL_WAIT,
     GPIO,
-    TIMESTAMP_FILENAME_FMT,
 )
 from honcho.core.gpio import powered
-from honcho.core.iridium import send_sbd
+from honcho.core.iridium import send_sbd, check_signal
 from honcho.tasks.common import task
+from honcho.tasks.upload import queue_filepaths
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +32,7 @@ SBDQueueCountSample = namedtuple('SBDQueueCountSample', DATA_TAGS)
 
 @contextmanager
 def sbd_components():
-    with powered([GPIO.IRD, GPIO.SBD, GPIO.SER]):
+    with powered([GPIO.SER, GPIO.SBD, GPIO.IRD]):
         logger.debug(
             'Sleeping for {0} seconds for iridium startup'.format(SBD_STARTUP_WAIT)
         )
@@ -46,10 +48,11 @@ def send(message):
 
 
 def build_queue():
-    queue = []
-    for dirpath, _, filenames in os.walk(SBD_QUEUE_ROOT_DIR):
-        queue.extend([os.path.join(dirpath, filename) for filename in filenames])
+    queue = [
+        os.path.join(SBD_QUEUE_DIR, filename) for filename in os.listdir(SBD_QUEUE_DIR)
+    ]
 
+    # Sort by filename
     queue = sorted(queue, key=lambda x: os.path.split(x)[-1])
 
     return queue
@@ -61,43 +64,35 @@ def send_queue(serial, timeout=SBD_QUEUE_MAX_TIME):
     for filepath in queue:
         logger.debug('Sending: {0}'.format(filepath))
         with open(filepath, 'r') as f:
-            send_sbd(serial=serial, message=f.read())
-
-        os.remove(filepath)
+            message = f.read().strip()
+        try:
+            assert ('\n' not in message) and ('\r' not in message)
+            send_sbd(serial=serial, message=message)
+        except Exception:
+            queue_filepaths([filepath])
+        finally:
+            os.remove(filepath)
 
 
 def queue_sbd(message, tag):
     logger.debug('Queuing {0} message'.format(tag))
 
-    filename = datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
-    filepath = os.path.join(SBD_QUEUE_DIR(tag), filename)
+    filename = SBD_QUEUE_FILENAME(timestamp=datetime.now(), tag=tag)
+    filepath = os.path.join(SBD_QUEUE_DIR, filename)
     while os.path.exists(filepath):
         sleep(1)
-        filename = datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
-        filepath = os.path.join(SBD_QUEUE_DIR(tag), filename)
+        filename = SBD_QUEUE_FILENAME(timestamp=datetime.now(), tag=tag)
+        filepath = os.path.join(SBD_QUEUE_DIR, filename)
 
     with open(filepath, 'w') as f:
         f.write(tag + ',' + message)
 
 
 def print_queue():
-    counts = get_queue_counts()
-    print(
-        '\n'.join(
-            '{0}: {1}'.format(name, count)
-            for name, count in zip(SBDQueueCountSample._fields, counts)
-        )
-    )
     print('-' * 80)
     queue = build_queue()
     for el in queue:
         print(el)
-
-
-def get_queue_counts():
-    return SBDQueueCountSample(
-        **dict((tag, len(os.listdir(SBD_QUEUE_DIR(tag)))) for tag in DATA_TAGS)
-    )
 
 
 def clear_queue():
@@ -109,6 +104,22 @@ def clear_queue():
 
 @task
 def execute():
-    with sbd_components():
-        with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
-            send_queue(serial)
+    queue = build_queue()
+    if queue:
+        with sbd_components():
+            with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
+                for _ in xrange(SBD_SIGNAL_TRIES):
+                    signal = check_signal(serial)
+                    if signal >= 4:
+                        break
+                    sleep(SBD_SIGNAL_WAIT)
+                else:
+                    raise Exception(
+                        'Signal strength still too low after {0} tries, aborting'.format(
+                            SBD_SIGNAL_TRIES
+                        )
+                    )
+
+                send_queue(serial)
+    else:
+        logger.debug('No SBD messages queued')
