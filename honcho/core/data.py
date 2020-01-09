@@ -18,7 +18,8 @@ def serialize(sample, conversions):
     for key in sample._fields:
         try:
             value = getattr(sample, key)
-            converted.append(conversions[key].format(value))
+            if conversions[key] is not None:
+                converted.append(conversions[key].format(value))
         except Exception:
             converted.append(str(value))
     serialized = SEP.join(converted)
