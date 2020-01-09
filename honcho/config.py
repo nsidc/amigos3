@@ -70,27 +70,34 @@ SCHEDULE_IDLE_CHECK_INTERVAL = 30
 
 SCHEDULES = {
     SCHEDULE_NAMES.WINTER: (
-        ('scheduler.every().hour.at(":50")', 'seabird'),
-        ('scheduler.every().hour.at(":52")', 'aquadopp'),
-        ('scheduler.every().hour.at(":55")', 'crx'),
-        ('scheduler.every().hour.at(":50")', 'weather'),
-        ('scheduler.every().hour.at(":52")', 'solar'),
-        ('scheduler.every().hour.at(":54")', 'sbd'),
-        ('scheduler.every().day.at("00:10")', 'upload'),
-        ('scheduler.every().day.at("06:10")', 'upload'),
-        ('scheduler.every().day.at("18:10")', 'upload'),
-        ('scheduler.every().day.at("20:10")', 'camera'),
-        ('scheduler.every().day.at("21:05")', 'dts'),
-        ('scheduler.every().day.at("23:10")', 'tps'),
-        ('scheduler.every().day.at("12:10")', 'upload'),
-    ),
-    SCHEDULE_NAMES.SUMMER: (
+        ('scheduler.every().hour.at(":40")', 'sbd'),
         ('scheduler.every().hour.at(":45")', 'seabird'),  # 2 mins?
         ('scheduler.every().hour.at(":47")', 'solar'),  # 2 min
         ('scheduler.every().hour.at(":49")', 'aquadopp'),  # 2 mins?
         ('scheduler.every().hour.at(":50")', 'crx'),  # 1 min
         ('scheduler.every().hour.at(":52")', 'weather'),  # 2 min
         ('scheduler.every().hour.at(":55")', 'sbd'),
+        ('scheduler.every().day.at("00:00")', 'upload'),
+        ('scheduler.every().day.at("06:00")', 'upload'),
+        ('scheduler.every().day.at("12:00")', 'upload'),
+        ('scheduler.every().day.at("12:00")', 'orders'),  # 20 mins
+        ('scheduler.every().day.at("18:00")', 'upload'),
+        ('scheduler.every().day.at("20:00")', 'camera'),
+        ('scheduler.every().day.at("21:00")', 'dts'),
+        ('scheduler.every().day.at("22:00")', 'upload'),
+        ('scheduler.every().day.at("23:00")', 'tps'),
+    ),
+    SCHEDULE_NAMES.SUMMER: (
+        ('scheduler.every().hour.at(":40")', 'sbd'),
+        ('scheduler.every().hour.at(":45")', 'gps'),  # 2 mins?
+        ('scheduler.every().hour.at(":46")', 'seabird'),  # 2 mins?
+        ('scheduler.every().hour.at(":47")', 'solar'),  # 2 min
+        ('scheduler.every().hour.at(":49")', 'aquadopp'),  # 2 mins?
+        ('scheduler.every().hour.at(":50")', 'crx'),  # 1 min
+        ('scheduler.every().hour.at(":52")', 'weather'),  # 2 min
+        ('scheduler.every().hour.at(":55")', 'sbd'),
+        #
+        ('scheduler.every().day.at("00:00")', 'upload'),  # 20 mins
         #
         #
         #
@@ -99,9 +106,13 @@ SCHEDULES = {
         ('scheduler.every().day.at("04:10")', 'camera'),  # 2 mins
         ('scheduler.every().day.at("04:15")', 'upload'),
         ('scheduler.every().day.at("05:10")', 'tps'),  # 20 mins
+        ('scheduler.every().day.at("06:00")', 'upload'),
         #
         ('scheduler.every().day.at("07:00")', 'dts'),  # 6 mins
         ('scheduler.every().day.at("07:10")', 'upload'),
+        ('scheduler.every().day.at("08:00")', 'upload'),
+        ('scheduler.every().day.at("09:00")', 'upload'),
+        ('scheduler.every().day.at("10:00")', 'upload'),
         #
         #
         #
@@ -110,16 +121,24 @@ SCHEDULES = {
         ('scheduler.every().day.at("12:00")', 'orders'),  # 20 mins
         ('scheduler.every().day.at("12:10")', 'camera'),  # 2 mins
         ('scheduler.every().day.at("12:15")', 'upload'),
+        ('scheduler.every().day.at("13:00")', 'upload'),
+        ('scheduler.every().day.at("14:00")', 'upload'),
         #
         #
         ('scheduler.every().day.at("15:00")', 'dts'),  # 6 mins
+        ('scheduler.every().day.at("15:10")', 'upload'),
+        ('scheduler.every().day.at("16:00")', 'upload'),
         #
         ('scheduler.every().day.at("17:10")', 'tps'),  # 20 mins
+        ('scheduler.every().day.at("17:15")', 'upload'),
+        ('scheduler.every().day.at("18:00")', 'upload'),
         #
         ('scheduler.every().day.at("19:00")', 'dts'),  # 6 mins
         ('scheduler.every().day.at("20:00")', 'upload'),
         ('scheduler.every().day.at("20:10")', 'camera'),  # 2 mins
         ('scheduler.every().day.at("20:15")', 'upload'),
+        ('scheduler.every().day.at("21:00")', 'upload'),
+        ('scheduler.every().day.at("22:00")', 'upload'),
         #
         #
         ('scheduler.every().day.at("23:00")', 'dts'),  # 6 mins
