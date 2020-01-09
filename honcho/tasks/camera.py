@@ -191,6 +191,6 @@ def execute():
             processed_filepaths.append(processed_filepath)
 
     tag = DATA_TAGS.CAM
-    queue_filepaths(processed_filepaths, prefix=tag, tarball=False)
-    archive_filepaths(raw_filepaths, prefix=tag)
+    queue_filepaths(processed_filepaths, postfix=tag, tarball=False)
+    archive_filepaths(raw_filepaths, postfix=tag)
     clear_directory(data_dir)

@@ -13,11 +13,13 @@ from honcho.core.data import chunk_file, make_chunk_joiner, compute_checksum
 logger = getLogger(__name__)
 
 
-def queue_filepaths(filepaths, prefix, tarball=True):
+def queue_filepaths(filepaths, prefix=None, postfix=None, tarball=True):
     queued_filepaths = []
     if tarball:
         queued_filepaths.append(
-            archive_filepaths(filepaths, prefix, output_directory=UPLOAD_QUEUE_DIR)
+            archive_filepaths(
+                filepaths, prefix, postfix, output_directory=UPLOAD_QUEUE_DIR
+            )
         )
     else:
         for filepath in filepaths:
@@ -28,9 +30,9 @@ def queue_filepaths(filepaths, prefix, tarball=True):
     return queued_filepaths
 
 
-def queue_filepaths_chunked(filepaths, prefix):
+def queue_filepaths_chunked(filepaths, prefix=None, postfix=None):
     tarball_filepath = archive_filepaths(
-        filepaths, prefix, output_directory=UPLOAD_QUEUE_DIR
+        filepaths, prefix, postfix, output_directory=UPLOAD_QUEUE_DIR
     )
     checksum = compute_checksum(tarball_filepath)
     chunk_filepaths = chunk_file(tarball_filepath, UPLOAD_QUEUE_DIR)

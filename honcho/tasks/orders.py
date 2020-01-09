@@ -107,6 +107,6 @@ def execute():
     result_filepaths = perform_orders(orders_filepaths)
 
     filepaths = orders_filepaths + result_filepaths
-    queue_filepaths(filepaths, prefix=tag)
-    archive_filepaths(result_filepaths, prefix=tag)
+    queue_filepaths(filepaths, postfix=tag)
+    archive_filepaths(result_filepaths, postfix=tag)
     clear_directory(DATA_DIR(tag))

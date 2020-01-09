@@ -72,5 +72,5 @@ def get_binex():
 def execute():
     filepath = get_binex()
     tag = DATA_TAGS.BNX
-    queue_filepaths([filepath], prefix=tag)
-    archive_filepaths([filepath], prefix=tag)
+    queue_filepaths([filepath], postfix=tag)
+    archive_filepaths([filepath], postfix=tag)

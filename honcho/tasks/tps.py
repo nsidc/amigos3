@@ -61,6 +61,7 @@ def query_tps(serial, output_filepath):
 
     logger.debug('Stopping TPS stream')
     serial.write(stop_command)
+    sleep(2)
 
 
 def get_tps():
@@ -78,6 +79,6 @@ def get_tps():
 def execute():
     filepath = get_tps()
     tag = DATA_TAGS.TPS
-    queue_filepaths([filepath], prefix=tag)
-    archive_filepaths([filepath], prefix=tag)
+    queue_filepaths([filepath], postfix=tag)
+    archive_filepaths([filepath], postfix=tag)
     clear_directory(DATA_DIR(tag))

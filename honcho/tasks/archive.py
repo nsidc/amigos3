@@ -16,8 +16,15 @@ from honcho.tasks.common import task
 logger = getLogger(__name__)
 
 
-def archive_filepaths(filepaths, prefix, output_directory=ARCHIVE_DIR):
-    name = prefix + '_' + datetime.now().strftime(TIMESTAMP_FILENAME_FMT) + '.tgz'
+def archive_filepaths(
+    filepaths, prefix=None, postfix=None, output_directory=ARCHIVE_DIR
+):
+    name = datetime.now().strftime(TIMESTAMP_FILENAME_FMT)
+    if prefix is not None:
+        name = prefix + '_' + name
+    if postfix is not None:
+        name += '_' + postfix
+    name += '.tgz'
     output_filepath = os.path.join(output_directory, name)
     make_tarfile(output_filepath, filepaths)
 
@@ -43,7 +50,7 @@ def archive_logs():
     if filenames:
         filepaths = [os.path.join(LOG_DIR, filename) for filename in filenames]
         logger.debug('Archiving logs')
-        archive_filepaths(filepaths, prefix='LOG')
+        archive_filepaths(filepaths, postfix='LOG')
     else:
         logger.debug('No logs to archive')
 

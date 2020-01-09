@@ -21,8 +21,8 @@ logger = getLogger(__name__)
 
 DATA_CONFIG = (
     {'name': 'timestamp', 'to_str': '{0:' + TIMESTAMP_FMT + '}'},
-    {'name': 'solar_up', 'to_str': '{0}'},
-    {'name': 'solar_down', 'to_str': '{0}'},
+    {'name': 'solar_up', 'to_str': '{0:.3f}'},
+    {'name': 'solar_down', 'to_str': '{0.3f}'},
 )
 _DATA_KEYS = [el['name'] for el in DATA_CONFIG]
 DATA_KEYS = namedtuple('DATA_KEYS', (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)

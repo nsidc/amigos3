@@ -162,6 +162,6 @@ def execute():
     processed_filepaths = process_data(raw_filepaths)
 
     tag = DATA_TAGS.DTS
-    queue_filepaths_chunked(processed_filepaths, prefix=tag)
-    archive_filepaths(raw_filepaths, prefix=tag)
+    queue_filepaths_chunked(processed_filepaths, postfix=tag)
+    archive_filepaths(raw_filepaths, postfix=tag)
     clear_directory(DATA_DIR(tag))

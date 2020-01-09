@@ -4,7 +4,7 @@ from logging import getLogger
 from collections import namedtuple
 import xml.etree.ElementTree as ET
 
-from honcho.config import UNIT, DATA_TAGS, TIMESTAMP_FMT, SEABIRD_RECENT_SAMPLES
+from honcho.config import SEABIRD_IDS, DATA_TAGS, TIMESTAMP_FMT, SEABIRD_RECENT_SAMPLES
 from honcho.core.imm import active_line, imm_components, REMOTE_RESPONSE_END
 from honcho.tasks.sbd import queue_sbd
 import honcho.core.data as data
@@ -207,7 +207,7 @@ def print_samples(samples):
 
 @task
 def execute():
-    samples = get_averaged_samples(UNIT.SEABIRD_IDS, SEABIRD_RECENT_SAMPLES)
+    samples = get_averaged_samples(SEABIRD_IDS, SEABIRD_RECENT_SAMPLES)
     for sample in samples:
         serialized = data.serialize(sample, CONVERSION_TO_STRING)
         data.log_serialized(serialized, DATA_TAGS.SBD)
