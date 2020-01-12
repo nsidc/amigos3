@@ -406,7 +406,7 @@ DTS_PULL_DELAY = 60 * 6.5
 DTS_WIN_DIR = {
     UNITS.AMIGOSIIIA: 'Desktop/dts_data/xt19001/temperature/TARSAN',
     UNITS.AMIGOSIIIB: 'Desktop/dts_data/xt19002/temperature/TARSAN',
-    UNITS.AMIGOSIIIC: 'Desktop/dts_data/xt19003/temperature/TARSAN',
+    UNITS.AMIGOSIIIC: '/drives/c/ProgramData/Silixa/XT Client/DTS data/XT19003/temperature/TARSAN',
 }.get(UNIT)
 DTS_CLEANUP_LOCAL = False
 DTS_CLEANUP_REMOTE = False
@@ -436,5 +436,13 @@ SOLAR_SAMPLE_WAIT = 5
 
 AQUADOPP_RECENT_SAMPLES = 1
 SEABIRD_RECENT_SAMPLES = 6
-SEABIRD_IDS = {UNITS.AMIGOSIIIA: ['05', '06', '07'], UNITS.AMIGOSIIIB: []}.get(UNIT)
-AQUADOPP_IDS = {UNITS.AMIGOSIIIA: ['20', '22', '24'], UNITS.AMIGOSIIIB: []}.get(UNIT)
+SEABIRD_IDS = {
+    UNITS.AMIGOSIIIA: ['05', '06', '07'],
+    UNITS.AMIGOSIIIB: [],
+    UNITS.AMIGOSIIIC: ['08', '09', '80'],
+}.get(UNIT)
+AQUADOPP_IDS = {
+    UNITS.AMIGOSIIIA: ['20', '22', '24'],
+    UNITS.AMIGOSIIIB: [],
+    UNITS.AMIGOSIIIC: ['21', '23', '25'],
+}.get(UNIT)
