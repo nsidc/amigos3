@@ -42,13 +42,12 @@ IGNORE_LOW_VOLTAGE = int(os.environ.get('IGNORE_LOW_VOLTAGE', 0))
 _UNITS = ('AMIGOSIIIA', 'AMIGOSIIIB', 'AMIGOSIIIC')
 UNITS = namedtuple('UNITS', _UNITS)(*_UNITS)
 
-MAC_ADDRESSES = namedtuple('MAC_ADDRESSES', UNITS)(
-    '70:b3:d5:65:46:05', '70:b3:d5:65:46:00', '70:b3:d5:65:46:03',
-)
-
-
 MAC_ADDRESS = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
-UNIT = [unit for unit in UNITS if getattr(MAC_ADDRESSES, unit) == MAC_ADDRESS].pop()
+UNIT = {
+    '70:b3:d5:65:46:05': UNITS.AMIGOSIIIA,
+    '70:b3:d5:65:46:00': UNITS.AMIGOSIIIB,
+    '70:b3:d5:65:46:03': UNITS.AMIGOSIIIC,
+}.get(MAC_ADDRESS, None)
 
 # --------------------------------------------------------------------------------
 # SCHEDULE CONFIGURATION
@@ -415,12 +414,12 @@ DTS_CLEANUP_REMOTE = False
 DTS_FULL_RES_RANGES = {
     UNITS.AMIGOSIIIA: [
         (800 + 300 - 50, 800 + 300 + 50),
-        (3229 / 2.0 + 800 - 300 - 50, 3229 / 2.0 + 800 - 300 + 50),
+        (3229 - 800 - 300 - 50, 3229 - 800 - 300 + 50),
     ],
     UNITS.AMIGOSIIIB: None,
     UNITS.AMIGOSIIIC: [
         (736 + 249 - 50, 736 + 249 + 50),
-        (3138 / 2.0 + 736 - 249 - 50, 3138 / 2.0 + 736 - 249 + 50),
+        (3138 - 736 - 249 - 50, 3138 - 736 - 249 + 50),
     ],
 }.get(UNIT)
 
@@ -450,11 +449,11 @@ AQUADOPP_RECENT_SAMPLES = 1
 SEABIRD_RECENT_SAMPLES = 6
 SEABIRD_IDS = {
     UNITS.AMIGOSIIIA: ['05', '06', '07'],
-    UNITS.AMIGOSIIIB: [],
+    UNITS.AMIGOSIIIB: None,
     UNITS.AMIGOSIIIC: ['08', '09', '80'],
 }.get(UNIT)
 AQUADOPP_IDS = {
     UNITS.AMIGOSIIIA: ['20', '22', '24'],
-    UNITS.AMIGOSIIIB: [],
+    UNITS.AMIGOSIIIB: None,
     UNITS.AMIGOSIIIC: ['21', '23', '25'],
 }.get(UNIT)
