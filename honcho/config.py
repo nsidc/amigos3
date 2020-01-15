@@ -406,11 +406,23 @@ DTS_PULL_DELAY = 60 * 6.5
 DTS_WIN_DIR = {
     UNITS.AMIGOSIIIA: 'Desktop/dts_data/xt19001/temperature/TARSAN',
     UNITS.AMIGOSIIIB: 'Desktop/dts_data/xt19002/temperature/TARSAN',
-    UNITS.AMIGOSIIIC: '/drives/c/ProgramData/Silixa/XT Client/DTS data/XT19003/temperature/TARSAN',
+    UNITS.AMIGOSIIIC: (
+        '/drives/c/ProgramData/Silixa/XT Client/DTS data/XT19003/temperature/TARSAN'
+    ),
 }.get(UNIT)
 DTS_CLEANUP_LOCAL = False
 DTS_CLEANUP_REMOTE = False
-DTS_FULL_RES_RANGES = [(250, 350), (3229 - 350, 3229 - 250)]
+DTS_FULL_RES_RANGES = {
+    UNITS.AMIGOSIIIA: [
+        (800 + 300 - 50, 800 + 300 + 50),
+        (3229 / 2.0 + 800 - 300 - 50, 3229 / 2.0 + 800 - 300 + 50),
+    ],
+    UNITS.AMIGOSIIIB: None,
+    UNITS.AMIGOSIIIC: [
+        (736 + 249 - 50, 736 + 249 + 50),
+        (3138 / 2.0 + 736 - 249 - 50, 3138 / 2.0 + 736 - 249 + 50),
+    ],
+}.get(UNIT)
 
 
 # --------------------------------------------------------------------------------
