@@ -66,10 +66,10 @@ def parse_xml(filename):
 def downsample(measurements, factor=4):
     downsampled = []
     for i in range(0, len(measurements), factor):
-        means = [
-            sum(values) / factor
-            for values in zip(*measurements[i : (i + factor)])  # noqa
-        ]
+        window = measurements[i : (i + factor)]
+        n = len(window)
+        transposed = zip(*measurements[i : (i + factor)])
+        means = [sum(column) / n for column in transposed]
         downsampled.append(means)
 
     return downsampled
@@ -81,7 +81,6 @@ def process_measurements(measurements):
     prev_index = 0
     for lower, upper in DTS_FULL_RES_RANGES:
         i_lower = bisect(lengths, lower)
-        # TODO: assert ranges are in increasing order and non-overlapping
         i_upper = bisect(lengths, upper)
         processed.extend(downsample(measurements[prev_index:i_lower]))
         processed.extend(measurements[i_lower:i_upper])
