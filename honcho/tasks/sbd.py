@@ -114,11 +114,8 @@ def execute():
                         break
                     sleep(SBD_SIGNAL_WAIT)
                 else:
-                    raise Exception(
-                        'Signal strength still too low after {0} tries, aborting'.format(
-                            SBD_SIGNAL_TRIES
-                        )
-                    )
+                    msg = 'Signal strength still too low after {0} tries, aborting'
+                    raise Exception(msg.format(SBD_SIGNAL_TRIES))
 
                 send_queue(serial)
     else:

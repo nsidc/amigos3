@@ -4,8 +4,6 @@ from time import sleep
 
 from honcho.config import (
     SBD_MAX_SIZE,
-    SBD_SIGNAL_TRIES,
-    SBD_SIGNAL_WAIT,
     SBD_WRITE_TIMEOUT,
     SBD_TRANSMISSION_TIMEOUT,
     IRD_DEFAULT_TIMEOUT,
