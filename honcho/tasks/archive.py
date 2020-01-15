@@ -39,7 +39,7 @@ def archive_data():
         if filenames:
             filepaths = [os.path.join(data_dir, filename) for filename in filenames]
             logger.debug('Archiving files for {0}'.format(tag))
-            archive_filepaths(filepaths, tag)
+            archive_filepaths(filepaths, postfix=tag)
         else:
             logger.debug('Nothing to archive for {0}'.format(tag))
 
