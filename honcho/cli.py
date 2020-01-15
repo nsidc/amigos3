@@ -334,6 +334,9 @@ def seabird_handler(args):
     if args.get:
         if args.all:
             samples = seabird.get_all_samples(device_ids)
+        elif args.range:
+            begin, end = [int(el) for el in args.range.split(',')]
+            samples = seabird.get_sample_range(device_ids, begin, end)
         else:
             samples = seabird.get_recent_samples(device_ids, args.n)
 
@@ -365,6 +368,9 @@ def add_seabird_parser(subparsers):
     )
     parser.add_argument(
         "--all", help="Get all samples", action="store_true", dest='all'
+    )
+    parser.add_argument(
+        "--range", help="Get range 'a,b' of samples a,b", action="store", dest='range',
     )
     parser.add_argument(
         "--status", help="Get device status", action="store_true", dest='status'

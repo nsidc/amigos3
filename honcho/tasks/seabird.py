@@ -179,6 +179,20 @@ def _get_sample_range(serial, device_id, begin, end):
     return samples
 
 
+def get_sample_range(device_ids, begin, end):
+    sample_chunk_size = 100
+    samples = []
+    with imm_components():
+        with active_line() as serial:
+            for device_id in device_ids:
+                for i in xrange(begin, end, sample_chunk_size):
+                    samples.extend(
+                        _get_sample_range(serial, device_id, i, i + sample_chunk_size)
+                    )
+
+    return samples
+
+
 def get_all_samples(device_ids):
     sample_chunk_size = 100
     samples = []
