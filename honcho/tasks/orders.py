@@ -59,7 +59,6 @@ def run_script(script_filepath):
 def serialize(result):
     return SEP.join(
         [
-            'ORD',
             result.filename,
             result.start_time.isoformat(),
             result.finish_time.isoformat(),
