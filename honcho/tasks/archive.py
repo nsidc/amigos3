@@ -1,12 +1,15 @@
 import os
+import shutil
 from logging import getLogger
 from datetime import datetime
 
 from honcho.config import (
     LOG_DIR,
     DATA_DIR,
+    DATA_LOG_FILENAME,
     DATA_TAGS,
     ARCHIVE_DIR,
+    UPLOAD_QUEUE_DIR,
     TIMESTAMP_FILENAME_FMT,
 )
 from honcho.util import make_tarfile, clear_directory
@@ -59,6 +62,8 @@ def archive_logs():
 def execute():
     archive_data()
     archive_logs()
+
+    shutil.copy(DATA_LOG_FILENAME(DATA_TAGS.PWR), UPLOAD_QUEUE_DIR)
 
     logger.debug('Cleaning up')
     for tag in DATA_TAGS:
