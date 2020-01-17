@@ -1,15 +1,12 @@
 import os
-import shutil
 from logging import getLogger
 from datetime import datetime
 
 from honcho.config import (
     LOG_DIR,
     DATA_DIR,
-    DATA_LOG_FILENAME,
     DATA_TAGS,
     ARCHIVE_DIR,
-    UPLOAD_QUEUE_DIR,
     TIMESTAMP_FILENAME_FMT,
 )
 from honcho.util import make_tarfile, clear_directory

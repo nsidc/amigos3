@@ -1,6 +1,7 @@
 from collections import namedtuple
 from contextlib import contextmanager
 from time import sleep
+from datetime import datetime
 import logging
 
 from pycampbellcr1000 import CR1000
@@ -67,7 +68,7 @@ def get_last_sample():
         with connection() as device:
             logger.debug('Getting last sample from CRX')
             recfrag = device.get_raw_packets("Public")[-1]['RecFrag'][-1]
-            data = {'timestamp': recfrag['TimeOfRec']}
+            data = {'timestamp': datetime.now()}
             data.update(**recfrag['Fields'])
             sample = CRXSample(**data)
 
