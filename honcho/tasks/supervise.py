@@ -12,6 +12,8 @@ from honcho.config import (
     DATA_TAGS,
     ARCHIVE_DIR,
     DATA_DIR,
+    DATA_LOG_FILENAME,
+    UPLOAD_QUEUE_DIR,
     DIRECTORIES_TO_MONITOR,
     START_SCHEDULE_COMMAND,
     EXECUTION_LOG_FILEPATH,
@@ -136,6 +138,13 @@ def run_maintenance():
             os.kill(int(schedule_process.pid), signal.SIGKILL)
 
     orders.execute()
+
+    archive.archive_filepaths(
+        [DATA_LOG_FILENAME(DATA_TAGS.PWR)],
+        postfix=DATA_TAGS.PWR,
+        output_directory=UPLOAD_QUEUE_DIR,
+    )
+
     sbd.execute()
     upload.execute()
     archive.execute()

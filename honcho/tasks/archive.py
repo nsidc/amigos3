@@ -63,12 +63,6 @@ def execute():
     archive_data()
     archive_logs()
 
-    archive_filepaths(
-        [DATA_LOG_FILENAME(DATA_TAGS.PWR)],
-        postfix=DATA_TAGS.PWR,
-        output_directory=UPLOAD_QUEUE_DIR,
-    )
-
     logger.debug('Cleaning up')
     for tag in DATA_TAGS:
         clear_directory(DATA_DIR(tag))
