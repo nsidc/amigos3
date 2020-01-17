@@ -63,9 +63,17 @@ def execute():
     archive_data()
     archive_logs()
 
-    shutil.copy(DATA_LOG_FILENAME(DATA_TAGS.PWR), UPLOAD_QUEUE_DIR)
+    archive_filepaths(
+        [DATA_LOG_FILENAME(DATA_TAGS.PWR)],
+        postfix=DATA_TAGS.PWR,
+        output_directory=UPLOAD_QUEUE_DIR,
+    )
 
     logger.debug('Cleaning up')
     for tag in DATA_TAGS:
         clear_directory(DATA_DIR(tag))
     clear_directory(LOG_DIR)
+
+
+if __name__ == '__main__':
+    execute()
