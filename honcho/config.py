@@ -70,7 +70,8 @@ SCHEDULE_IDLE_CHECK_INTERVAL = 30
 SCHEDULES = {
     SCHEDULE_NAMES.WINTER: (
         ('scheduler.every().hour.at(":40")', 'sbd'),
-        ('scheduler.every().hour.at(":45")', 'seabird'),  # 2 mins?
+        ('scheduler.every().hour.at(":45")', 'gps'),  # 2 mins?
+        ('scheduler.every().hour.at(":46")', 'seabird'),  # 2 mins?
         ('scheduler.every().hour.at(":47")', 'solar'),  # 2 min
         ('scheduler.every().hour.at(":49")', 'aquadopp'),  # 2 mins?
         ('scheduler.every().hour.at(":50")', 'crx'),  # 1 min
@@ -81,7 +82,6 @@ SCHEDULES = {
         ('scheduler.every().day.at("12:00")', 'upload'),
         ('scheduler.every().day.at("12:00")', 'orders'),  # 20 mins
         ('scheduler.every().day.at("18:00")', 'upload'),
-        ('scheduler.every().day.at("20:00")', 'camera'),
         ('scheduler.every().day.at("21:00")', 'dts'),
         ('scheduler.every().day.at("22:00")', 'upload'),
         ('scheduler.every().day.at("23:00")', 'tps'),
