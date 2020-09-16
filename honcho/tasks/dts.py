@@ -66,9 +66,9 @@ def parse_xml(filename):
 def downsample(measurements, factor=4):
     downsampled = []
     for i in range(0, len(measurements), factor):
-        window = measurements[i : (i + factor)]
+        window = measurements[i: (i + factor)]
         n = len(window)
-        transposed = zip(*measurements[i : (i + factor)])
+        transposed = zip(*measurements[i: (i + factor)])
         means = [sum(column) / n for column in transposed]
         downsampled.append(means)
 

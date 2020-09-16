@@ -16,7 +16,7 @@ from honcho.config import (
     DATA_TAGS,
     GPIO,
     TIMESTAMP_FMT,
-    WEATHER_TIMEOUT
+    WXT_TIMEOUT
 )
 from honcho.tasks.sbd import queue_sbd
 from honcho.core.data import log_serialized, serialize
@@ -120,7 +120,7 @@ def get_samples(n=12):
     start_time = time()
     with powered([GPIO.WXT]):
         with closing(Serial(WXT_PORT, WXT_BAUD)) as serial:
-            while len(samples) < n and time() - start_time < WEATHER_TIMEOUT:
+            while len(samples) < n and time() - start_time < WXT_TIMEOUT:
                 line = serial.readline()
                 logger.debug('Read line from vaisala: {0}'.format(line))
                 if re.search(LINE_PATTERN, line):
