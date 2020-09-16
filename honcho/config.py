@@ -368,6 +368,8 @@ CRX_STARTUP_WAIT = 30
 WXT_PORT = '/dev/ttyS5'
 WXT_BAUD = 115200
 WXT_SAMPLES = 120
+WXT_INTERVAL = 1
+WXT_TIMEOUT = WXT_SAMPLES * WXT_INTERVAL * 1.5
 
 
 # --------------------------------------------------------------------------------

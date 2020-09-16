@@ -3,6 +3,7 @@ from logging import getLogger
 from datetime import datetime
 from contextlib import closing
 from collections import namedtuple
+from time import time
 
 from serial import Serial
 
@@ -15,6 +16,7 @@ from honcho.config import (
     DATA_TAGS,
     GPIO,
     TIMESTAMP_FMT,
+    WEATHER_TIMEOUT
 )
 from honcho.tasks.sbd import queue_sbd
 from honcho.core.data import log_serialized, serialize
@@ -115,9 +117,10 @@ def parse_sample(s):
 def get_samples(n=12):
     logger.debug('Getting {0} samples'.format(n))
     samples = []
+    start_time = time()
     with powered([GPIO.WXT]):
         with closing(Serial(WXT_PORT, WXT_BAUD)) as serial:
-            while len(samples) < n:
+            while len(samples) < n and time() - start_time < WEATHER_TIMEOUT:
                 line = serial.readline()
                 logger.debug('Read line from vaisala: {0}'.format(line))
                 if re.search(LINE_PATTERN, line):
