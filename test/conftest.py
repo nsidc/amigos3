@@ -9,6 +9,12 @@ import pytest
 
 
 @pytest.fixture
+def mock_fs(fs):
+    fs.add_real_directory('/dev/pts', read_only=False)
+    pass
+
+
+@pytest.fixture
 def serial_mock():
     '''
     Mocked serial port with responses dictated by listener thread

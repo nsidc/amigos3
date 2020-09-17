@@ -1,8 +1,13 @@
+import os
 import logging
 
 KEY_FILE = '/root/.ssh/id_rsa_windows'
 
 logger = logging.getLogger(__name__)
+
+
+def escape_spaces(s):
+    return s.replace(' ', r'\ ')
 
 
 class SSH:
@@ -31,17 +36,24 @@ class SSH:
         """
         from subprocess import check_call
 
-        cmd = "scp {opts} -i {key} {user}@{host}:{source} {dest}".format(
+        cmd = 'scp {opts} -i {key} "{user}@{host}:{source}" "{dest}"'.format(
             opts='-r' if recursive else '',
             key=KEY_FILE,
             user=self.username,
             host=self.hosname,
-            source=source,
-            dest=dest,
+            source=escape_spaces(source),
+            dest=escape_spaces(dest),
         )
 
         logger.info('Executing {cmd}'.format(cmd=cmd))
         check_call(cmd, shell=True)
+
+    def latest_file(self, directory):
+        filename = self.execute(
+            'ls -r {0} | head -1'.format(escape_spaces(directory))
+        ).strip()
+        filepath = os.path.join(directory, filename)
+        return filepath
 
     def execute(self, command):
         """Execute a command of client
@@ -52,11 +64,14 @@ class SSH:
         Returns:
             out -- Result of the execution
         """
-        from subprocess import check_call
+        from subprocess import Popen, STDOUT, PIPE
 
         cmd = 'ssh -i {key} {user}@{host} "{command}"'.format(
             key=KEY_FILE, user=self.username, host=self.hosname, command=command
         )
 
         logger.info('Executing {cmd}'.format(cmd=cmd))
-        check_call(cmd, shell=True)
+        p = Popen(cmd, stderr=STDOUT, stdout=PIPE, shell=True)
+        output, _ = p.communicate()
+
+        return output

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+python /media/mmcblk0p1/honcho/cli.py $@

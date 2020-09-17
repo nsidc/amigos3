@@ -1,8 +1,24 @@
 import os
+import shutil
 import re
+from datetime import datetime
 from collections import MutableMapping
 from logging import getLogger
-from time import sleep, time
+from time import sleep, time, mktime
+import tarfile
+from contextlib import closing
+from netrc import netrc
+
+from honcho.config import (
+    ARCHIVE_DIR,
+    LOG_DIR,
+    DATA_DIR,
+    DATA_TAGS,
+    SBD_QUEUE_DIR,
+    NETRC_FILEPATH,
+    UPLOAD_QUEUE_DIR,
+)
+
 
 logger = getLogger(__name__)
 
@@ -13,22 +29,40 @@ def ensure_dirs(directories):
             os.makedirs(directory)
 
 
+def ensure_all_dirs():
+    ensure_dirs(
+        [DATA_DIR(tag) for tag in DATA_TAGS]
+        + [SBD_QUEUE_DIR, LOG_DIR, UPLOAD_QUEUE_DIR, ARCHIVE_DIR]
+    )
+
+
 def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
     if not command.endswith('\r\n'):
         command += '\r\n'
 
-    logger.debug('Sending command to {0}: {1}'.format(serial.port, command))
+    logger.debug('Sending command to {0}: {1}'.format(serial.port, command.strip()))
+    serial.flushInput()
+    sleep(1)
     serial.write(command)
-    serial.flush()
+    sleep(1)
     start_time = time()
     response = ''
+    response_length = len(response)
     while time() - start_time < timeout:
         response += serial.read(serial.inWaiting())
         if re.search(expected_regex, response, flags=re.DOTALL):
             break
+
+        new_response_length = len(response)
+        if new_response_length > response_length:
+            start_time = time()
+            response_length = new_response_length
+
         sleep(poll)
     else:
-        logger.debug('Response collected from serial at timeout: {0}'.format(response))
+        logger.debug(
+            'Response collected from serial at timeout: {0}'.format(response.strip())
+        )
         raise Exception('Timed out waiting for expected serial response')
 
     logger.debug('Response collected from serial: {0}'.format(response))
@@ -101,3 +135,67 @@ class OrderedDict(dict, MutableMapping):
         for key in iterable:
             d[key] = value
         return d
+
+
+def total_seconds(td):
+    return td.days * 24 * 3600 + td.seconds
+
+
+def format_timedelta(td):
+    s = total_seconds(td)
+    labels = ('hrs', 'min', 'sec')
+    n = len(labels)
+    for i, label in enumerate(labels):
+        factor = float(60 ** (n - i - 1))
+        count = s / factor
+        if count >= 1:
+            return '{0:.2f} {1}'.format(count, label)
+
+
+def get_creds(host):
+    nrc = netrc(NETRC_FILEPATH)
+    user, _, passwd = nrc.hosts[host]
+
+    return user, passwd
+
+
+def convert_bytes(num):
+    """
+    this function will convert bytes to MB.... GB... etc
+    """
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if num < 1024.0:
+            return "%3.1f %s" % (num, x)
+        num /= 1024.0
+
+
+def file_size(file_path):
+    """
+    this function will return the file size
+    """
+    if os.path.isfile(file_path):
+        file_info = os.stat(file_path)
+        return convert_bytes(file_info.st_size)
+
+
+def make_tarfile(output_filename, filepaths):
+    with closing(tarfile.open(output_filename, "w:gz")) as tar:
+        for filepath in filepaths:
+            tar.add(filepath, arcname=os.path.basename(filepath))
+
+
+def clear_directory(directory):
+    for name in os.listdir(directory):
+        path = os.path.join(directory, name)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+
+
+def average_datetimes(datetimes):
+    averaged = datetime.fromtimestamp(
+        sum(mktime(dt.timetuple()) for dt in datetimes) / len(datetimes)
+    )
+
+    return averaged

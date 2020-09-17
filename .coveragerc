@@ -2,6 +2,6 @@
 branch = True
 source = honcho
 omit = 
-    **/test_*.py
     setup.py
-    honcho/core/argparse.py
+    test/*
+    honcho/ext/*

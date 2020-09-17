@@ -1,18 +1,24 @@
 [submodule "honcho/ext/pylink"]
     path = honcho/ext/pylink
-    url = https://github.com/CooviM/pylink
+    url = https://github.com/wallinb/pylink
+    ignore = dirty
 [submodule "honcho/ext/pycampbellcr1000"]
     path = honcho/ext/pycampbellcr1000
-    url = https://github.com/CooviM/pycampbellcr1000
+    url = https://github.com/wallinb/pycampbellcr1000
+    ignore = dirty
 [submodule "honcho/ext/pynmea2"]
     path = honcho/ext/pynmea2
-    url = https://github.com/CooviM/pynmea2
+    url = https://github.com/wallinb/pynmea2
+    ignore = dirty
 [submodule "honcho/ext/requests"]
     path = honcho/ext/requests
-    url = https://github.com/CooviM/requests
+    url = https://github.com/wallinb/requests
+    ignore = dirty
 [submodule "honcho/ext/schedule"]
     path = honcho/ext/schedule
-    url = https://github.com/CooviM/schedule
+    url = https://github.com/wallinb/schedule
+    ignore = dirty
 [submodule "honcho/ext/pexpects"]
     path = honcho/ext/pexpects
-    url = https://github.com/CooviM/pexpects
+    url = https://github.com/wallinb/pexpects
+    ignore = dirty

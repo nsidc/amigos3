@@ -1,3 +1,0 @@
-#!/bin/bash
-echo $1
-date_time="$(date -s $1)"
