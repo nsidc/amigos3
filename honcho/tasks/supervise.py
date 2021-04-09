@@ -7,7 +7,6 @@ from logging import getLogger
 from collections import namedtuple
 
 from honcho.config import (
-    UNIT,
     SEP,
     DATA_TAGS,
     ARCHIVE_DIR,
@@ -48,7 +47,7 @@ HealthSample = namedtuple(
 
 def serialize(sample):
     serialized = SEP.join(
-        [sample.timestamp.strftime(TIMESTAMP_FMT), UNIT.NAME]
+        [sample.timestamp.strftime(TIMESTAMP_FMT)]
         + list(str(el) for el in sample.top.mem)
         + list(str(el) for el in sample.top.cpu)
         + list(str(el) for el in sample.top.load_average)
