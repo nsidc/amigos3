@@ -17,7 +17,7 @@ The AMIGOS stations have no package management, therefore submodules are used to
 
 ### Operator dependencies
 
-Operations are performed from a unix-like system with typical tasks defined in the `Makefile`.
+Operations are performed from a unix-like system with typical tasks defined in the `Makefile`. An ethernet cable and a serial DB-9-to-USB adapter cable are required to interface with the AMIGOS.
 
 The following utilities are assumed to be available locally:
 
