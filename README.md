@@ -55,11 +55,11 @@ Dependencies in the development environment are managed with [Conda](https://doc
 
 ## Running tests
 
-Due to poor support for Python 2.6, tests are run in a separate Python 2.7 environment
+Unit tests are run with the command
 
-    ```
-    $ make test
-    ```
+```
+$ make test
+```
 
 ## Operating the station
 
@@ -141,15 +141,15 @@ The entire SD card (including "honcho" code and data) will be copied to `./backu
 The "honcho" operating software has a CLI interface to facilitate performing operations on the station manually for e.g. testing. For general usage help
 
 
-    ```
-    $ honcho --help
-    ```
+```
+$ honcho --help
+```
 
 For usage help of a specific subcommand
 
-    ```
-    $ honcho <sub-command> --help
-    ```
+```
+$ honcho <sub-command> --help
+```
 
 
 ### Example/useful commands
