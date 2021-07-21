@@ -66,10 +66,6 @@ sync-code: clean # sync the code to the amigos box
 # Deployment
 # --------------------------------------------------------------------------------
 
-pull-data: # sync the amigos box sd card
-	mkdir -p ./data
-	scp -prCB root@amigos:/media/mmcblk0p1/data "./data/$$(date +%F_%R)"
-
 backup: # sync the amigos box sd card
 	mkdir -p ./backup
 	scp -prCB root@amigos:/media/mmcblk0p1 "./backup/$$(date +%F_%R)"

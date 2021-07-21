@@ -1,11 +1,9 @@
 name: amigos-test-env
 channels:
   - conda-forge
-  - nsidc
-  - defaults
+  - nodefaults
 dependencies:
   - python=2.7*
-  - bumpversion=0.5*
   - codecov=2.0*
   - flake8=3.7*
   - pytest=4.6*
