@@ -170,13 +170,13 @@ For usage help of a specific subcommand
 
 ### Environment Variables
 
-Several environment variables modify the operating code globally:
+Several environment variables modify the operating code globally
 
-| `LOG_LEVEL`          | CRITICAL, ERROR, WARNING, INFO, DEBUG | level of logging                                                                          |
-| `MODE`               | NORMAL, SAFE, TEST, WINTER, SUMMER    | mode of operation (e.g. schedule)                                                         |
-| `KEEP_AWAKE`         | 0, 1                                  | station will not enter power-saving sleep mode when idle                                  |
-| `HUB_ALWAYS_ON`      | 0, 1                                  | do not be powered off after e.g. measurement (useful when debugging/using ssh connection) |
-| `SKIP_MAINTENANCE`   | 0, 1                                  | do not perform maintenance actions (data archival, reset schedule etc...)                 |
-| `IGNORE_LOW_VOLTAGE` | 0, 1                                  | the station will not go into "hibernation" standby when voltage is below threshold        |
+* `LOG_LEVEL`          - (CRITICAL, ERROR, WARNING, INFO, DEBUG) - level of logging
+* `MODE`               - (NORMAL, SAFE, TEST, WINTER, SUMMER)    - mode of operation (e.g. schedule)
+* `KEEP_AWAKE`         - (0, 1)                                  - station will not enter power-saving sleep mode when idle
+* `HUB_ALWAYS_ON`      - (0, 1)                                  - do not be powered off after e.g. measurement (useful when debugging/using ssh connection)
+* `SKIP_MAINTENANCE`   - (0, 1)                                  - do not perform maintenance actions (data archival, reset schedule etc...)
+* `IGNORE_LOW_VOLTAGE` - (0, 1)                                  - the station will not go into "hibernation" standby when voltage is below threshold
 
 These are set on bootup automatically from the `./bin/set_env.sh` script.
