@@ -27,8 +27,8 @@ def EXECUTION_LOG_FILEPATH(name):
 DEFAULT_LOG_LEVEL = "INFO"
 LOG_LEVEL = getattr(logging, os.environ.get("LOG_LEVEL", DEFAULT_LOG_LEVEL))
 
-MAX_SYSTEM_SLEEP = 59
-MIN_SYSTEM_VOLTAGE = 11
+MAX_SYSTEM_SLEEP = 54
+MIN_SYSTEM_VOLTAGE = 11.8
 HUB_ALWAYS_ON = int(os.environ.get("HUB_ALWAYS_ON", 0))
 KEEP_AWAKE = int(os.environ.get("KEEP_AWAKE", 0))
 SKIP_MAINTENANCE = int(os.environ.get("SKIP_MAINTENANCE", 0))
@@ -59,8 +59,8 @@ SCHEDULE_NAMES = namedtuple("SCHEDULE_NAMES", _SCHEDULE_NAMES)(*_SCHEDULE_NAMES)
 # Must be in order
 # 1/1 - first date assumed to be last entry
 SCHEDULE_START_TIMES = {
-    SCHEDULE_NAMES.WINTER: {"month": 5, "day": 1},
-    SCHEDULE_NAMES.SUMMER: {"month": 8, "day": 1},
+    SCHEDULE_NAMES.WINTER: {"month": 4, "day": 1},
+    SCHEDULE_NAMES.SUMMER: {"month": 10, "day": 1},
 }
 
 # Time to wait in between schedule tasks/checks
@@ -69,96 +69,98 @@ SCHEDULE_IDLE_CHECK_INTERVAL = 30
 
 SCHEDULES = {
     SCHEDULE_NAMES.WINTER: (
-        ('scheduler.every().hour.at(":40")', "sbd"),
-        ('scheduler.every().hour.at(":45")', "gps"),  # 2 mins?
-        ('scheduler.every().hour.at(":46")', "seabird"),  # 2 mins?
-        ('scheduler.every().hour.at(":47")', "solar"),  # 2 min
-        ('scheduler.every().hour.at(":49")', "aquadopp"),  # 2 mins?
-        ('scheduler.every().hour.at(":50")', "crx"),  # 1 min
-        ('scheduler.every().hour.at(":52")', "weather"),  # 2 min
-        ('scheduler.every().hour.at(":55")', "sbd"),
-        ('scheduler.every().day.at("00:00")', "upload"),
-        ('scheduler.every().day.at("06:00")', "upload"),
-        ('scheduler.every().day.at("12:00")', "upload"),
-        ('scheduler.every().day.at("12:00")', "orders"),  # 20 mins
-        ('scheduler.every().day.at("18:00")', "upload"),
-        ('scheduler.every().day.at("21:00")', "dts"),
-        ('scheduler.every().day.at("22:00")', "upload"),
-        ('scheduler.every().day.at("23:00")', "tps"),
+        ('scheduler.every().hour.at(":40")', 'sbd'),
+        ('scheduler.every().hour.at(":45")', 'gps'),
+        ('scheduler.every().hour.at(":46")', 'seabird'),
+        ('scheduler.every().hour.at(":47")', 'solar'),
+        ('scheduler.every().hour.at(":49")', 'aquadopp'),
+        ('scheduler.every().hour.at(":50")', 'crx'),
+        ('scheduler.every().hour.at(":52")', 'weather'),
+        ('scheduler.every().hour.at(":55")', 'sbd'),
+        ('scheduler.every().day.at("00:00")', 'upload'),
+        ('scheduler.every().day.at("05:00")', 'tps'),
+        ('scheduler.every().day.at("06:00")', 'upload'),
+        ('scheduler.every().day.at("07:00")', 'dts'),
+        ('scheduler.every().day.at("11:00")', 'tps'),
+        ('scheduler.every().day.at("12:00")', 'upload'),
+        ('scheduler.every().day.at("12:00")', 'orders'),
+        ('scheduler.every().day.at("17:00")', 'tps'),
+        ('scheduler.every().day.at("18:00")', 'camera'),
+        ('scheduler.every().day.at("20:00")', 'upload'),
+        ('scheduler.every().day.at("21:00")', 'upload'),
+        ('scheduler.every().day.at("22:00")', 'upload'),
+        ('scheduler.every().day.at("23:00")', 'tps'),
     ),
     SCHEDULE_NAMES.SUMMER: (
-        ('scheduler.every().hour.at(":40")', "sbd"),
-        ('scheduler.every().hour.at(":45")', "gps"),  # 2 mins?
-        ('scheduler.every().hour.at(":46")', "seabird"),  # 2 mins?
-        ('scheduler.every().hour.at(":47")', "solar"),  # 2 min
-        ('scheduler.every().hour.at(":49")', "aquadopp"),  # 2 mins?
-        ('scheduler.every().hour.at(":50")', "crx"),  # 1 min
-        ('scheduler.every().hour.at(":52")', "weather"),  # 2 min
-        ('scheduler.every().hour.at(":55")', "sbd"),
+        ('scheduler.every().hour.at(":40")', 'sbd'),
+        ('scheduler.every().hour.at(":45")', 'gps'),
+        ('scheduler.every().hour.at(":46")', 'seabird'),
+        ('scheduler.every().hour.at(":47")', 'solar'),
+        ('scheduler.every().hour.at(":49")', 'aquadopp'),
+        ('scheduler.every().hour.at(":50")', 'crx'),
+        ('scheduler.every().hour.at(":52")', 'weather'),
+        ('scheduler.every().hour.at(":55")', 'sbd'),
         #
-        ('scheduler.every().day.at("00:00")', "upload"),  # 20 mins
-        #
-        #
-        #
-        ('scheduler.every().day.at("03:00")', "dts"),  # 6 mins
-        ('scheduler.every().day.at("03:06")', "upload"),
-        ('scheduler.every().day.at("04:10")', "camera"),  # 2 mins
-        ('scheduler.every().day.at("04:15")', "upload"),
-        ('scheduler.every().day.at("05:10")', "tps"),  # 20 mins
-        ('scheduler.every().day.at("06:00")', "upload"),
-        #
-        ('scheduler.every().day.at("07:00")', "dts"),  # 6 mins
-        ('scheduler.every().day.at("07:10")', "upload"),
-        ('scheduler.every().day.at("08:00")', "upload"),
-        ('scheduler.every().day.at("09:00")', "upload"),
-        ('scheduler.every().day.at("10:00")', "upload"),
+        ('scheduler.every().day.at("00:00")', 'upload'),
         #
         #
         #
-        ('scheduler.every().day.at("11:05")', "dts"),  # 6 mins
-        ('scheduler.every().day.at("11:10")', "tps"),  # 20 mins
-        ('scheduler.every().day.at("12:00")', "orders"),  # 20 mins
-        ('scheduler.every().day.at("12:10")', "camera"),  # 2 mins
-        ('scheduler.every().day.at("12:15")', "upload"),
-        ('scheduler.every().day.at("13:00")', "upload"),
-        ('scheduler.every().day.at("14:00")', "upload"),
+        ('scheduler.every().day.at("03:00")', 'dts'),
+        ('scheduler.every().day.at("03:06")', 'upload'),
+        ('scheduler.every().day.at("04:10")', 'camera'),
+        ('scheduler.every().day.at("04:15")', 'upload'),
+        ('scheduler.every().day.at("06:00")', 'upload'),
+        #
+        ('scheduler.every().day.at("07:00")', 'dts'),
+        ('scheduler.every().day.at("07:10")', 'upload'),
+        ('scheduler.every().day.at("08:00")', 'upload'),
+        ('scheduler.every().day.at("09:00")', 'upload'),
+        ('scheduler.every().day.at("10:00")', 'upload'),
         #
         #
-        ('scheduler.every().day.at("15:00")', "dts"),  # 6 mins
-        ('scheduler.every().day.at("15:10")', "upload"),
-        ('scheduler.every().day.at("16:00")', "upload"),
         #
-        ('scheduler.every().day.at("17:10")', "tps"),  # 20 mins
-        ('scheduler.every().day.at("17:15")', "upload"),
-        ('scheduler.every().day.at("18:00")', "upload"),
-        #
-        ('scheduler.every().day.at("19:00")', "dts"),  # 6 mins
-        ('scheduler.every().day.at("20:00")', "upload"),
-        ('scheduler.every().day.at("20:10")', "camera"),  # 2 mins
-        ('scheduler.every().day.at("20:15")', "upload"),
-        ('scheduler.every().day.at("21:00")', "upload"),
-        ('scheduler.every().day.at("22:00")', "upload"),
+        ('scheduler.every().day.at("11:05")', 'dts'),
+        ('scheduler.every().day.at("12:00")', 'orders'),
+        ('scheduler.every().day.at("12:10")', 'camera'),
+        ('scheduler.every().day.at("12:15")', 'upload'),
+        ('scheduler.every().day.at("13:00")', 'upload'),
+        ('scheduler.every().day.at("14:00")', 'upload'),
         #
         #
-        ('scheduler.every().day.at("23:00")', "dts"),  # 6 mins
-        ('scheduler.every().day.at("23:10")', "tps"),  # 20 mins
+        ('scheduler.every().day.at("15:00")', 'dts'),
+        ('scheduler.every().day.at("15:10")', 'upload'),
+        ('scheduler.every().day.at("16:00")', 'upload'),
+        #
+        ('scheduler.every().day.at("17:15")', 'upload'),
+        ('scheduler.every().day.at("18:00")', 'upload'),
+        #
+        ('scheduler.every().day.at("19:00")', 'dts'),
+        ('scheduler.every().day.at("20:00")', 'upload'),
+        ('scheduler.every().day.at("20:10")', 'camera'),
+        ('scheduler.every().day.at("20:15")', 'upload'),
+        ('scheduler.every().day.at("21:00")', 'upload'),
+        ('scheduler.every().day.at("22:00")', 'upload'),
+        #
+        #
+        ('scheduler.every().day.at("23:00")', 'dts'),
+        # ('scheduler.every(2).hours', 'tps'),
     ),
     SCHEDULE_NAMES.TEST: (
-        ("scheduler.every(1).minutes", "seabird"),
-        ("scheduler.every(1).minutes", "solar"),
-        ("scheduler.every(1).minutes", "aquadopp"),
-        ("scheduler.every(1).minutes", "crx"),
-        ("scheduler.every(1).minutes", "gps"),
-        ("scheduler.every(1).minutes", "weather"),
-        ("scheduler.every(1).minutes", "dts"),
-        ("scheduler.every(1).minutes", "camera"),
-        ("scheduler.every(1).minutes", "tps"),
-        ("scheduler.every(1).minutes", "sbd"),
-        ("scheduler.every(1).minutes", "upload"),
-        ("scheduler.every(1).minutes", "orders"),
-        ("scheduler.every(1).minutes", "archive"),
+        ('scheduler.every(1).minutes', 'seabird'),
+        ('scheduler.every(1).minutes', 'solar'),
+        ('scheduler.every(1).minutes', 'aquadopp'),
+        ('scheduler.every(1).minutes', 'crx'),
+        ('scheduler.every(1).minutes', 'gps'),
+        ('scheduler.every(1).minutes', 'weather'),
+        ('scheduler.every(1).minutes', 'dts'),
+        ('scheduler.every(1).minutes', 'camera'),
+        ('scheduler.every(1).minutes', 'tps'),
+        ('scheduler.every(1).minutes', 'sbd'),
+        ('scheduler.every(1).minutes', 'upload'),
+        ('scheduler.every(1).minutes', 'orders'),
+        ('scheduler.every(1).minutes', 'archive'),
     ),
-    SCHEDULE_NAMES.SAFE: (('scheduler.every().day.at("12:00")', "orders"),),
+    SCHEDULE_NAMES.SAFE: (('scheduler.every().day.at("12:00")', 'orders'),),
 }
 
 START_SCHEDULE_COMMAND = "/media/mmcblk0p1/honcho/bin/run_schedule.sh"
@@ -340,17 +342,40 @@ CAMERA_STARTUP_WAIT = 60
 _LOOKS = ("SOUTH", "EAST", "WEST", "MIRROR", "DOWN")
 LOOKS = namedtuple("LOOKS", _LOOKS)(*_LOOKS)
 PTZ = namedtuple("PTZ", ("pan", "tilt", "zoom"))
+CROP = namedtuple("CROP", ("width", "height", "x", "y"))
+
 LOOK_PTZ = {
-    LOOKS.DOWN: PTZ(pan=-0.09, tilt=-1, zoom=0),
-    LOOKS.SOUTH: PTZ(pan=0.91, tilt=0.65, zoom=0),
-    LOOKS.EAST: PTZ(pan=0.41, tilt=0.65, zoom=0),
-    LOOKS.WEST: PTZ(pan=-0.61, tilt=0.65, zoom=0),
-    LOOKS.MIRROR: PTZ(pan=-0.09, tilt=-1, zoom=1),
+    LOOKS.DOWN: {
+        "ptz": PTZ(pan=-0.09, tilt=-1, zoom=0),
+        "crop": None,
+        "scale": IMAGE_REDUCTION_FACTOR,
+    },
+    LOOKS.SOUTH: {
+        "ptz": PTZ(pan=0.91, tilt=0.65, zoom=0),
+        "crop": None,
+        "scale": IMAGE_REDUCTION_FACTOR,
+    },
+    LOOKS.EAST: {
+        "ptz": PTZ(pan=0.41, tilt=0.65, zoom=0),
+        "crop": None,
+        "scale": IMAGE_REDUCTION_FACTOR,
+    },
+    LOOKS.WEST: {
+        "ptz": PTZ(pan=-0.61, tilt=0.65, zoom=0),
+        "crop": None,
+        "scale": IMAGE_REDUCTION_FACTOR,
+    },
+    LOOKS.MIRROR: {
+        "ptz": PTZ(pan=-0.09, tilt=-1, zoom=1),
+        "crop": CROP(width=378, height=378, x=765, y=720),
+        "scale": None,
+    },
 }
 LOOK_SERIES = (LOOKS.MIRROR, LOOKS.DOWN)
 
 CJPEG_COMMAND = "/media/mmcblk0p1/honcho/bin/cjpeg"
 DJPEG_COMMAND = "/media/mmcblk0p1/honcho/bin/djpeg"
+JPEGTRAN_COMMAND = "/media/mmcblk0p1/honcho/bin/jpegtran"
 
 
 # --------------------------------------------------------------------------------
