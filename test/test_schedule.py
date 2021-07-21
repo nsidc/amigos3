@@ -1,28 +1,24 @@
 from datetime import datetime
 
+from honcho.config import SCHEDULE_NAMES, SCHEDULE_START_TIMES, SCHEDULES
+from honcho.core.sched import load_schedule, select_schedule
 from schedule.schedule import Scheduler
-
-from honcho.core.sched import (
-    select_schedule,
-    load_schedule,
-)
-from honcho.config import SCHEDULE_START_TIMES, SCHEDULE_NAMES, SCHEDULES
 
 
 def test_select_schedule():
     # Check winter schedule start
     date = datetime(
         year=2019,
-        month=SCHEDULE_START_TIMES[SCHEDULE_NAMES.WINTER]['month'],
-        day=SCHEDULE_START_TIMES[SCHEDULE_NAMES.WINTER]['day'],
+        month=SCHEDULE_START_TIMES[SCHEDULE_NAMES.WINTER]["month"],
+        day=SCHEDULE_START_TIMES[SCHEDULE_NAMES.WINTER]["day"],
     )
     assert select_schedule(date) == SCHEDULE_NAMES.WINTER
 
     # Check summer schedule start
     date = datetime(
         year=2019,
-        month=SCHEDULE_START_TIMES[SCHEDULE_NAMES.SUMMER]['month'],
-        day=SCHEDULE_START_TIMES[SCHEDULE_NAMES.SUMMER]['day'],
+        month=SCHEDULE_START_TIMES[SCHEDULE_NAMES.SUMMER]["month"],
+        day=SCHEDULE_START_TIMES[SCHEDULE_NAMES.SUMMER]["day"],
     )
     assert select_schedule(date) == SCHEDULE_NAMES.SUMMER
 

@@ -1,10 +1,6 @@
-from honcho.config import (
-    SUPPLY_INDEX_DEVICE,
-    SUPPLY_DATA_DEVICE,
-    HUMIDITY_DATA_DEVICE,
-    TEMPERATURE_DATA_DEVICE,
-    VOLTAGE_CONVERTER,
-)
+from honcho.config import (HUMIDITY_DATA_DEVICE, SUPPLY_DATA_DEVICE,
+                           SUPPLY_INDEX_DEVICE, TEMPERATURE_DATA_DEVICE,
+                           VOLTAGE_CONVERTER)
 
 
 def _set_supply_index(index):

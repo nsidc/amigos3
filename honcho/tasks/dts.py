@@ -1,27 +1,17 @@
 import logging
 import os
+import xml.etree.ElementTree as ET
 from bisect import bisect
 from time import sleep
-import xml.etree.ElementTree as ET
 
-from honcho.tasks.common import task
+from honcho.config import (DATA_DIR, DATA_TAGS, DTS_CLEANUP_REMOTE, DTS_FULL_RES_RANGES,
+                           DTS_HOST, DTS_PULL_DELAY, DTS_USER, DTS_WIN_DIR, GPIO)
 from honcho.core.gpio import powered
-from honcho.util import clear_directory
-from honcho.tasks.archive import archive_filepaths
-from honcho.tasks.upload import queue_filepaths_chunked
-from honcho.config import (
-    GPIO,
-    DTS_HOST,
-    DTS_USER,
-    DATA_DIR,
-    DATA_TAGS,
-    DTS_PULL_DELAY,
-    DTS_WIN_DIR,
-    DTS_FULL_RES_RANGES,
-    DTS_CLEANUP_REMOTE,
-)
 from honcho.core.ssh import SSH
-
+from honcho.tasks.archive import archive_filepaths
+from honcho.tasks.common import task
+from honcho.tasks.upload import queue_filepaths_chunked
+from honcho.util import clear_directory
 
 logger = logging.getLogger(__name__)
 
@@ -34,30 +24,30 @@ def parse_xml(filename):
     tree = ET.parse(filename)
     root = tree.getroot()
 
-    log = root.find(ns('log'))
-    start_datetime = log.find(ns('startDateTimeIndex')).text
-    end_datetime = log.find(ns('endDateTimeIndex')).text
+    log = root.find(ns("log"))
+    start_datetime = log.find(ns("startDateTimeIndex")).text
+    end_datetime = log.find(ns("endDateTimeIndex")).text
 
-    custom_data = log.find(ns('customData'))
-    acquisition_time = custom_data.find(ns('acquisitionTime')).text
-    reference_temp = custom_data.find(ns('referenceTemperature')).text
-    probe1_temp = custom_data.find(ns('probe1Temperature')).text
-    probe2_temp = custom_data.find(ns('probe2Temperature')).text
+    custom_data = log.find(ns("customData"))
+    acquisition_time = custom_data.find(ns("acquisitionTime")).text
+    reference_temp = custom_data.find(ns("referenceTemperature")).text
+    probe1_temp = custom_data.find(ns("probe1Temperature")).text
+    probe2_temp = custom_data.find(ns("probe2Temperature")).text
 
     measurements = []
-    logdata = log.find(ns('logData'))
-    for entry in logdata.findall(ns('data')):
+    logdata = log.find(ns("logData"))
+    for entry in logdata.findall(ns("data")):
         values = [float(el) for el in entry.text.strip().split(",")]
         measurements.append(values)
 
     return (
         {
-            'start_datetime': start_datetime,
-            'end_datetime': end_datetime,
-            'acquisition_time': acquisition_time,
-            'reference_temp': reference_temp,
-            'probe1_temp': probe1_temp,
-            'probe2_temp': probe2_temp,
+            "start_datetime": start_datetime,
+            "end_datetime": end_datetime,
+            "acquisition_time": acquisition_time,
+            "reference_temp": reference_temp,
+            "probe1_temp": probe1_temp,
+            "probe2_temp": probe2_temp,
         },
         measurements,
     )
@@ -66,9 +56,9 @@ def parse_xml(filename):
 def downsample(measurements, factor=4):
     downsampled = []
     for i in range(0, len(measurements), factor):
-        window = measurements[i: (i + factor)]
+        window = measurements[i : (i + factor)]
         n = len(window)
-        transposed = zip(*measurements[i: (i + factor)])
+        transposed = zip(*measurements[i : (i + factor)])
         means = [sum(column) / n for column in transposed]
         downsampled.append(means)
 
@@ -93,17 +83,17 @@ def process_measurements(measurements):
 def write(metadata, measurements, filepath):
     with open(filepath, "w") as f:
         for k, v in metadata.items():
-            f.write('# ' + str(k) + '=' + str(v) + '\n')
+            f.write("# " + str(k) + "=" + str(v) + "\n")
 
         f.write("length,stokes,anti_stokes,reverse_stokes,reverse_anti_stokes,temp\n")
         for row in measurements:
-            f.write(','.join([str(el) for el in row]) + '\n')
+            f.write(",".join([str(el) for el in row]) + "\n")
 
 
 def query_latest(ssh, root=DTS_WIN_DIR):
     filepaths = []
     for channel in (1, 3):
-        channel_dir = os.path.join(root, 'channel {0}'.format(channel))
+        channel_dir = os.path.join(root, "channel {0}".format(channel))
         filepaths.append(ssh.latest_file(channel_dir))
 
     return filepaths
@@ -135,7 +125,7 @@ def process_data(filepaths):
         filename = os.path.basename(filepath)
         stem = os.path.splitext(filename)[0]
         output_filepath = os.path.join(
-            DATA_DIR(DATA_TAGS.DTS), stem.replace(' ', '_') + '.csv'
+            DATA_DIR(DATA_TAGS.DTS), stem.replace(" ", "_") + ".csv"
         )
         write(metadata, measurements, output_filepath)
         processed_filepaths.append(output_filepath)

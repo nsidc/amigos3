@@ -1,23 +1,17 @@
-import os
 import logging
-from time import sleep
-from datetime import datetime, timedelta
+import os
 from contextlib import closing
+from datetime import datetime, timedelta
+from time import sleep
 
 from serial import Serial
 
+from honcho.config import (DATA_DIR, DATA_LOG_FILENAME, DATA_TAGS, GPIO, GPS_BAUD,
+                           GPS_PORT)
 from honcho.core.gpio import powered
-from honcho.tasks.upload import queue_filepaths
 from honcho.tasks.archive import archive_filepaths
 from honcho.tasks.common import task
-from honcho.config import (
-    DATA_TAGS,
-    DATA_LOG_FILENAME,
-    DATA_DIR,
-    GPS_PORT,
-    GPS_BAUD,
-    GPIO,
-)
+from honcho.tasks.upload import queue_filepaths
 
 logger = logging.getLogger(__name__)
 
@@ -29,18 +23,18 @@ def query_binex(
     serial, output_filepath, n=MEASUREMENTS, interval=SECONDS_PER_MEASUREMENT
 ):
     binex_cmd = (
-        'out,,binex/'
-        '{00_00,01_01,01_02,01_05,01_06,7E_00,7D_00,7F_02,7F_03,7F_04,7F_05}\r\n'
+        "out,,binex/"
+        "{00_00,01_01,01_02,01_05,01_06,7E_00,7D_00,7F_02,7F_03,7F_04,7F_05}\r\n"
     )
     count = 0
-    with open(output_filepath, 'wb') as f:
+    with open(output_filepath, "wb") as f:
         next_query = datetime.now()
         while count < MEASUREMENTS:
             wait_time = next_query - datetime.now()
             if wait_time > timedelta(seconds=0):
                 sleep(wait_time.seconds)
 
-            logger.debug('Requesting binex')
+            logger.debug("Requesting binex")
             last_query = datetime.now()
             next_query = last_query + timedelta(seconds=SECONDS_PER_MEASUREMENT)
             serial.write(binex_cmd)
@@ -52,7 +46,7 @@ def query_binex(
                 if data:
                     f.write(data)
                 else:
-                    logger.debug('Recieved {0} bytes for binex message'.format(length))
+                    logger.debug("Recieved {0} bytes for binex message".format(length))
                     break
             count += 1
 

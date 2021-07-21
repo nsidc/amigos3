@@ -1,43 +1,37 @@
 import re
 from collections import namedtuple
+from contextlib import closing
 from datetime import datetime
 from time import sleep
-from contextlib import closing
 
 from serial import Serial
 
-from honcho.tasks.common import task
-from honcho.util import serial_request
+import honcho.core.data as data
+from honcho.config import (DATA_TAGS, GPIO, GPS_BAUD, GPS_PORT, GPS_STARTUP_WAIT,
+                           TIMESTAMP_FMT)
 from honcho.core.gpio import powered
 from honcho.core.system import set_datetime
-from honcho.config import (
-    GPIO,
-    GPS_PORT,
-    GPS_BAUD,
-    DATA_TAGS,
-    GPS_STARTUP_WAIT,
-    TIMESTAMP_FMT,
-)
+from honcho.tasks.common import task
 from honcho.tasks.sbd import queue_sbd
-import honcho.core.data as data
+from honcho.util import serial_request
 
 _DATA_KEYS = (
-    'timestamp',
-    'latitude',
-    'latitude_hemi',
-    'longitude',
-    'longitude_hemi',
-    'quality',
-    'sat_count',
-    'hdop',
-    'altitude',
-    'altitude_units',
-    'geoid_sep',
-    'geoid_sep_units',
-    'ref_id',
-    'checksum',
+    "timestamp",
+    "latitude",
+    "latitude_hemi",
+    "longitude",
+    "longitude_hemi",
+    "quality",
+    "sat_count",
+    "hdop",
+    "altitude",
+    "altitude_units",
+    "geoid_sep",
+    "geoid_sep_units",
+    "ref_id",
+    "checksum",
 )
-DATA_KEYS = namedtuple('DATA_KEYS', (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)
+DATA_KEYS = namedtuple("DATA_KEYS", (el.upper() for el in _DATA_KEYS))(*_DATA_KEYS)
 CONVERSION_TO_VALUE = {
     DATA_KEYS.TIMESTAMP: lambda v: v,
     DATA_KEYS.LATITUDE: float,
@@ -55,54 +49,54 @@ CONVERSION_TO_VALUE = {
     DATA_KEYS.CHECKSUM: lambda x: int(x[1:], 16),
 }
 CONVERSION_TO_STRING = {
-    DATA_KEYS.TIMESTAMP: '{0:' + TIMESTAMP_FMT + '}',
-    DATA_KEYS.LATITUDE: '{0:.2f}',
-    DATA_KEYS.LATITUDE_HEMI: '{0}',
-    DATA_KEYS.LONGITUDE: '{0:.2f}',
-    DATA_KEYS.LONGITUDE_HEMI: '{0}',
-    DATA_KEYS.QUALITY: '{0}',
-    DATA_KEYS.SAT_COUNT: '{0}',
-    DATA_KEYS.HDOP: '{0:.2f}',
-    DATA_KEYS.ALTITUDE: '{0:.4f}',
-    DATA_KEYS.ALTITUDE_UNITS: '{0}',
-    DATA_KEYS.GEOID_SEP: '{0:.4f}',
-    DATA_KEYS.GEOID_SEP_UNITS: '{0:.2f}',
-    DATA_KEYS.REF_ID: '{0}',
-    DATA_KEYS.CHECKSUM: '{0:02X}',
+    DATA_KEYS.TIMESTAMP: "{0:" + TIMESTAMP_FMT + "}",
+    DATA_KEYS.LATITUDE: "{0:.2f}",
+    DATA_KEYS.LATITUDE_HEMI: "{0}",
+    DATA_KEYS.LONGITUDE: "{0:.2f}",
+    DATA_KEYS.LONGITUDE_HEMI: "{0}",
+    DATA_KEYS.QUALITY: "{0}",
+    DATA_KEYS.SAT_COUNT: "{0}",
+    DATA_KEYS.HDOP: "{0:.2f}",
+    DATA_KEYS.ALTITUDE: "{0:.4f}",
+    DATA_KEYS.ALTITUDE_UNITS: "{0}",
+    DATA_KEYS.GEOID_SEP: "{0:.4f}",
+    DATA_KEYS.GEOID_SEP_UNITS: "{0:.2f}",
+    DATA_KEYS.REF_ID: "{0}",
+    DATA_KEYS.CHECKSUM: "{0:02X}",
 }
-GGASample = namedtuple('GGASample', DATA_KEYS)
+GGASample = namedtuple("GGASample", DATA_KEYS)
 
 
 def query_gga(serial):
-    expected_response = re.escape('$GPGGA') + '.*' + re.escape('\r\n')
-    raw = serial_request(serial, 'out,,nmea/GGA', expected_response, timeout=10)
+    expected_response = re.escape("$GPGGA") + ".*" + re.escape("\r\n")
+    raw = serial_request(serial, "out,,nmea/GGA", expected_response, timeout=10)
 
     return raw
 
 
 def get_datetime(serial):
-    expected_response = r'.*? [\d-]+' + re.escape('\r\n')
+    expected_response = r".*? [\d-]+" + re.escape("\r\n")
     raw_date = serial_request(
-        serial, 'print,/par/time/utc/date', expected_response, timeout=10
+        serial, "print,/par/time/utc/date", expected_response, timeout=10
     )
 
-    expected_response = r'.*? [\d\.:]+' + re.escape('\r\n')
+    expected_response = r".*? [\d\.:]+" + re.escape("\r\n")
     raw_time = serial_request(
-        serial, 'print,/par/time/utc/clock', expected_response, timeout=10
+        serial, "print,/par/time/utc/clock", expected_response, timeout=10
     )
 
     timestamp = datetime.strptime(
-        raw_date.strip().split()[1] + ' ' + raw_time.strip().split()[1],
-        '%Y-%m-%d %H:%M:%S.%f',
+        raw_date.strip().split()[1] + " " + raw_time.strip().split()[1],
+        "%Y-%m-%d %H:%M:%S.%f",
     )
 
     return timestamp
 
 
 def parse_gga(raw, timestamp):
-    pattern = re.escape('$GPGGA,') + '(?P<data>.*)' + re.escape('\r\n')
-    data = re.search(pattern, raw).group('data').split(',')
-    time = datetime.strptime(data[0], '%H%M%S.%f')
+    pattern = re.escape("$GPGGA,") + "(?P<data>.*)" + re.escape("\r\n")
+    data = re.search(pattern, raw).group("data").split(",")
+    time = datetime.strptime(data[0], "%H%M%S.%f")
     timestamp = timestamp.replace(
         hour=time.hour, minute=time.minute, second=time.second
     )

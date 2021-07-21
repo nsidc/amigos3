@@ -2,10 +2,10 @@ import argparse
 import logging
 
 import honcho.logs  # noqa - has to be 1st
-from honcho.version import version
-from honcho.config import GPIO, SEABIRD_IDS, AQUADOPP_IDS, LOOK_PTZ
-from honcho.util import ensure_all_dirs
+from honcho.config import AQUADOPP_IDS, GPIO, LOOK_PTZ, SEABIRD_IDS
 from honcho.tasks import import_task
+from honcho.util import ensure_all_dirs
+from honcho.version import version
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +16,14 @@ def init_parsers():
     common_parser.add_argument(
         "--log-level",
         help="Set logging level (DEBUG, INFO, ERROR)",
-        action='store',
+        action="store",
         default=None,
-        choices=('DEBUG', 'INFO', 'ERROR'),
+        choices=("DEBUG", "INFO", "ERROR"),
     )
-    common_parser.add_argument('-v', '--version', action='version', version=version)
+    common_parser.add_argument("-v", "--version", action="version", version=version)
 
     parser = argparse.ArgumentParser(parents=[common_parser])
-    subparsers = parser.add_subparsers(help='Commands', dest='command')
+    subparsers = parser.add_subparsers(help="Commands", dest="command")
 
     return parser, subparsers
 
@@ -38,12 +38,12 @@ def sched_handler(args):
 
 
 def add_schedule_parser(subparsers):
-    parser = subparsers.add_parser('schedule')
+    parser = subparsers.add_parser("schedule")
     parser.set_defaults(handler=sched_handler)
 
-    parser.add_argument("--run", help="Run schedule", action="store_true", dest='run')
+    parser.add_argument("--run", help="Run schedule", action="store_true", dest="run")
     parser.add_argument(
-        "--summary", help="Show schedule summary", action="store_true", dest='summary'
+        "--summary", help="Show schedule summary", action="store_true", dest="summary"
     )
 
 
@@ -63,7 +63,7 @@ def gpio_handler(args):
 
 
 def add_gpio_parser(subparsers):
-    parser = subparsers.add_parser('gpio')
+    parser = subparsers.add_parser("gpio")
     parser.set_defaults(handler=gpio_handler)
 
     for component in GPIO:
@@ -74,7 +74,7 @@ def add_gpio_parser(subparsers):
             action="append_const",
             default=[],
             const=component,
-            dest='turn_on',
+            dest="turn_on",
         )
         group.add_argument(
             "--{0}-off".format(component.lower()),
@@ -82,29 +82,31 @@ def add_gpio_parser(subparsers):
             action="append_const",
             default=[],
             const=component,
-            dest='turn_off',
+            dest="turn_off",
         )
 
     group.add_argument(
-        "--all-off", help="Turn off all gpio", action="store_true", dest='all_off'
+        "--all-off", help="Turn off all gpio", action="store_true", dest="all_off"
     )
 
     group.add_argument(
-        "--list", help="List gpio status", action="store_true", dest='list'
+        "--list", help="List gpio status", action="store_true", dest="list"
     )
 
 
 def system_handler(args):
-    from honcho.core.system import shutdown, reboot
+    from honcho.core.system import reboot, shutdown, system_standby
 
     if args.shutdown:
         shutdown()
     if args.reboot:
         reboot()
+    if args.standby:
+        system_standby(args.standby)
 
 
 def add_system_parser(subparsers):
-    parser = subparsers.add_parser('system')
+    parser = subparsers.add_parser("system")
     parser.set_defaults(handler=system_handler)
 
     group = parser.add_mutually_exclusive_group()
@@ -112,10 +114,18 @@ def add_system_parser(subparsers):
         "--shutdown",
         help="power down all peripherals and shutdown system",
         action="store_true",
-        dest='shutdown',
+        dest="shutdown",
     )
     group.add_argument(
-        "--reboot", help="reboot system", action="store_true", dest='reboot'
+        "--reboot", help="reboot system", action="store_true", dest="reboot"
+    )
+    group.add_argument(
+        "--standby",
+        help="Standby for X minutes",
+        action="store",
+        dest="standby",
+        type=int,
+        default=1,
     )
 
 
@@ -124,28 +134,28 @@ def onboard_handler(args):
     import honcho.core.onboard as onboard
 
     if args.voltage or args.all:
-        print('Voltage: {0}'.format(onboard.get_voltage()))
+        print("Voltage: {0}".format(onboard.get_voltage()))
 
     if args.current or args.all:
-        print('Current: {0}'.format(onboard.get_current()))
+        print("Current: {0}".format(onboard.get_current()))
 
     if args.temperature or args.all:
-        print('Temperature: {0}'.format(onboard.get_temperature()))
+        print("Temperature: {0}".format(onboard.get_temperature()))
 
     if args.humidity or args.all:
-        print('Humidity: {0}'.format(onboard.get_humidity()))
+        print("Humidity: {0}".format(onboard.get_humidity()))
 
     if args.solar or args.all:
         with gpio.powered([GPIO.SOL]):
-            print('Solar: {0}'.format(onboard.get_solar()))
+            print("Solar: {0}".format(onboard.get_solar()))
 
 
 def add_onboard_parser(subparsers):
-    parser = subparsers.add_parser('onboard')
+    parser = subparsers.add_parser("onboard")
     parser.set_defaults(handler=onboard_handler)
 
     parser.add_argument(
-        "-a", "--all", help="Check all onboard sensors", action="store_true", dest='all'
+        "-a", "--all", help="Check all onboard sensors", action="store_true", dest="all"
     )
 
     parser.add_argument(
@@ -153,7 +163,7 @@ def add_onboard_parser(subparsers):
         "--voltage",
         help="Check supply voltage",
         action="store_true",
-        dest='voltage',
+        dest="voltage",
     )
 
     parser.add_argument(
@@ -161,7 +171,7 @@ def add_onboard_parser(subparsers):
         "--current",
         help="Check supply current",
         action="store_true",
-        dest='current',
+        dest="current",
     )
 
     parser.add_argument(
@@ -169,20 +179,20 @@ def add_onboard_parser(subparsers):
         "--temperature",
         help="Check temperature",
         action="store_true",
-        dest='temperature',
+        dest="temperature",
     )
 
     parser.add_argument(
-        "-H", "--humidity", help="Check humidity", action="store_true", dest='humidity'
+        "-H", "--humidity", help="Check humidity", action="store_true", dest="humidity"
     )
 
     parser.add_argument(
-        "-s", "--solar", help="Check solar", action="store_true", dest='solar'
+        "-s", "--solar", help="Check solar", action="store_true", dest="solar"
     )
 
 
 def sbd_handler(args):
-    sbd = import_task('sbd')
+    sbd = import_task("sbd")
 
     if args.message:
         sbd.send(args.message)
@@ -195,42 +205,42 @@ def sbd_handler(args):
 
 
 def add_sbd_parser(subparsers):
-    parser = subparsers.add_parser('sbd')
+    parser = subparsers.add_parser("sbd")
     parser.set_defaults(handler=sbd_handler)
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
-        "--send", help="Send sbd message", action="store", dest='message', default=''
+        "--send", help="Send sbd message", action="store", dest="message", default=""
     )
     group.add_argument(
-        "--list", help="List queued SBDs", action="store_true", dest='list'
+        "--list", help="List queued SBDs", action="store_true", dest="list"
     )
     group.add_argument(
-        "--clear", help="Clear queued SBDs", action="store_true", dest='clear'
+        "--clear", help="Clear queued SBDs", action="store_true", dest="clear"
     )
     group.add_argument(
-        "--run", help="Send queued SBDs", action="store_true", dest='run'
+        "--run", help="Send queued SBDs", action="store_true", dest="run"
     )
 
 
 def solar_handler(args):
-    solar = import_task('solar')
+    solar = import_task("solar")
 
     if args.run:
         solar.execute()
 
 
 def add_solar_parser(subparsers):
-    parser = subparsers.add_parser('solar')
+    parser = subparsers.add_parser("solar")
     parser.set_defaults(handler=solar_handler)
 
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--run", help="Execute routine", action="store_true", dest="run"
     )
 
 
 def orders_handler(args):
-    orders = import_task('orders')
+    orders = import_task("orders")
 
     if args.get:
         orders.get_orders()
@@ -245,24 +255,24 @@ def orders_handler(args):
 
 
 def add_orders_parser(subparsers):
-    parser = subparsers.add_parser('orders')
+    parser = subparsers.add_parser("orders")
     parser.set_defaults(handler=orders_handler)
 
-    parser.add_argument("--get", help="Get orders", action="store_true", dest='get')
+    parser.add_argument("--get", help="Get orders", action="store_true", dest="get")
     parser.add_argument(
-        "--perform", help="Perform orders", action="store_true", dest='perform'
+        "--perform", help="Perform orders", action="store_true", dest="perform"
     )
     parser.add_argument(
-        "--report", help="Report results", action="store_true", dest='report'
+        "--report", help="Report results", action="store_true", dest="report"
     )
     parser.add_argument(
         "--clean-up",
         help="Clean up orders and results",
         action="store_true",
-        dest='cleanup',
+        dest="cleanup",
     )
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--run", help="Execute routine", action="store_true", dest="run"
     )
 
 
@@ -274,16 +284,16 @@ def imm_handler(args):
 
 
 def add_imm_parser(subparsers):
-    parser = subparsers.add_parser('imm')
+    parser = subparsers.add_parser("imm")
     parser.set_defaults(handler=imm_handler)
 
     parser.add_argument(
-        "--repl", help="Start imm repl", action="store_true", dest='repl'
+        "--repl", help="Start imm repl", action="store_true", dest="repl"
     )
 
 
 def aquadopp_handler(args):
-    aquadopp = import_task('aquadopp')
+    aquadopp = import_task("aquadopp")
 
     if args.device_id:
         device_ids = [args.device_id]
@@ -300,24 +310,24 @@ def aquadopp_handler(args):
 
 
 def add_aquadopp_parser(subparsers):
-    parser = subparsers.add_parser('aquadopp')
+    parser = subparsers.add_parser("aquadopp")
     parser.set_defaults(handler=aquadopp_handler)
 
     parser.set_defaults(callbacks=[])
 
-    parser.add_argument("--get", help="Get sample(s)", action="store_true", dest='get')
-    parser.add_argument("--id", help="Device id", action="store", dest='device_id')
+    parser.add_argument("--get", help="Get sample(s)", action="store_true", dest="get")
+    parser.add_argument("--id", help="Device id", action="store", dest="device_id")
     parser.add_argument(
-        "-n", help="Number of samples", action="store", dest='n', type=int, default=1
+        "-n", help="Number of samples", action="store", dest="n", type=int, default=1
     )
 
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--run", help="Execute routine", action="store_true", dest="run"
     )
 
 
 def seabird_handler(args):
-    seabird = import_task('seabird')
+    seabird = import_task("seabird")
 
     if args.device_id:
         device_ids = [args.device_id]
@@ -335,7 +345,7 @@ def seabird_handler(args):
         if args.all:
             samples = seabird.get_all_samples(device_ids)
         elif args.range:
-            begin, end = [int(el) for el in args.range.split(',')]
+            begin, end = [int(el) for el in args.range.split(",")]
             samples = seabird.get_sample_range(device_ids, begin, end)
         else:
             samples = seabird.get_recent_samples(device_ids, args.n)
@@ -353,63 +363,66 @@ def seabird_handler(args):
 
 
 def add_seabird_parser(subparsers):
-    parser = subparsers.add_parser('seabird')
+    parser = subparsers.add_parser("seabird")
     parser.set_defaults(handler=seabird_handler)
     parser.set_defaults(callbacks=[])
 
     parser.add_argument(
-        "--start", help="Start logging", action="store_true", dest='start'
+        "--start", help="Start logging", action="store_true", dest="start"
     )
 
-    parser.add_argument("--get", help="Get sample(s)", action="store_true", dest='get')
-    parser.add_argument("--id", help="Device id", action="store", dest='device_id')
+    parser.add_argument("--get", help="Get sample(s)", action="store_true", dest="get")
+    parser.add_argument("--id", help="Device id", action="store", dest="device_id")
     parser.add_argument(
-        "-n", help="Number of samples", action="store", dest='n', type=int, default=5
+        "-n", help="Number of samples", action="store", dest="n", type=int, default=5
     )
     parser.add_argument(
-        "--all", help="Get all samples", action="store_true", dest='all'
+        "--all", help="Get all samples", action="store_true", dest="all"
     )
     parser.add_argument(
-        "--range", help="Get range 'a,b' of samples a,b", action="store", dest='range',
+        "--range",
+        help="Get range 'a,b' of samples a,b",
+        action="store",
+        dest="range",
     )
     parser.add_argument(
-        "--status", help="Get device status", action="store_true", dest='status'
+        "--status", help="Get device status", action="store_true", dest="status"
     )
 
-    parser.add_argument("--set", help="Set parameters", action="store_true", dest='set')
+    parser.add_argument("--set", help="Set parameters", action="store_true", dest="set")
     parser.add_argument(
         "--interval",
         help="Set sampling interval",
         action="store",
-        dest='interval',
+        dest="interval",
         type=int,
     )
 
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--run", help="Execute routine", action="store_true", dest="run"
     )
 
-    parser.add_argument("--stop", help="Stop logging", action="store_true", dest='stop')
+    parser.add_argument("--stop", help="Stop logging", action="store_true", dest="stop")
 
 
 def dts_handler(args):
-    dts = import_task('dts')
+    dts = import_task("dts")
 
     if args.run:
         dts.execute()
 
 
 def add_dts_parser(subparsers):
-    parser = subparsers.add_parser('dts')
+    parser = subparsers.add_parser("dts")
     parser.set_defaults(handler=dts_handler)
 
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--run", help="Execute routine", action="store_true", dest="run"
     )
 
 
 def upload_handler(args):
-    upload = import_task('upload')
+    upload = import_task("upload")
 
     if args.upload_filepath:
         with upload.ftp_session() as session:
@@ -423,28 +436,28 @@ def upload_handler(args):
 
 
 def add_upload_parser(subparsers):
-    parser = subparsers.add_parser('upload')
+    parser = subparsers.add_parser("upload")
     parser.set_defaults(handler=upload_handler)
 
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--run", help="Execute routine", action="store_true", dest="run"
     )
 
     parser.add_argument(
-        "--upload", help="Upload single file", action="store", dest='upload_filepath'
+        "--upload", help="Upload single file", action="store", dest="upload_filepath"
     )
 
     parser.add_argument(
-        "--list", help="List files queued to upload", action="store_true", dest='list'
+        "--list", help="List files queued to upload", action="store_true", dest="list"
     )
 
     parser.add_argument(
-        "--clear", help="Clear upload queue", action="store_true", dest='clear'
+        "--clear", help="Clear upload queue", action="store_true", dest="clear"
     )
 
 
 def camera_handler(args):
-    camera = import_task('camera')
+    camera = import_task("camera")
 
     if not all(el is None for el in (args.pan, args.tilt, args.zoom)):
         pan = float(args.pan) if args.pan is not None else None
@@ -452,56 +465,56 @@ def camera_handler(args):
         zoom = float(args.zoom) if args.zoom is not None else None
         camera.set_ptz(pan, tilt, zoom)
     if args.snapshot:
-        camera.snapshot('snapshot.jpg')
+        camera.snapshot("snapshot.jpg")
     if args.look:
-        ptz = LOOK_PTZ[args.look.upper()]
+        ptz = LOOK_PTZ[args.look.upper()]["ptz"]
         camera.set_ptz(*ptz)
     if args.run:
         camera.execute()
 
 
 def add_camera_parser(subparsers):
-    parser = subparsers.add_parser('camera')
+    parser = subparsers.add_parser("camera")
     parser.set_defaults(handler=camera_handler)
 
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--run", help="Execute routine", action="store_true", dest="run"
     )
     parser.add_argument(
-        "--pan", help="Pan to value (-1 to 1)", action="store", dest='pan'
+        "--pan", help="Pan to value (-1 to 1)", action="store", dest="pan"
     )
     parser.add_argument(
-        "--tilt", help="Tilt to value (-1 to 1)", action="store", dest='tilt'
+        "--tilt", help="Tilt to value (-1 to 1)", action="store", dest="tilt"
     )
     parser.add_argument(
-        "--zoom", help="Zoom to value (0 to 1)", action="store", dest='zoom'
+        "--zoom", help="Zoom to value (0 to 1)", action="store", dest="zoom"
     )
 
     parser.add_argument(
-        "--snapshot", help="Take snapshot", action="store_true", dest='snapshot'
+        "--snapshot", help="Take snapshot", action="store_true", dest="snapshot"
     )
     parser.add_argument(
-        "--look", help="Look at preconfigured location", action="store", dest='look'
+        "--look", help="Look at preconfigured location", action="store", dest="look"
     )
 
 
 def crx_handler(args):
-    crx = import_task('crx')
+    crx = import_task("crx")
     if args.run:
         crx.execute()
 
 
 def add_crx_parser(subparsers):
-    parser = subparsers.add_parser('crx')
+    parser = subparsers.add_parser("crx")
     parser.set_defaults(handler=crx_handler)
 
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--run", help="Execute routine", action="store_true", dest="run"
     )
 
 
 def weather_handler(args):
-    weather = import_task('weather')
+    weather = import_task("weather")
 
     if args.get:
         samples = weather.get_samples(args.n)
@@ -514,21 +527,27 @@ def weather_handler(args):
 
 
 def add_weather_parser(subparsers):
-    parser = subparsers.add_parser('weather')
+    parser = subparsers.add_parser("weather")
     parser.set_defaults(handler=weather_handler)
 
     parser.add_argument(
-        "--get", help="Get measurement", action="store_true", dest='get'
+        "--get", help="Get measurement", action="store_true", dest="get"
     )
     parser.add_argument(
-        "--run", help="Execute routine", action="store_true", dest='run'
+        "--run", help="Execute routine", action="store_true", dest="run"
+    )
+    parser.add_argument(
+        "-n", help="Number of samples", action="store", dest="n", type=int, default=1
+    )
+    parser.add_argument(
+        "--average", help="Average samples", action="store_true", dest="average"
     )
 
 
 def gps_handler(args):
-    gps = import_task('gps')
-    binex = import_task('binex')
-    tps = import_task('tps')
+    gps = import_task("gps")
+    binex = import_task("binex")
+    tps = import_task("tps")
 
     if args.get_gga:
         sample = gps.get_gga()
@@ -547,35 +566,35 @@ def gps_handler(args):
 
 
 def add_gps_parser(subparsers):
-    parser = subparsers.add_parser('gps')
+    parser = subparsers.add_parser("gps")
     parser.set_defaults(handler=gps_handler)
 
     parser.add_argument(
-        "--run-gga", help="Execute gga routine", action="store_true", dest='run_gga'
+        "--run-gga", help="Execute gga routine", action="store_true", dest="run_gga"
     )
     parser.add_argument(
         "--run-binex",
         help="Execute binex routine",
         action="store_true",
-        dest='run_binex',
+        dest="run_binex",
     )
     parser.add_argument(
-        "--run-tps", help="Execute tps routine", action="store_true", dest='run_tps'
+        "--run-tps", help="Execute tps routine", action="store_true", dest="run_tps"
     )
 
     parser.add_argument(
-        "--get-gga", help="Get GGA data", action="store_true", dest='get_gga'
+        "--get-gga", help="Get GGA data", action="store_true", dest="get_gga"
     )
     parser.add_argument(
-        "--get-binex", help="Get binex data", action="store_true", dest='get_binex'
+        "--get-binex", help="Get binex data", action="store_true", dest="get_binex"
     )
     parser.add_argument(
-        "--get-tps", help="Get binex data", action="store_true", dest='get_tps'
+        "--get-tps", help="Get binex data", action="store_true", dest="get_tps"
     )
 
 
 def supervise_handler(args):
-    supervise = import_task('supervise')
+    supervise = import_task("supervise")
 
     if args.run:
         supervise.execute()
@@ -586,17 +605,17 @@ def supervise_handler(args):
 
 
 def add_supervise_parser(subparsers):
-    parser = subparsers.add_parser('supervise')
+    parser = subparsers.add_parser("supervise")
     parser.set_defaults(handler=supervise_handler)
 
     parser.add_argument(
-        "--run", help="Execute supervise routine", action="store_true", dest='run'
+        "--run", help="Execute supervise routine", action="store_true", dest="run"
     )
     parser.add_argument(
-        "--history", help="Print task history", action="store_true", dest='history'
+        "--history", help="Print task history", action="store_true", dest="history"
     )
     parser.add_argument(
-        "--health", help="Print health check", action="store_true", dest='health'
+        "--health", help="Print health check", action="store_true", dest="health"
     )
 
 
@@ -629,11 +648,11 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    if hasattr(args, 'callbacks'):
+    if hasattr(args, "callbacks"):
         for callback in args.callbacks:
             callback()
 
-    if hasattr(args, 'handler'):
+    if hasattr(args, "handler"):
         args.handler(args)
 
 
