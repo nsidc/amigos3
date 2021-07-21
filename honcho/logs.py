@@ -1,6 +1,6 @@
 import logging
 
-from honcho.config import LOG_LEVEL, LOG_FORMATTER
+from honcho.config import LOG_FORMATTER, LOG_LEVEL
 
 logging_initialized = False
 

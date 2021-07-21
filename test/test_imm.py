@@ -14,16 +14,16 @@ def imm_mock(serial_mock):
                 res += os.read(port, 1)
 
             # write back the response
-            if res == b'PwrOn\r\n':
-                os.write(port, b'<Executed/>\r\n')
-            elif res == b'ForceCaptureLine\r\n':
-                os.write(port, b'<Executed/>\r\n')
-            elif res == b'ReleaseLine\r\n':
-                os.write(port, b'<Executed/>\r\n')
-            elif res == b'SendWakeUpTone\r\n':
-                os.write(port, b'<Executing/>\r\n<Executed/>\r\n')
+            if res == b"PwrOn\r\n":
+                os.write(port, b"<Executed/>\r\n")
+            elif res == b"ForceCaptureLine\r\n":
+                os.write(port, b"<Executed/>\r\n")
+            elif res == b"ReleaseLine\r\n":
+                os.write(port, b"<Executed/>\r\n")
+            elif res == b"SendWakeUpTone\r\n":
+                os.write(port, b"<Executing/>\r\n<Executed/>\r\n")
             else:
-                os.write(port, b'ERROR\r\n')
+                os.write(port, b"ERROR\r\n")
 
     with serial_mock(listener=imm_listener, baud=9600) as serial:
         yield serial

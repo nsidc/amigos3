@@ -1,18 +1,17 @@
 import os
 import string
-from math import ceil
 from datetime import datetime
+from math import ceil
 
 import pytest
-
 from honcho.config import SBD_MAX_SIZE, SBD_QUEUE_FILENAME
 from honcho.core.iridium import message_size
-from honcho.tasks.sbd import send, queue_sbd, send_queue, clear_queue
+from honcho.tasks.sbd import clear_queue, queue_sbd, send, send_queue
 
 
 @pytest.fixture(autouse=True)
 def skip_sleep(mocker):
-    mocker.patch('honcho.tasks.sbd.sleep', mocker.stub())
+    mocker.patch("honcho.tasks.sbd.sleep", mocker.stub())
 
 
 @pytest.fixture
@@ -28,28 +27,28 @@ def sbd_mock(serial_mock, mocker):
         while 1:
             res = read_line(port)
             # write back the response
-            if res.upper() == b'AT+SBDD0\r\n':
-                os.write(port, b'\r\n0\r\n\r\nOK\r\n')
-            if res.upper() == b'AT\r\n':
-                os.write(port, b'\r\nOK\r\n')
-            elif res.upper() == b'AT+CSQ\r\n':
-                os.write(port, b'\r\n+CSQ:5\r\n\r\nOK\r\n')
-            elif res.upper() == b'AT+SBDWT\r\n':
-                os.write(port, b'\r\nREADY\r\n')
+            if res.upper() == b"AT+SBDD0\r\n":
+                os.write(port, b"\r\n0\r\n\r\nOK\r\n")
+            if res.upper() == b"AT\r\n":
+                os.write(port, b"\r\nOK\r\n")
+            elif res.upper() == b"AT+CSQ\r\n":
+                os.write(port, b"\r\n+CSQ:5\r\n\r\nOK\r\n")
+            elif res.upper() == b"AT+SBDWT\r\n":
+                os.write(port, b"\r\nREADY\r\n")
                 read_line(port)
-                os.write(port, b'\r\n0\r\n\r\nOK\r\n')
-            elif res.upper() == b'AT+SBDIX\r\n':
-                os.write(port, b'\r\n+SBDIX: 0, 73, 0, 0, 0, 0\r\n\r\nOK\r\n')
+                os.write(port, b"\r\n0\r\n\r\nOK\r\n")
+            elif res.upper() == b"AT+SBDIX\r\n":
+                os.write(port, b"\r\n+SBDIX: 0, 73, 0, 0, 0, 0\r\n\r\nOK\r\n")
             else:
-                os.write(port, b'ERROR\r\n')
+                os.write(port, b"ERROR\r\n")
 
     with serial_mock(listener=sbd_listener, baud=9600) as serial:
         yield serial
 
 
 def test_send_message(sbd_mock, mocker):
-    mocker.patch('honcho.tasks.sbd.Serial', lambda *args, **kwargs: sbd_mock)
-    mocker.patch('honcho.tasks.sbd.powered', mocker.stub())
+    mocker.patch("honcho.tasks.sbd.Serial", lambda *args, **kwargs: sbd_mock)
+    mocker.patch("honcho.tasks.sbd.powered", mocker.stub())
 
     digits_size = message_size(string.digits)
 
@@ -68,11 +67,11 @@ def test_send_message(sbd_mock, mocker):
 
 
 def test_queue_sbd(tmpdir, sbd_mock, mocker):
-    mocker.patch('honcho.tasks.sbd.Serial', lambda *args, **kwargs: sbd_mock)
-    mocker.patch('honcho.tasks.sbd.powered', mocker.stub())
-    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    mocker.patch("honcho.tasks.sbd.Serial", lambda *args, **kwargs: sbd_mock)
+    mocker.patch("honcho.tasks.sbd.powered", mocker.stub())
+    mocker.patch("honcho.tasks.sbd.SBD_QUEUE_DIR", str(tmpdir))
 
-    tag, message = 'tag', 'message'
+    tag, message = "tag", "message"
 
     queue_sbd(message, tag)
 
@@ -80,16 +79,16 @@ def test_queue_sbd(tmpdir, sbd_mock, mocker):
     assert len(files) == 1
 
     sbd_file = files[0]
-    assert sbd_file.read() == '{0},{1}'.format(tag, message)
+    assert sbd_file.read() == "{0},{1}".format(tag, message)
 
 
 def test_send_queue(tmpdir, sbd_mock, mocker):
-    mocker.patch('honcho.tasks.sbd.Serial', lambda *args, **kwargs: sbd_mock)
-    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    mocker.patch("honcho.tasks.sbd.Serial", lambda *args, **kwargs: sbd_mock)
+    mocker.patch("honcho.tasks.sbd.SBD_QUEUE_DIR", str(tmpdir))
     send = mocker.MagicMock()
-    mocker.patch('honcho.tasks.sbd.send', send)
+    mocker.patch("honcho.tasks.sbd.send", send)
 
-    tag, message = 'tag', 'message'
+    tag, message = "tag", "message"
     filename = SBD_QUEUE_FILENAME(tag=tag, timestamp=datetime.now())
     filepath = tmpdir.join(filename)
     filepath.write(message)
@@ -101,9 +100,9 @@ def test_send_queue(tmpdir, sbd_mock, mocker):
 
 
 def test_clear_queue(tmpdir, sbd_mock, mocker):
-    mocker.patch('honcho.tasks.sbd.SBD_QUEUE_DIR', str(tmpdir))
+    mocker.patch("honcho.tasks.sbd.SBD_QUEUE_DIR", str(tmpdir))
 
-    tag, message = 'tag', 'message'
+    tag, message = "tag", "message"
     filename = SBD_QUEUE_FILENAME(tag=tag, timestamp=datetime.now())
     filepath = tmpdir.join(filename)
     filepath.write(message)

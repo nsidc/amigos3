@@ -1,24 +1,16 @@
 import os
-import shutil
 import re
-from datetime import datetime
-from collections import MutableMapping
-from logging import getLogger
-from time import sleep, time, mktime
+import shutil
 import tarfile
+from collections import MutableMapping
 from contextlib import closing
+from datetime import datetime
+from logging import getLogger
 from netrc import netrc
+from time import mktime, sleep, time
 
-from honcho.config import (
-    ARCHIVE_DIR,
-    LOG_DIR,
-    DATA_DIR,
-    DATA_TAGS,
-    SBD_QUEUE_DIR,
-    NETRC_FILEPATH,
-    UPLOAD_QUEUE_DIR,
-)
-
+from honcho.config import (ARCHIVE_DIR, DATA_DIR, DATA_TAGS, LOG_DIR, NETRC_FILEPATH,
+                           SBD_QUEUE_DIR, UPLOAD_QUEUE_DIR)
 
 logger = getLogger(__name__)
 
@@ -36,17 +28,17 @@ def ensure_all_dirs():
     )
 
 
-def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
-    if not command.endswith('\r\n'):
-        command += '\r\n'
+def serial_request(serial, command, expected_regex=".+", timeout=10, poll=1):
+    if not command.endswith("\r\n"):
+        command += "\r\n"
 
-    logger.debug('Sending command to {0}: {1}'.format(serial.port, command.strip()))
+    logger.debug("Sending command to {0}: {1}".format(serial.port, command.strip()))
     serial.flushInput()
     sleep(1)
     serial.write(command)
     sleep(1)
     start_time = time()
-    response = ''
+    response = ""
     response_length = len(response)
     while time() - start_time < timeout:
         response += serial.read(serial.inWaiting())
@@ -61,11 +53,11 @@ def serial_request(serial, command, expected_regex='.+', timeout=10, poll=1):
         sleep(poll)
     else:
         logger.debug(
-            'Response collected from serial at timeout: {0}'.format(response.strip())
+            "Response collected from serial at timeout: {0}".format(response.strip())
         )
-        raise Exception('Timed out waiting for expected serial response')
+        raise Exception("Timed out waiting for expected serial response")
 
-    logger.debug('Response collected from serial: {0}'.format(response))
+    logger.debug("Response collected from serial: {0}".format(response))
 
     return response
 
@@ -76,8 +68,8 @@ class OrderedDict(dict, MutableMapping):
 
     def __init__(self, *args, **kwds):
         if len(args) > 1:
-            raise TypeError('expected at 1 argument, got %d', len(args))
-        if not hasattr(self, '_keys'):
+            raise TypeError("expected at 1 argument, got %d", len(args))
+        if not hasattr(self, "_keys"):
             self._keys = []
         self.update(*args, **kwds)
 
@@ -110,7 +102,7 @@ class OrderedDict(dict, MutableMapping):
     def __reduce__(self):
         items = [[k, self[k]] for k in self]
         inst_dict = vars(self).copy()
-        inst_dict.pop('_keys', None)
+        inst_dict.pop("_keys", None)
         return (self.__class__, (items,), inst_dict)
 
     # Methods with indirect access via the above methods
@@ -123,8 +115,8 @@ class OrderedDict(dict, MutableMapping):
     items = MutableMapping.items
 
     def __repr__(self):
-        pairs = ', '.join(map('%r: %r'.__mod__, self.items()))
-        return '%s({%s})' % (self.__class__.__name__, pairs)
+        pairs = ", ".join(map("%r: %r".__mod__, self.items()))
+        return "%s({%s})" % (self.__class__.__name__, pairs)
 
     def copy(self):
         return self.__class__(self)
@@ -143,13 +135,13 @@ def total_seconds(td):
 
 def format_timedelta(td):
     s = total_seconds(td)
-    labels = ('hrs', 'min', 'sec')
+    labels = ("hrs", "min", "sec")
     n = len(labels)
     for i, label in enumerate(labels):
         factor = float(60 ** (n - i - 1))
         count = s / factor
         if count >= 1:
-            return '{0:.2f} {1}'.format(count, label)
+            return "{0:.2f} {1}".format(count, label)
 
 
 def get_creds(host):
@@ -163,7 +155,7 @@ def convert_bytes(num):
     """
     this function will convert bytes to MB.... GB... etc
     """
-    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+    for x in ["bytes", "KB", "MB", "GB", "TB"]:
         if num < 1024.0:
             return "%3.1f %s" % (num, x)
         num /= 1024.0

@@ -1,13 +1,8 @@
 import logging
 from contextlib import contextmanager
 
-from honcho.config import (
-    POWER_INDEX_DEVICE,
-    POWER_DATA_DEVICE,
-    GPIO_CONFIG,
-    HUB_ALWAYS_ON,
-    GPIO,
-)
+from honcho.config import (GPIO, GPIO_CONFIG, HUB_ALWAYS_ON, POWER_DATA_DEVICE,
+                           POWER_INDEX_DEVICE)
 
 logger = logging.getLogger(__name__)
 
@@ -42,16 +37,16 @@ def _unset_mask(index, mask):
 
 
 def turn_on(component):
-    _set_mask(GPIO_CONFIG[component]['index'], GPIO_CONFIG[component]['mask'])
+    _set_mask(GPIO_CONFIG[component]["index"], GPIO_CONFIG[component]["mask"])
 
 
 def turn_off(component):
-    _unset_mask(GPIO_CONFIG[component]['index'], GPIO_CONFIG[component]['mask'])
+    _unset_mask(GPIO_CONFIG[component]["index"], GPIO_CONFIG[component]["mask"])
 
 
 def is_on(component):
-    index = GPIO_CONFIG[component]['index']
-    mask = GPIO_CONFIG[component]['mask']
+    index = GPIO_CONFIG[component]["index"]
+    mask = GPIO_CONFIG[component]["mask"]
     value = _get_value(index)
     result = bool(value & mask)
 
@@ -60,25 +55,25 @@ def is_on(component):
 
 def list():
     for component in GPIO:
-        print('{0}: {1}'.format(component, 'ON' if is_on(component) else 'OFF'))
+        print("{0}: {1}".format(component, "ON" if is_on(component) else "OFF"))
 
 
 @contextmanager
 def powered(components):
     for component in components:
         if is_on(component):
-            logger.debug('Already on: {0}'.format(component))
+            logger.debug("Already on: {0}".format(component))
         else:
-            logger.debug('Turning on: {0}'.format(component))
+            logger.debug("Turning on: {0}".format(component))
             turn_on(component)
     try:
         yield
     finally:
         for component in components:
             if component == GPIO.HUB and HUB_ALWAYS_ON:
-                logger.debug('Leaving on: {0}'.format(component))
+                logger.debug("Leaving on: {0}".format(component))
                 continue
-            logger.debug('Turning off {0}'.format(component))
+            logger.debug("Turning off {0}".format(component))
             turn_off(component)
 
 
