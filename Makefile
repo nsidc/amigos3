@@ -23,7 +23,7 @@ clean:
 
 lint:  # check style with flake8
 	source activate amigos-test-env && \
-	    flake8 --ignore E203 --exclude ./honcho/ext,./backup,./build
+	    flake8 --ignore E203,W503 --exclude ./honcho/ext,./backup,./build
 
 test: clean lint  # run unit tests
 	source activate amigos-test-env && \
