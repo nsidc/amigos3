@@ -56,7 +56,7 @@ def get_binex():
         DATA_DIR(DATA_TAGS.BNX), DATA_LOG_FILENAME(DATA_TAGS.BNX)
     )
     with powered([GPIO.SER, GPIO.GPS]):
-        with closing(Serial(GPS_PORT, GPS_BAUD)) as serial:
+        with closing(Serial(GPS_PORT, GPS_BAUD, timeout=60)) as serial:
             query_binex(serial, output_filepath)
 
     return output_filepath

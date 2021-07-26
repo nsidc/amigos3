@@ -33,7 +33,7 @@ def sbd_components():
 def send(message):
     logger.info("Sending sbd message")
     with sbd_components():
-        with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
+        with closing(Serial(SBD_PORT, SBD_BAUD, timeout=60)) as serial:
             send_sbd(serial, message)
 
 
@@ -97,7 +97,7 @@ def execute():
     queue = build_queue()
     if queue:
         with sbd_components():
-            with closing(Serial(SBD_PORT, SBD_BAUD)) as serial:
+            with closing(Serial(SBD_PORT, SBD_BAUD, timeout=60)) as serial:
                 for _ in xrange(SBD_SIGNAL_TRIES):
                     signal = check_signal(serial)
                     if signal >= 4:

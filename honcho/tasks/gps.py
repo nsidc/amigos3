@@ -113,7 +113,7 @@ def parse_gga(raw, timestamp):
 def get_gga():
     with powered([GPIO.SER, GPIO.GPS]):
         sleep(GPS_STARTUP_WAIT)
-        with closing(Serial(GPS_PORT, GPS_BAUD)) as serial:
+        with closing(Serial(GPS_PORT, GPS_BAUD, timeout=60)) as serial:
             timestamp = get_datetime(serial)
             set_datetime(timestamp)
             sample = parse_gga(query_gga(serial), timestamp)
