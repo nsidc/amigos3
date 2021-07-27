@@ -37,7 +37,7 @@ def power(serial):
 
 @contextmanager
 def active_line():
-    with closing(Serial(IMM_PORT, IMM_BAUD)) as serial:
+    with closing(Serial(IMM_PORT, IMM_BAUD, timeout=60)) as serial:
         with power(serial):
             with force_capture_line(serial):
                 sleep(IMM_STARTUP_WAIT)
