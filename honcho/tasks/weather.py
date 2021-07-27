@@ -115,7 +115,7 @@ def get_samples(n=12):
     with powered([GPIO.WXT]):
         with closing(Serial(WXT_PORT, WXT_BAUD, timeout=60)) as serial:
             while len(samples) < n and time() - start_time < WXT_TIMEOUT:
-                line = serial.readline(timeout=10)
+                line = serial.readline()
                 logger.debug("Read line from vaisala: {0}".format(line))
                 if re.search(LINE_PATTERN, line):
                     samples.append(parse_sample(line))

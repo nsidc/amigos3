@@ -35,7 +35,7 @@ def test_get_samples(weather_mock, mocker):
     datetime_mock.now.return_value = datetime(2019, 12, 1, 0, 0, 0)
     mocker.patch("honcho.tasks.weather.powered", mocker.stub())
     mocker.patch("honcho.tasks.weather.datetime", datetime_mock)
-    mocker.patch("honcho.tasks.weather.Serial", lambda p, b: weather_mock)
+    mocker.patch("honcho.tasks.weather.Serial", lambda *args, **kwargs: weather_mock)
 
     expected_samples = [
         weather.WeatherSample(

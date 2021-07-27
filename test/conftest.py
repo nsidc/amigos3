@@ -21,7 +21,7 @@ def serial_mock():
     """
 
     @contextmanager
-    def mock(listener, baud):
+    def mock(listener, baud, timeout=1):
         master, slave = pty.openpty()
         s_name = os.ttyname(slave)
 
@@ -31,7 +31,7 @@ def serial_mock():
         thread.start()
 
         # open a pySerial connection to the slave
-        serial = Serial(s_name, baud, timeout=1)
+        serial = Serial(s_name, baud, timeout=timeout)
 
         yield serial
 
