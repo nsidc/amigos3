@@ -2,7 +2,7 @@
 
 This order puts the specified files on the queue to be uploaded the following day.
 
-WARNING: large files (>10kb) should use the order 'upload_files_large.py' instead.
+WARNING: large files (>10kb) should use the order 'upload_large_files' instead.
 
 1. Change the value of the variable `FILEATHS` in 'upload_files.py' to the filepaths of files desired uploaded
 1. Move files for order into place on 'restricted_ftp' for appropriate tower to pick them up, e.g.
