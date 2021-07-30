@@ -38,11 +38,12 @@ codecov:
 # Communication
 # --------------------------------------------------------------------------------
 
+# NOTE: you may need to modify the port below for your system/serial cable
 serial-con: # Connect to triton serial console
 	sudo picocom -b 115200 /dev/ttyUSB0
 
 ssh-con: # Connect to triton over ssh
-	ssh root@amigos
+	ssh root@192.168.0.80
 
 # --------------------------------------------------------------------------------
 # Deployment
@@ -51,16 +52,16 @@ ssh-con: # Connect to triton over ssh
 sync: sync-system sync-code
 
 sync-system:
-	ssh root@amigos "mount / -o remount,rw"
-	rsync -vlrEc system/ root@amigos:/
-	ssh root@amigos "mount / -o remount,ro"
+	ssh root@192.168.0.80 "mount / -o remount,rw"
+	rsync -vlrEc system/ root@192.168.0.80:/
+	ssh root@192.168.0.80 "mount / -o remount,ro"
 
 sync-code: clean # sync the code to the amigos box
 	mkdir -p build
 	rm -rf build/*
 	cp -pr honcho build/
 	find ./build | grep .git | xargs rm -rf
-	rsync -vlrEc build/honcho root@amigos:/media/mmcblk0p1
+	rsync -vlrEc build/honcho root@192.168.0.80:/media/mmcblk0p1
 
 # --------------------------------------------------------------------------------
 # Deployment
@@ -68,4 +69,4 @@ sync-code: clean # sync the code to the amigos box
 
 backup: # sync the amigos box sd card
 	mkdir -p ./backup
-	scp -prCB root@amigos:/media/mmcblk0p1 "./backup/$$(date +%F_%R)"
+	scp -prCB root@192.168.0.80:/media/mmcblk0p1 "./backup/$$(date +%F_%R)"
