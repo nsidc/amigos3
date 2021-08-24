@@ -44,6 +44,30 @@ def init_parsers():
     return parser, subparsers
 
 
+def imm_handler(args):
+    if args.status:
+        with active_line(args.port, args.baud) as serial:
+            print(imm.get_status_xml(serial))
+            print(imm.discovery(serial))
+    elif args.console:
+        console(port=args.port, baud=args.baud)
+
+
+def add_imm_parser(subparsers):
+    parser = subparsers.add_parser("imm")
+    parser.set_defaults(handler=imm_handler)
+    parser.add_argument(
+        "--status",
+        help="Query imm status",
+        type=bool,
+    )
+    parser.add_argument(
+        "--console",
+        help="Get interactive console session",
+        type=bool,
+    )
+
+
 def seabird_handler(args):
     if args.status:
         with active_line(args.port, args.baud) as serial:
@@ -132,20 +156,11 @@ def add_aquadopp_parser(subparsers):
     )
 
 
-def console_handler(args):
-    console(port=args.port, baud=args.baud)
-
-
-def add_console_parser(subparsers):
-    parser = subparsers.add_parser("console")
-    parser.set_defaults(handler=console_handler)
-
-
 if __name__ == "__main__":
     parser, subparsers = init_parsers()
+    add_imm_parser(subparsers)
     add_seabird_parser(subparsers)
     add_aquadopp_parser(subparsers)
-    add_console_parser(subparsers)
     args = parser.parse_args()
 
     if hasattr(args, "callbacks"):

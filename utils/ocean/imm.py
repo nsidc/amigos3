@@ -1,7 +1,6 @@
 import logging
 import re
 from contextlib import closing, contextmanager
-from datetime import datetime
 from time import sleep
 
 from serial import Serial
@@ -62,3 +61,25 @@ def console(port=DEFAULT_PORT, baud=DEFAULT_BAUD):
             sleep(1)
             print(serial.read(serial.inWaiting()))
             sleep(3)
+
+
+def get_status_xml(serial, device_id):
+    raw = serial_request(serial, "GetSD", RESPONSE_END, timeout=10)
+    status_xml = re.search(
+        re.escape("<StatusData .*?>") + r".*" + re.escape("</StatusData>"),
+        raw,
+        flags=re.DOTALL,
+    ).group(0)
+
+    return status_xml
+
+
+def get_discovery(serial):
+    raw = serial_request(serial, "Disc", RESPONSE_END, timeout=10)
+    status_xml = re.search(
+        re.escape("<Discovery>") + r".*" + re.escape("</Discovery>"),
+        raw,
+        flags=re.DOTALL,
+    ).group(0)
+
+    return status_xml

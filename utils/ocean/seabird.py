@@ -1,13 +1,13 @@
-import datetime
 import logging
 import os
 import re
 import xml.etree.ElementTree as ET
 from collections import namedtuple
+from datetime import datetime
 from time import sleep
 
 from imm import (DEFAULT_BAUD, DEFAULT_PORT, REMOTE_RESPONSE_END, RESPONSE_END,
-                 active_line, wait_for_comms)
+                 active_line)
 from util import chunk_filepath, serial_request, write_chunk
 
 logger = logging.getLogger(__name__)
@@ -28,8 +28,11 @@ def get_status_xml(serial, device_id):
     raw = serial_request(
         serial, "#{0}GetSD".format(device_id), RESPONSE_END, timeout=10
     )
+    import pdb
+
+    pdb.set_trace()
     status_xml = re.search(
-        re.escape("<StatusData>") + r".*" + re.escape("</StatusData>"),
+        re.escape("<StatusData") + r".*" + re.escape("</StatusData>"),
         raw,
         flags=re.DOTALL,
     ).group(0)
@@ -128,9 +131,15 @@ def pull_samples(
                 )
 
 
-def get_sample_range(serial, device_id, begin, end):
+def get_sample_range(serial, device_id, start=None, end=None):
+    if start is None:
+        start = 1
+    if end is None:
+        status = get_status(serial, device_id)
+        end = status["samples"]
+
     raw = serial_request(
-        serial, "#{0}DD{1},{2}".format(device_id, begin, end), RESPONSE_END, timeout=10
+        serial, "#{0}DD{1},{2}".format(device_id, start, end), RESPONSE_END, timeout=10
     )
     samples = parse_samples(raw)
 
@@ -138,14 +147,14 @@ def get_sample_range(serial, device_id, begin, end):
 
 
 def parse_samples(raw):
-    pattern = "(?P<data>.*)" + re.escape("<Executed/>\r\n")
+    pattern = "(?P<data>.*?)" + re.escape("<Executed/>\r\n")
     match = re.search(pattern, raw, flags=re.DOTALL)
 
     _, values = match.group("data").strip().split("\r\n\r\n")
     values = [[el.strip() for el in row.split(",")] for row in values.split("\r\n")]
     samples = [
         SeabirdSample(
-            timestamp=datetime.strptime(" ".join(row[4:6]), "%d %b %Y %H:%M:%S"),
+            timestamp=datetime.strptime(" ".join(row[4:6]), "%H:%M:%S %d-%m-%Y"),
             **dict((key, row[i]) for i, key in enumerate(DATA_KEYS[1:]))
         )
         for row in values
