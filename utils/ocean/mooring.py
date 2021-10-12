@@ -47,7 +47,7 @@ def init_parsers():
 def imm_handler(args):
     if args.status:
         with imm.active_line(args.port, args.baud) as serial:
-            print(imm.get_status_xml(serial))
+            print(imm.get_status_xml(serial, args.device_id))
             print(imm.discovery(serial))
     elif args.console:
         imm.console(port=args.port, baud=args.baud)
