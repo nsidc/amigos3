@@ -5,8 +5,8 @@ import os
 from serial import Serial
 
 import aquadopp
+import imm
 import seabird
-from imm import DEFAULT_BAUD, DEFAULT_PORT, active_line, console
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -29,13 +29,13 @@ def init_parsers():
         "--port",
         help="Set port for serial connection to IMM",
         action="store",
-        default=DEFAULT_PORT,
+        default=imm.DEFAULT_PORT,
     )
     common_parser.add_argument(
         "--baud",
         help="Set baud rate for serial connection to IMM",
         action="store",
-        default=DEFAULT_BAUD,
+        default=imm.DEFAULT_BAUD,
     )
 
     parser = argparse.ArgumentParser(parents=[common_parser])
@@ -46,31 +46,25 @@ def init_parsers():
 
 def imm_handler(args):
     if args.status:
-        with active_line(args.port, args.baud) as serial:
+        with imm.active_line(args.port, args.baud) as serial:
             print(imm.get_status_xml(serial))
             print(imm.discovery(serial))
     elif args.console:
-        console(port=args.port, baud=args.baud)
+        imm.console(port=args.port, baud=args.baud)
 
 
 def add_imm_parser(subparsers):
     parser = subparsers.add_parser("imm")
     parser.set_defaults(handler=imm_handler)
+    parser.add_argument("--status", help="Query imm status", action="store_true")
     parser.add_argument(
-        "--status",
-        help="Query imm status",
-        type=bool,
-    )
-    parser.add_argument(
-        "--console",
-        help="Get interactive console session",
-        type=bool,
+        "--console", help="Get interactive console session", action="store_true"
     )
 
 
 def seabird_handler(args):
     if args.status:
-        with active_line(args.port, args.baud) as serial:
+        with imm.active_line(args.port, args.baud) as serial:
             print(seabird.get_status_xml(serial, args.device_id))
     else:
         seabird.pull_samples(
@@ -105,16 +99,12 @@ def add_seabird_parser(subparsers):
         action="store",
         default=None,
     )
-    parser.add_argument(
-        "--status",
-        help="Query device status",
-        type=bool,
-    )
+    parser.add_argument("--status", help="Query device status", action="store_true")
 
 
 def aquadopp_handler(args):
     if args.status:
-        with active_line(args.port, args.baud) as serial:
+        with imm.active_line(args.port, args.baud) as serial:
             print(aquadopp.get_status_xml(serial, args.device_id))
     else:
         aquadopp.pull_samples(
@@ -149,11 +139,7 @@ def add_aquadopp_parser(subparsers):
         action="store",
         default=None,
     )
-    parser.add_argument(
-        "--status",
-        help="Query device status",
-        type=bool,
-    )
+    parser.add_argument("--status", help="Query device status", action="store_true")
 
 
 if __name__ == "__main__":

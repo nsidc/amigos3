@@ -7,7 +7,7 @@ from collections import namedtuple
 from time import sleep
 
 from imm import (DEFAULT_BAUD, DEFAULT_PORT, REMOTE_RESPONSE_END, RESPONSE_END,
-                 active_line, wait_for_comms)
+                 active_line)
 from util import chunk_filepath, serial_request, write_chunk
 
 logger = logging.getLogger(__name__)

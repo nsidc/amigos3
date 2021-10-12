@@ -69,4 +69,4 @@ sync-code: clean # sync the code to the amigos box
 
 backup: # sync the amigos box sd card
 	mkdir -p ./backup
-	scp -prCB root@192.168.0.80:/media/mmcblk0p1 "./backup/$$(date +%F_%R)"
+	scp -prC root@192.168.0.80:/media/mmcblk0p1 "./backup/$$(date +%F_%R)"
