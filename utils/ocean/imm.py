@@ -63,7 +63,7 @@ def console(port=DEFAULT_PORT, baud=DEFAULT_BAUD):
             sleep(3)
 
 
-def get_status_xml(serial, device_id):
+def get_status_xml(serial):
     raw = serial_request(serial, "GetSD", RESPONSE_END, timeout=10)
     status_xml = re.search(
         re.escape("<StatusData .*?>") + r".*" + re.escape("</StatusData>"),
