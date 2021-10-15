@@ -25,12 +25,8 @@ SeabirdSample = namedtuple("SeabirdSample", DATA_KEYS)
 
 
 def get_status_xml(serial, device_id):
-    raw = serial_request(
-        serial, "#{0}GetSD".format(device_id), RESPONSE_END, timeout=10
-    )
-    import pdb
+    raw = serial_request(serial, "#{0}GetSD".format(device_id), RESPONSE_END, timeout=10)
 
-    pdb.set_trace()
     status_xml = re.search(
         re.escape("<StatusData") + r".*" + re.escape("</StatusData>"),
         raw,
